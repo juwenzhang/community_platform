@@ -1,0 +1,43 @@
+syntax = "proto3";
+
+package luhanxin.community.v1;
+
+import "google/protobuf/timestamp.proto";
+
+// 用户服务
+service UserService {
+  // 获取用户信息
+  rpc GetUser(GetUserRequest) returns (GetUserResponse);
+}
+
+// 获取用户请求
+message GetUserRequest {
+  // 用户 ID
+  string user_id = 1;
+}
+
+// 获取用户响应
+message GetUserResponse {
+  // 用户信息
+  User user = 1;
+}
+
+// 用户信息
+message User {
+  // 用户唯一标识
+  string id = 1;
+  // 用户名
+  string username = 2;
+  // 邮箱地址
+  string email = 3;
+  // 显示名称
+  string display_name = 4;
+  // 头像 URL
+  string avatar_url = 5;
+  // 个人简介
+  string bio = 6;
+  // 创建时间
+  google.protobuf.Timestamp created_at = 7;
+  // 更新时间
+  google.protobuf.Timestamp updated_at = 8;
+}

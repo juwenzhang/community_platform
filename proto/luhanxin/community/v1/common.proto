@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package luhanxin.community.v1;
+
+// 分页请求参数
+message PaginationRequest {
+  // 每页大小，默认 20，最大 100
+  int32 page_size = 1;
+  // 分页游标 token，首页为空
+  string page_token = 2;
+}
+
+// 分页响应元数据
+message PaginationResponse {
+  // 下一页游标 token，为空表示无更多数据
+  string next_page_token = 1;
+  // 总记录数（可选，某些查询可能不返回）
+  int32 total_count = 2;
+}

@@ -1,0 +1,78 @@
+# ========================
+# Rust
+# ========================
+target/
+**/*.rs.bk
+
+# ========================
+# Node.js / pnpm
+# ========================
+node_modules/
+.pnpm-store/
+# pnpm-lock.yaml
+
+# ========================
+# 构建产物
+# ========================
+dist/
+build/
+*.tsbuildinfo
+
+# ========================
+# 环境变量
+# ========================
+*.env
+!.env.example
+!docker/.env.example
+
+# ========================
+# IDE
+# ========================
+.idea/
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+
+# ========================
+# OS
+# ========================
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# ========================
+# Proto 生成代码
+# 当前策略：提交生成代码，确保无 buf 环境也能编译
+# ========================
+services/shared/src/proto/
+packages/shared-types/src/proto/
+
+# ========================
+# Docker
+# ========================
+docker/.env
+
+# ========================
+# 日志
+# ========================
+*.log
+logs/
+
+# ========================
+# 覆盖率 / 测试
+# ========================
+coverage/
+*.profraw
+*.profdata
+
+# ========================
+# Playwright
+# ========================
+e2e/test-results/
+e2e/playwright-report/
+e2e/blob-report/
+/playwright-report/
+/blob-report/
+/test-results/

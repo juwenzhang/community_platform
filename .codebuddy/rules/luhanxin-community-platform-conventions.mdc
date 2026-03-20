@@ -1,0 +1,183 @@
+---
+description: 
+globs:
+alwaysApply: true
+---
+
+# Luhanxin Community Platform — 项目规范
+
+## 1. 项目基本信息
+
+- **项目名称**：Luhanxin Community Platform（原 DevHub，已统一重命名）
+- **包名前缀**：`@luhanxin/`（NPM scope）
+- **容器前缀**：`luhanxin-`（Docker container name）
+- **Redis Key 前缀**：`luhanxin:`
+- **数据库名**：`luhanxin_community`
+- **Proto 包名**：`luhanxin.community.v1`
+
+## 2. 技术栈规范
+
+### 2.1 前端
+| 分类 | 技术 |
+|------|------|
+| 包管理 | pnpm + workspace (Monorepo) |
+| 微前端 | Garfish (web-infra-dev) |
+| 主框架 | React 18+ (核心子应用) |
+| 辅助框架 | Vue 3 (管理后台) |
+| 构建 | Vite |
+| 状态管理 | Zustand (React) / Pinia (Vue) |
+| **网络请求** | **@connectrpc/connect-web + protobuf-es** |
+| CSS | Tailwind CSS + CSS Modules |
+| 组件库 | Ant Design 5.x (React) / Naive UI (Vue) |
+| 代码规范 | Biome (format + lint) |
+| TypeScript | 全量 TypeScript |
+
+### 2.2 后端
+| 分类 | 技术 |
+|------|------|
+| 语言 | Rust (stable) |
+| Web 框架 | Axum 0.7+ |
+| RPC | Tonic (gRPC) |
+| **序列化** | **prost (Protobuf)** — 前后端交互 |
+| 内部序列化 | serde + serde_json — 配置/日志等 |
+| ORM | SeaORM |
+| 数据库 | PostgreSQL 16 |
+| 缓存 | Redis 7 |
+| 搜索 | Meilisearch |
+
+### 2.3 基础设施
+- Docker Compose (dev) → K8s (prod)
+- Prometheus + Grafana (监控)
+- Sentry (错误追踪)
+- 自研埋点 SDK → ClickHouse (行为分析)
+
+## 3. 前后端数据交互规范 ⚠️ 重要
+
+### 3.1 核心原则：Protobuf 优先
+
+**所有前后端 API 交互必须使用 Protocol Buffers (Protobuf)**，不使用 JSON。
+
+```
+前端 ←→ Gateway: HTTP/2 + Protobuf (Connect Protocol)
+Gateway ←→ 微服务: gRPC + Protobuf (Tonic)
+WebSocket 通知: Protobuf 二进制消息
+事件驱动: Redis Streams + Protobuf 编码
+```
+
+### 3.2 Proto 文件组织
+
+```
+proto/
+├── buf.yaml                    # Buf 配置
+├── buf.gen.yaml                # 代码生成配置
+└── community/
+    └── v1/
+        ├── article.proto
+        ├── user.proto
+        ├── comment.proto
+        ├── social.proto
+        ├── notification.proto
+        ├── search.proto
+        ├── common.proto        # 公共类型 (分页、时间戳)
+        └── upload.proto
+```
+
+### 3.3 Proto 编写规范
+
+- 使用 `syntax = "proto3"`
+- 包名格式：`luhanxin.community.v1`
+- 服务方法使用独立的 Request/Response message
+- 字段号一旦分配不可复用，删除字段使用 `reserved`
+- 使用 `buf lint` 检查，使用 `buf breaking` 检测不兼容变更
+
+### 3.4 代码生成
+
+```bash
+# 使用 buf 统一生成
+buf generate
+
+# 生成目标:
+# Rust:       services/shared/src/proto/
+# TypeScript: packages/shared-types/src/proto/
+```
+
+### 3.5 例外情况（可用 JSON）
+
+- 文件上传：`multipart/form-data`
+- 第三方 Webhook 回调
+- AI 流式输出：SSE (`text/event-stream`)
+- 开发调试：通过 `Accept: application/json` header 切换
+
+## 4. 文档目录规范
+
+```
+docs/
+├── design/              # 设计文档（架构设计、技术方案）
+│   └── YYYY-MM-DD/      # 按日期版本组织，方便追踪架构演进
+│       ├── 01-tech-overview.md
+│       ├── 02-frontend-architecture.md
+│       └── ...
+├── tech/                # 技术文档（技术调研、对比分析）
+└── logs/                # 对话日志、会议记录
+```
+
+> **设计文档按日期子目录组织**：每次重大架构设计/变更，在 `docs/design/` 下创建日期目录（`YYYY-MM-DD`），便于追溯不同版本的设计决策。
+
+## 5. 命名约定
+
+| 类型 | 格式 | 示例 |
+|------|------|------|
+| NPM 包 | `@luhanxin/<name>` | `@luhanxin/shared-types` |
+| 前端子应用 | `apps/<name>/` | `apps/feed/` |
+| 后端微服务 | `services/svc-<domain>/` | `services/svc-user/` |
+| API 路由 | `/api/v1/<service>/<resource>` | `/api/v1/articles` |
+| React 组件 | PascalCase | `ArticleCard.tsx` |
+| Vue 组件 | PascalCase | `UserProfile.vue` |
+| 工具函数 | camelCase | `formatDate.ts` |
+| 常量 | SCREAMING_SNAKE_CASE | `MAX_ARTICLE_LENGTH` |
+| Docker 容器 | `luhanxin-<service>` | `luhanxin-postgres` |
+| Redis Key | `luhanxin:<domain>:<id>` | `luhanxin:user:123` |
+| Proto 包 | `luhanxin.community.v1` | — |
+
+## 6. 目录约定
+
+```
+community_platform/
+├── apps/                    # 前端子应用 (Garfish)
+├── packages/                # 前端共享包
+├── services/                # Rust 后端微服务
+├── proto/                   # Protobuf 定义 (唯一真相源)
+├── docker/                  # Docker 配置
+├── docs/                    # 文档
+│   ├── design/              # 设计文档 (按日期子目录: YYYY-MM-DD/)
+│   ├── tech/                # 技术文档
+│   └── logs/                # 对话日志
+├── scripts/                 # 脚本工具
+└── openspec/                # OpenSpec 工作流
+```
+
+## 7. Git 提交规范
+
+格式：`<type>(<scope>): <subject>`
+
+- type: feat | fix | docs | style | refactor | perf | test | chore | ci | revert
+- scope: main | feed | article | editor | profile | search | admin | shared-types | shared-utils | shared-ui | sdk-tracker | sdk-auth | sdk-request | gateway | svc-user | svc-content | svc-social | svc-notification | svc-search | infra | docs | proto
+
+## 8. 协议选型速查
+
+| 场景 | 协议 | 数据格式 |
+|------|------|---------|
+| 前端 API 请求 | HTTP/2 (Connect) | Protobuf |
+| 实时通知推送 | WebSocket | Protobuf |
+| AI 流式输出 | SSE | JSON |
+| 微服务间调用 | gRPC (Tonic) | Protobuf |
+| 异步事件 | Redis Streams | Protobuf |
+| 文件上传 | HTTP/2 | multipart |
+| CDN 静态资源 | HTTP/3 | - |
+
+## 9. 会话日志规范
+
+每轮对话完成后，记录到 `.codebuddy/memory/YYYY-MM-DD.md`，包含：
+- 完成了什么工作
+- 核心技术决策
+- 文件变更清单

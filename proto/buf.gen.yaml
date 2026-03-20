@@ -1,0 +1,20 @@
+version: v2
+
+clean: true
+
+plugins:
+  # Rust: prost → services/shared/src/proto/
+  - local: protoc-gen-prost
+    out: ../services/shared/src/proto
+    opt:
+      - compile_well_known_types=false
+
+  # Rust: tonic (gRPC service stubs) → services/shared/src/proto/
+  - local: protoc-gen-tonic
+    out: ../services/shared/src/proto
+
+  # TypeScript: protobuf-es → packages/shared-types/src/proto/
+  - local: protoc-gen-es
+    out: ../packages/shared-types/src/proto
+    opt:
+      - target=ts

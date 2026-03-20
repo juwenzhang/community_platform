@@ -1,0 +1,261 @@
+---
+description: 
+alwaysApply: true
+enabled: true
+updatedAt: 2026-03-20T17:58:07.777Z
+provider: 
+---
+
+# 前端目录结构与组件规范
+
+## 1. src 顶层目录约定
+
+所有前端子应用（React / Vue）的 `src/` 下采用统一目录结构：
+
+```
+src/
+├── components/           # 🔵 全局公共组件（跨页面复用）
+├── stores/               # 🔵 全局状态管理（Zustand / Pinia）
+├── router/               # 🔵 路由配置（配置化）
+│   ├── index.ts          #     路由类型定义 + 注册入口
+│   ├── routes.tsx         #     路由配置表
+│   ├── renderRoutes.tsx   #     渲染器（配置 → Route 元素）
+│   └── menuFromRoutes.tsx #     菜单生成器（配置 → Menu items）
+├── hooks/                # 🔵 全局自定义 Hooks（React）
+├── composables/          # 🔵 全局 Composables（Vue，替代 hooks/）
+├── styles/               # 🔵 全局样式
+│   └── index.css
+├── utils/                # 🔵 纯工具函数（无副作用、与框架无关）
+├── lib/                  # 🔵 SDK 封装 / 第三方库 wrapper
+│   ├── connect.ts        #     Connect transport
+│   └── request.ts        #     通用请求封装
+├── logicals/             # 🔵 业务逻辑层（可复用的业务逻辑封装）
+├── i18n/                 # 🔵 国际化（可选）
+│   ├── index.ts
+│   ├── zh-CN.ts
+│   └── en-US.ts
+├── pages/                # 🔵 页面模块（React）
+├── views/                # 🔵 页面模块（Vue，替代 pages/）
+├── App.tsx / App.vue     # 应用根组件
+└── main.tsx / main.ts    # 入口文件
+```
+
+### 1.1 React vs Vue 目录差异
+
+| 目录 | React | Vue |
+|------|-------|-----|
+| 自定义逻辑复用 | `hooks/` | `composables/` |
+| 页面目录 | `pages/` | `views/` |
+| 状态管理 | `stores/` (Zustand) | `stores/` (Pinia) |
+| 路由目录 | `router/` | `router/` |
+| 组件后缀 | `.tsx` | `.vue` |
+
+### 1.2 各目录职责
+
+| 目录 | 职责 | 规则 |
+|------|------|------|
+| `components/` | 跨页面复用的 UI 组件 | 不依赖特定页面 store；必须有 Props 类型 |
+| `stores/` | 全局状态 | 跨页面共享的数据；认证、主题等 |
+| `router/` | 路由配置 | 配置化，菜单自动生成 |
+| `hooks/` / `composables/` | 全局可复用逻辑 | 跨页面使用的 hooks |
+| `utils/` | 纯函数工具 | `formatDate`、`debounce` 等，无框架依赖 |
+| `lib/` | SDK / 第三方封装 | Connect transport、axios wrapper 等 |
+| `logicals/` | 业务逻辑封装 | 可复用的业务处理流程（如表单校验逻辑、权限判断） |
+| `styles/` | 全局样式 | CSS 变量、Tailwind 配置、全局 reset |
+| `i18n/` | 国际化 | 多语言文案 |
+
+## 2. 页面模块规范（pages/ 或 views/）
+
+### 2.1 页面即模块
+
+**每个页面是一个独立目录**，内部结构与 `src/` 顶层保持一致：
+
+```
+pages/
+├── home/                    # 首页模块
+│   ├── index.tsx            # ⭐ 页面入口组件（必须 export default）
+│   ├── components/          # 页面私有组件
+│   │   ├── HeroBanner.tsx
+│   │   └── FeatureCard.tsx
+│   ├── stores/              # 页面私有状态（可选）
+│   │   └── useHomeStore.ts
+│   ├── hooks/               # 页面私有 hooks（可选）
+│   │   └── useFeedData.ts
+│   ├── utils/               # 页面私有工具函数（可选）
+│   └── styles/              # 页面私有样式（可选）
+│       └── home.module.css
+├── demo/
+│   ├── index.tsx
+│   └── components/
+│       └── ApiTester.tsx
+├── article/
+│   ├── index.tsx            # 文章列表页（根路径入口）
+│   ├── components/
+│   │   ├── ArticleCard.tsx
+│   │   └── ArticleFilter.tsx
+│   ├── stores/
+│   │   └── useArticleStore.ts
+│   ├── router/              # ⭐ 子路由配置
+│   │   └── routes.tsx
+│   └── pages/               # ⭐ 子页面（嵌套页面）
+│       ├── detail/
+│       │   ├── index.tsx    # 文章详情页 /article/:id
+│       │   └── components/
+│       │       └── CommentSection.tsx
+│       └── edit/
+│           ├── index.tsx    # 文章编辑页 /article/:id/edit
+│           └── components/
+│               └── MarkdownEditor.tsx
+└── profile/
+    ├── index.tsx
+    ├── router/
+    │   └── routes.tsx
+    └── pages/
+        ├── settings/
+        │   └── index.tsx
+        └── favorites/
+            └── index.tsx
+```
+
+### 2.2 页面内目录规则
+
+| 目录 | 是否必须 | 说明 |
+|------|---------|------|
+| `index.tsx` | ✅ 必须 | 页面入口，必须 `export default` |
+| `components/` | 按需 | 页面私有组件，仅本页面使用 |
+| `stores/` | 按需 | 页面私有状态 |
+| `hooks/` | 按需 | 页面私有 hooks |
+| `utils/` | 按需 | 页面私有工具函数 |
+| `styles/` | 按需 | 页面私有样式（CSS Modules） |
+| `router/routes.tsx` | 有子页面时 | 子路由配置表 |
+| `pages/` | 有子页面时 | 嵌套子页面 |
+
+### 2.3 核心原则
+
+| 原则 | 说明 |
+|------|------|
+| **页面即模块** | 每个页面是 `pages/<name>/` 目录，`index.tsx` 是入口 |
+| **结构自相似** | 页面内部结构与 `src/` 顶层一致（components/stores/hooks/utils/styles） |
+| **就近原则** | 只被单个页面使用的资源，放在该页面目录下 |
+| **向上提升** | 当某个资源被 ≥2 个页面引用时，提升到 `src/` 对应目录 |
+| **子路由自治** | 有嵌套页面的 page 可以有自己的 `router/routes.tsx` 和 `pages/` |
+
+## 3. 子路由规范
+
+### 3.1 根路由 vs 子路由
+
+```
+src/router/routes.tsx              ← 根路由配置（只管一级页面）
+pages/article/router/routes.tsx    ← article 子路由配置（管自己的子页面）
+pages/profile/router/routes.tsx    ← profile 子路由配置
+```
+
+**根路由只负责注册顶级页面**，每个页面内部的子路由由页面自己管理。
+
+### 3.2 根路由配置示例
+
+```tsx
+// src/router/routes.tsx — 只注册一级页面
+const routes: RouteConfig[] = [
+  { path: '/', index: true, component: lazy(() => import('@/pages/home')), meta: { title: '首页' } },
+  { path: '/demo', component: lazy(() => import('@/pages/demo')), meta: { title: 'Demo' } },
+  { path: '/article/*', component: lazy(() => import('@/pages/article')), meta: { title: '文章' } },
+  { path: '/profile/*', component: lazy(() => import('@/pages/profile')), meta: { title: '我的' } },
+];
+```
+
+### 3.3 页面子路由配置示例
+
+```tsx
+// pages/article/router/routes.tsx — article 自管子路由
+import { lazy } from 'react';
+import type { RouteConfig } from '@/router';
+
+const articleRoutes: RouteConfig[] = [
+  { path: ':id', component: lazy(() => import('../pages/detail')), meta: { title: '文章详情', hidden: true } },
+  { path: ':id/edit', component: lazy(() => import('../pages/edit')), meta: { title: '编辑文章', hidden: true, auth: true } },
+];
+
+export default articleRoutes;
+```
+
+```tsx
+// pages/article/index.tsx — 使用子路由
+import { Routes } from 'react-router-dom';
+import { renderRoutes } from '@/router/renderRoutes';
+import articleRoutes from './router/routes';
+import ArticleList from './components/ArticleList';
+
+export default function ArticlePage() {
+  return (
+    <Routes>
+      <Route index element={<ArticleList />} />
+      {renderRoutes(articleRoutes)}
+    </Routes>
+  );
+}
+```
+
+## 4. 组件规范
+
+### 4.1 公共组件（`src/components/`）
+
+- 跨页面复用的 UI 组件
+- 必须有明确的 Props 类型定义（TypeScript interface）
+- 不依赖特定页面的 store 或数据
+- 命名：PascalCase，文件名与组件名一致
+
+### 4.2 页面组件（`pages/<name>/components/`）
+
+- 仅属于当前页面的组件
+- 可以直接引用当前页面的 store
+- 当被其他页面引用时，**必须提升到 `src/components/`**
+
+## 5. 路由配置化规范
+
+### 5.1 核心思想
+
+**路由 = 配置数据**。通过一个统一的路由配置表定义路由，由渲染器自动生成 `<Route>` 元素。
+
+### 5.2 RouteConfig 类型
+
+```tsx
+interface RouteMeta {
+  title: string;           // 页面标题 / 菜单文字
+  icon?: string;           // 图标名
+  hidden?: boolean;        // 是否在菜单中隐藏
+  auth?: boolean;          // 是否需要登录
+  roles?: string[];        // 角色权限
+}
+
+interface RouteConfig {
+  path: string;
+  index?: boolean;
+  component?: React.LazyExoticComponent<React.ComponentType>;
+  garfish?: { appName: string };  // 微前端子应用（通过 app-registry 解析）
+  meta?: RouteMeta;
+  children?: RouteConfig[];
+  redirect?: string;
+}
+```
+
+### 5.3 菜单自动生成
+
+侧边栏菜单从路由配置表的 `meta` 字段自动生成，不维护两份数据。
+
+## 6. 新增页面 Checklist
+
+1. 在 `pages/` 下创建 `<name>/` 目录
+2. 创建 `<name>/index.tsx` 作为页面入口组件（`export default`）
+3. 页面私有组件放入 `<name>/components/`
+4. 页面私有状态放入 `<name>/stores/`（可选）
+5. 在 `src/router/routes.tsx` 中添加路由配置项
+6. 如有子页面：创建 `<name>/router/routes.tsx` + `<name>/pages/`
+7. 菜单自动生成，无需额外操作
+
+## 7. 新增子页面 Checklist
+
+1. 在 `pages/<parent>/pages/` 下创建 `<child>/` 目录
+2. 创建 `<child>/index.tsx` 入口
+3. 在 `pages/<parent>/router/routes.tsx` 中添加子路由配置
+4. 子路由 meta 通常设 `hidden: true`（不显示在主菜单）

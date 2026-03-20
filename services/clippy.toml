@@ -1,0 +1,14 @@
+# Luhanxin Community Platform — Clippy 配置
+# https://doc.rust-lang.org/clippy/configuration.html
+
+# 函数参数过多阈值
+too-many-arguments-threshold = 8
+
+# 结构体字段过多阈值
+too-many-lines-threshold = 200
+
+# 类型复杂度阈值
+type-complexity-threshold = 300
+
+# MSRV（Minimum Supported Rust Version）
+msrv = "1.85.0"

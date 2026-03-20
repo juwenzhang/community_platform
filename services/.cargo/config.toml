@@ -1,0 +1,24 @@
+# Luhanxin Community Platform — Cargo 配置
+
+[build]
+# 增量编译（dev 默认开启）
+incremental = true
+
+[target.x86_64-unknown-linux-gnu]
+# Linux 上使用 mold linker 加速链接（可选）
+# linker = "clang"
+# rustflags = ["-C", "link-arg=-fuse-ld=mold"]
+
+[target.aarch64-apple-darwin]
+# macOS ARM 默认即可
+
+[alias]
+# 自定义别名
+w = "watch -x run"
+t = "test"
+c = "clippy --all-targets --all-features -- -D warnings"
+f = "fmt --all -- --check"
+
+[env]
+# 默认环境变量
+RUST_BACKTRACE = "1"

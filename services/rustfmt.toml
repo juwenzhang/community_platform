@@ -1,0 +1,8 @@
+# Luhanxin Community Platform — Rust 格式化配置
+# https://rust-lang.github.io/rustfmt/
+
+edition = "2024"
+max_width = 100
+tab_spaces = 4
+use_field_init_shorthand = true
+use_try_shorthand = true

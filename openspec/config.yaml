@@ -1,0 +1,70 @@
+schema: spec-driven
+
+context: |
+  # Luhanxin Community Platform
+  
+  面向开发者的编程社区平台（类似掘金 / Dev.to），核心功能：技术内容创作、社交互动、开发者档案。
+  
+  ## 技术栈
+  
+  ### 前端
+  - pnpm Monorepo + Garfish 微前端
+  - React 18+ (核心子应用) + Vue 3 (管理后台)
+  - Vite 构建
+  - Zustand (React) / Pinia (Vue) 状态管理
+  - @connectrpc/connect-web + protobuf-es (网络请求，Protobuf over HTTP/2)
+  - Tailwind CSS + CSS Modules
+  - Ant Design 5.x (React) / Naive UI (Vue)
+  - Biome (format + lint)
+  - 全量 TypeScript
+  
+  ### 后端
+  - Rust (stable) + Axum 0.7+ (Web 框架)
+  - Tonic (gRPC) + prost (Protobuf)
+  - SeaORM (ORM) + PostgreSQL 16
+  - Redis 7 (缓存 + 事件流)
+  - Meilisearch (搜索)
+  
+  ### 基础设施
+  - Docker Compose (开发) → K8s (生产)
+  - Prometheus + Grafana (监控)
+  - Sentry (错误追踪)
+  - 自研埋点 SDK → ClickHouse (行为分析)
+  
+  ## 核心约定
+  - 前后端 API 交互：HTTP/2 + Protobuf (Connect Protocol)
+  - 微服务间通信：gRPC + Protobuf (Tonic)
+  - Proto 文件是 Single Source of Truth，使用 buf 工具链
+  - NPM 包名前缀：@luhanxin/
+  - Docker 容器前缀：luhanxin-
+  - Redis Key 前缀：luhanxin:
+  - 数据库名：luhanxin_community
+  - Proto 包名：luhanxin.community.v1
+  
+  ## 目录结构
+  ```
+  community_platform/
+  ├── apps/           # 前端子应用 (Garfish)
+  ├── packages/       # 前端共享包
+  ├── services/       # Rust 后端微服务
+  ├── proto/          # Protobuf 定义 (唯一真相源)
+  ├── docker/         # Docker 配置
+  ├── docs/           # 文档
+  ├── scripts/        # 脚本工具
+  └── openspec/       # OpenSpec 工作流
+  ```
+
+rules:
+  proposal:
+    - 提案用中文撰写
+    - 必须包含 "非目标 (Non-goals)" 部分
+    - 必须说明与现有设计文档的关系（引用 docs/design/ 中的哪份文档）
+  design:
+    - 设计文档用中文撰写
+    - 涉及 API 时必须使用 Protobuf 定义（不用 JSON）
+    - 涉及前端时必须使用 TypeScript
+    - 涉及后端时必须使用 Rust
+  tasks:
+    - 任务拆分粒度：每个任务 1-3 小时可完成
+    - 任务必须标注依赖关系
+    - 前后端任务分开，Proto 定义任务优先
