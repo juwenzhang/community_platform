@@ -18,6 +18,7 @@
 *.sql text eol=lf
 *.sh text eol=lf
 *.mdc text eol=lf
+*.proto text eol=lf
 
 # Rust
 Cargo.lock text eol=lf -diff

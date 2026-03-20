@@ -15,6 +15,8 @@ help: ## 显示帮助信息
 proto: ## 生成 Protobuf Rust + TypeScript 代码
 	@echo "🔄 Generating Protobuf code..."
 	cd proto && buf generate
+	@echo "🔧 Generating Rust proto mod.rs..."
+	@scripts/gen-proto-mod.sh
 	@echo "✅ Protobuf code generated"
 
 proto-lint: ## 检查 Proto 文件规范

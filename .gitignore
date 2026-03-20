@@ -46,8 +46,8 @@ Thumbs.db
 # Proto 生成代码
 # 当前策略：提交生成代码，确保无 buf 环境也能编译
 # ========================
-services/shared/src/proto/
-packages/shared-types/src/proto/
+# services/shared/src/proto/
+# packages/shared-types/src/proto/
 
 # ========================
 # Docker
