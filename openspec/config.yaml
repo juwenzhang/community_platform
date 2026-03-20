@@ -5,6 +5,10 @@ context: |
   
   面向开发者的编程社区平台（类似掘金 / Dev.to），核心功能：技术内容创作、社交互动、开发者档案。
   
+  ## 参考网站
+  - 稀土掘金：https://juejin.cn/
+  - CodeFather：https://www.codefather.cn/
+  
   ## 技术栈
   
   ### 前端
