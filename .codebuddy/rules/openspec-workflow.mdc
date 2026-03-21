@@ -1,0 +1,50 @@
+---
+description: 
+alwaysApply: true
+enabled: true
+updatedAt: 2026-03-21T15:02:38.470Z
+provider: 
+---
+
+# OpenSpec 先文档后代码开发规范
+
+## 核心原则
+
+**任何涉及新功能、架构变更、接口变更的工作，必须遵循「先写 OpenSpec 文档，再写代码」的流程。**
+
+## 强制规则
+
+### 1. 代码 PR 必须关联 OpenSpec 文档
+
+- 功能开发、架构变更、API 变更的代码 PR，**必须**先有对应的 OpenSpec change 文档（提案 + 设计 + 任务拆分）
+- 没有 OpenSpec 文档的功能 PR **不予合并**
+- 例外：纯 bugfix、typo 修复、依赖升级等不涉及功能/架构变更的 PR
+
+### 2. OpenSpec 工作流顺序
+
+```
+提案 (Proposal) → 设计 (Design) → 任务拆分 (Tasks) → 实现 (Implement) → 验证 (Verify) → 归档 (Archive)
+```
+
+不允许跳过提案和设计阶段直接进入实现。
+
+### 3. 文档要求
+
+- **提案**：必须包含「非目标 (Non-goals)」部分，必须说明与 `docs/design/` 中现有设计文档的关系
+- **设计**：涉及 API 时使用 Protobuf 定义，涉及前端使用 TypeScript，涉及后端使用 Rust
+- **任务**：每个任务 1-3h 可完成，标注依赖关系，Proto 定义任务优先
+
+### 4. 实现阶段
+
+- 使用 `openspec-apply-change` 技能按任务逐步实现
+- 实现完成后使用 `openspec-verify-change` 验证
+- 验证通过后使用 `openspec-archive-change` 归档
+
+## AI 助手行为要求
+
+当用户请求开发新功能或进行架构变更时：
+
+1. **先检查是否存在对应的 OpenSpec change**：查看 `openspec/changes/` 目录
+2. **如果不存在**：提醒用户需要先创建 OpenSpec 文档，并主动引导使用 `openspec-new-change` 或 `openspec-propose` 技能
+3. **如果已存在**：按照 change 中的任务拆分进行实现
+4. **不允许**在没有 OpenSpec 文档的情况下直接开始功能开发（bugfix 除外）
