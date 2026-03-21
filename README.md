@@ -241,8 +241,17 @@ community_platform/
 
 ### Git 提交规范
 
+```bash
+# commit rules
+<type>[(<scope>)]: <subject>
+
+git commit -m "feat(main): add new feature"
 ```
-<type>(<scope>): <subject>
+
+```bash
+# branch rules
+
+git checkout -b <type>/xxx
 ```
 
 - **type**: `feat` | `fix` | `docs` | `style` | `refactor` | `perf` | `test` | `chore` | `ci`
