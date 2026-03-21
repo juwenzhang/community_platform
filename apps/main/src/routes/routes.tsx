@@ -2,14 +2,14 @@ import { lazy } from 'react';
 import type { RouteConfig } from './index';
 
 /**
- * 路由配置表
+ * 本地路由配置表
  *
  * - 新增页面只需在此添加一条配置
  * - 菜单会从 meta 字段自动生成
  * - component 使用 lazy() 实现代码分割
- * - garfish 字段标记微前端子应用
+ * - garfish 字段标记微前端子应用（entry 从 registry 运行时解析）
  */
-const routes: RouteConfig[] = [
+const localRoutes: RouteConfig[] = [
   {
     path: '/',
     index: true,
@@ -25,17 +25,6 @@ const routes: RouteConfig[] = [
     meta: {
       title: 'Demo',
       icon: 'ThunderboltOutlined',
-    },
-  },
-  {
-    path: '/feed/*',
-    garfish: {
-      appName: 'feed',
-      entry: 'http://localhost:5174',
-    },
-    meta: {
-      title: '动态',
-      icon: 'ReadOutlined',
     },
   },
   {
@@ -56,4 +45,14 @@ const routes: RouteConfig[] = [
   },
 ];
 
-export default routes;
+/**
+ * 从注册表获取微前端路由并与本地路由合并
+ *
+ * 注册表中的子应用会被转换为 RouteConfig 格式插入路由表。
+ * 这样菜单和路由都能自动包含微前端子应用。
+ */
+export function getRoutes(registryRoutes: RouteConfig[] = []): RouteConfig[] {
+  return [...localRoutes, ...registryRoutes];
+}
+
+export default localRoutes;

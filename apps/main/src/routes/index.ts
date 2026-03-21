@@ -22,8 +22,8 @@ export interface RouteMeta {
 export interface GarfishAppConfig {
   /** 子应用唯一名称 */
   appName: string;
-  /** 子应用入口 URL */
-  entry: string;
+  /** 子应用入口 URL（可选，运行时从 registry 解析） */
+  entry?: string;
 }
 
 /** 单条路由配置 */

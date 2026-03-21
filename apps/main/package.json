@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite --port 5173",
-    "build": "tsc -b && vite build",
+    "build": "tsc --noEmit && vite build",
     "preview": "vite preview"
   },
   "dependencies": {
@@ -13,6 +13,7 @@
     "@bufbuild/protobuf": "^2.0.0",
     "@connectrpc/connect": "^2.0.0",
     "@connectrpc/connect-web": "^2.0.0",
+    "@luhanxin/app-registry": "workspace:*",
     "@luhanxin/shared-types": "workspace:*",
     "antd": "^5.22.0",
     "garfish": "^1.19.0",
@@ -22,6 +23,7 @@
     "zustand": "^5.0.0"
   },
   "devDependencies": {
+    "@luhanxin/dev-kit": "workspace:*",
     "@types/react": "^18.3.0",
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react": "^4.3.0",

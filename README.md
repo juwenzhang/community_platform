@@ -72,7 +72,8 @@ community_platform/
 │   ├── main/                #   主应用 (React + Garfish host)
 │   └── feed/                #   Feed 子应用 (React)
 ├── packages/                # 前端共享包
-│   └── shared-types/        #   Protobuf 生成的 TypeScript 类型
+│   ├── shared-types/        #   Protobuf 生成的 TypeScript 类型
+│   └── app-registry/        #   微前端子应用服务发现注册表
 ├── services/                # Rust 后端微服务
 │   ├── gateway/             #   HTTP Gateway (Axum)
 │   ├── svc-user/            #   用户服务 (Tonic gRPC)

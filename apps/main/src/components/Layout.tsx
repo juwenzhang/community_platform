@@ -1,17 +1,21 @@
 import { Layout as AntLayout, Menu } from 'antd';
 import { useMemo } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
+import type { RouteConfig } from '@/routes';
 import { generateMenuItems } from '@/routes/menuFromRoutes';
-import routes from '@/routes/routes';
 
 const { Header, Sider, Content } = AntLayout;
 
-export default function Layout() {
+interface LayoutProps {
+  routes: RouteConfig[];
+}
+
+export default function Layout({ routes }: LayoutProps) {
   const location = useLocation();
   const selectedKey = `/${location.pathname.split('/')[1] || ''}`;
 
-  // 从路由配置自动生成菜单——只需维护一份数据
-  const menuItems = useMemo(() => generateMenuItems(routes), []);
+  // 从合并后的路由配置自动生成菜单（包含注册表中的微前端应用）
+  const menuItems = useMemo(() => generateMenuItems(routes), [routes]);
 
   return (
     <AntLayout className="min-h-screen">

@@ -7,7 +7,7 @@
   "scripts": {
     "prepare": "husky",
     "init:playwright": "pnpm exec playwright install --with-deps",
-    "dev": "pnpm -r --parallel dev",
+    "dev": "bash scripts/dev.sh",
     "dev:main": "pnpm --filter @luhanxin/main dev",
     "dev:feed": "pnpm --filter @luhanxin/feed dev",
     "build": "pnpm -r build",
