@@ -10,7 +10,7 @@ use tower_http::{
     cors::CorsLayer,
     trace::TraceLayer,
 };
-use tracing::info;
+use tracing::{info};
 
 use shared::proto::user_service_client::UserServiceClient;
 use shared::proto::GetUserRequest;
@@ -22,8 +22,33 @@ struct AppState {
 }
 
 /// GET /health — 健康检查
-async fn health() -> Json<Value> {
-    Json(json!({ "status": "ok" }))
+async fn health(headers: axum::http::HeaderMap) -> Json<Value> {
+    info!("\nHealth check");
+
+    let timestamp = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|d| d.as_secs())
+        .unwrap_or(0);
+
+    let get_header = |name: &str| -> String {
+        headers
+            .get(name)
+            .and_then(|v| v.to_str().ok())
+            .unwrap_or("unknown")
+            .to_string()
+    };
+
+    Json(json!({
+        "status": "ok",
+        "version": "1.0.0",
+        "timestamp": timestamp,
+        "service": "gateway",
+        "data": {
+            "request_origin": get_header("origin"),
+            "request_referrer": get_header("referer"),
+            "request_user_agent": get_header("user-agent"),
+        }
+    }))
 }
 
 /// GET /api/v1/users/:user_id — 代理转发到 svc-user
@@ -92,11 +117,17 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let svc_user_url = std::env::var("SVC_USER_URL")
         .unwrap_or_else(|_| "http://127.0.0.1:50051".to_string());
 
+    // 启动前自动清理被占用的端口
+    if let Ok(port) = gateway_port.parse::<u16>() {
+        shared::net::kill_port_holder(port);
+    }
+
     let state = AppState {
         user_service_url: svc_user_url,
     };
 
     let app = Router::new()
+        .route("/", get(health))
         .route("/health", get(health))
         .route("/api/v1/users/{user_id}", get(get_user))
         .layer(CorsLayer::permissive())
@@ -105,7 +136,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let addr = format!("0.0.0.0:{gateway_port}");
     let listener = tokio::net::TcpListener::bind(&addr).await?;
-    info!(%addr, "Gateway HTTP server starting");
+    info!(%addr, "Gateway HTTP server starting, please access via http://localhost:{gateway_port}");
 
     axum::serve(listener, app).await?;
 

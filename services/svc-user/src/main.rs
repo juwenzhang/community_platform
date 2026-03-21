@@ -50,6 +50,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .init();
 
     let port = std::env::var("SVC_USER_PORT").unwrap_or_else(|_| "50051".to_string());
+
+    // 启动前自动清理被占用的端口
+    if let Ok(p) = port.parse::<u16>() {
+        shared::net::kill_port_holder(p);
+    }
+
     let addr = format!("0.0.0.0:{port}").parse()?;
 
     let user_service = UserServiceImpl::default();
