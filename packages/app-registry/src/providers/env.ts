@@ -1,11 +1,18 @@
 import type { AppManifest, ConfigProvider } from '../types';
 
-/** 安全获取当前环境模式 */
+/**
+ * 安全获取当前环境模式
+ *
+ * ⚠️ 关键：必须使用 `import.meta.env.MODE` 直接访问语法！
+ * Vite 在构建时会静态替换 `import.meta.env.MODE` → `"production"`，
+ * 但如果用间接方式（如 `const meta = import.meta; meta.env?.MODE`）
+ * Vite 无法识别并替换，导致运行时 import.meta.env 为 undefined，
+ * 始终 fallback 到 'development'，子应用 entry 指向 localhost:5174。
+ */
 function getEnvMode(): string {
   try {
-    // Vite 环境下 import.meta.env.MODE 可用
-    const meta = import.meta as unknown as { env?: { MODE?: string } };
-    return meta.env?.MODE ?? 'development';
+    // Vite 会在构建时将 import.meta.env.MODE 静态替换为 "production" 字符串
+    return import.meta.env.MODE ?? 'development';
   } catch {
     return 'development';
   }

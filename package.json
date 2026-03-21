@@ -13,6 +13,8 @@
     "build": "pnpm -r build",
     "build:main": "pnpm --filter @luhanxin/main build",
     "build:feed": "pnpm --filter @luhanxin/feed build",
+    "build:preview": "bash scripts/build-preview.sh",
+    "preview": "bash scripts/build-preview.sh && pnpm --filter @luhanxin/main preview",
     "typecheck": "pnpm -r --parallel exec tsc --noEmit",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
