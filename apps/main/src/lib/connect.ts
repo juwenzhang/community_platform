@@ -1,10 +1,12 @@
-import { createConnectTransport } from '@connectrpc/connect-web';
+import { createGrpcWebTransport } from '@connectrpc/connect-web';
 
 /**
- * Connect Transport 配置
- * 连接到 Gateway HTTP 服务，使用 Connect Protocol + Protobuf
+ * gRPC-Web Transport 配置
+ * 连接到 Gateway HTTP 服务，使用 gRPC-Web 协议 + Protobuf
+ *
+ * - 开发环境：Vite dev server proxy 转发到 Gateway (localhost:8000)
+ * - 生产环境：Nginx / K8s Ingress 反代到 Gateway
  */
-export const transport = createConnectTransport({
-  // Vite dev server 会代理 /api 到 localhost:8000 (Gateway)
-  baseUrl: 'http://localhost:8000',
+export const transport = createGrpcWebTransport({
+  baseUrl: '/',
 });

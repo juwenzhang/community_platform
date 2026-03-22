@@ -1,39 +1,47 @@
 import { ApiOutlined, UserOutlined } from '@ant-design/icons';
+import { ConnectError, createClient } from '@connectrpc/connect';
+import type { User } from '@luhanxin/shared-types';
+import { UserService } from '@luhanxin/shared-types';
 import { Alert, Button, Card, Descriptions, Input, Space, Tag, Typography } from 'antd';
 import { useState } from 'react';
 
+import { transport } from '@/lib/connect';
+
 const { Text } = Typography;
 
-interface UserInfo {
-  user_id: string;
-  username: string;
-  display_name: string;
-  avatar_url: string;
-  bio: string;
-}
+// 创建类型安全的 gRPC-Web 客户端
+const userClient = createClient(UserService, transport);
 
 /** API 请求测试器 — Demo 页面私有组件 */
 export default function ApiTester() {
   const [userId, setUserId] = useState('user-123');
-  const [response, setResponse] = useState<UserInfo | null>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<{ message: string; code?: string } | null>(null);
 
   const handleFetch = async () => {
     setLoading(true);
     setError(null);
-    setResponse(null);
+    setUser(null);
 
     try {
-      const res = await fetch(`/api/v1/users/${userId}`);
-      if (!res.ok) {
-        const errBody = await res.json().catch(() => ({}));
-        throw new Error(errBody.error || `HTTP ${res.status}`);
+      const res = await userClient.getUser({ userId });
+      if (res.user) {
+        setUser(res.user);
+      } else {
+        setError({ message: '用户不存在', code: 'NOT_FOUND' });
       }
-      const data = await res.json();
-      setResponse(data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unknown error');
+      if (err instanceof ConnectError) {
+        setError({
+          message: err.message,
+          code: `gRPC ${err.code}`,
+        });
+      } else {
+        setError({
+          message: err instanceof Error ? err.message : 'Unknown error',
+        });
+      }
     } finally {
       setLoading(false);
     }
@@ -45,7 +53,7 @@ export default function ApiTester() {
         className="mt-6"
         title={
           <>
-            <ApiOutlined /> 调用 UserService.GetUser
+            <ApiOutlined /> 调用 UserService.GetUser (gRPC-Web)
           </>
         }
       >
@@ -65,8 +73,9 @@ export default function ApiTester() {
 
           <div className="flex gap-2 flex-wrap">
             <Tag color="blue">React 18</Tag>
-            <Tag color="green">Axum Gateway</Tag>
-            <Tag color="orange">Tonic gRPC</Tag>
+            <Tag color="cyan">@connectrpc/connect-web</Tag>
+            <Tag color="green">gRPC-Web</Tag>
+            <Tag color="orange">Tonic + tonic-web</Tag>
             <Tag color="purple">Protobuf</Tag>
           </div>
         </Space>
@@ -76,10 +85,10 @@ export default function ApiTester() {
         <Alert
           className="mt-4"
           type="error"
-          message="请求失败"
+          message={<span>请求失败 {error.code && <Tag color="red">{error.code}</Tag>}</span>}
           description={
             <div>
-              <p>{error}</p>
+              <p>{error.message}</p>
               <Text type="secondary" className="text-xs">
                 请确保 Gateway (localhost:8000) 和 svc-user (localhost:50051) 已启动
               </Text>
@@ -89,41 +98,42 @@ export default function ApiTester() {
         />
       )}
 
-      {response && (
+      {user && (
         <Card
           className="mt-4"
           title={
             <>
-              <UserOutlined /> 用户信息 (Gateway → gRPC → svc-user)
+              <UserOutlined /> 用户信息 (gRPC-Web → Gateway → gRPC → svc-user)
             </>
           }
         >
           <Descriptions column={1} bordered size="small">
-            <Descriptions.Item label="ID">{response.user_id}</Descriptions.Item>
-            <Descriptions.Item label="用户名">{response.username}</Descriptions.Item>
-            <Descriptions.Item label="显示名称">{response.display_name}</Descriptions.Item>
+            <Descriptions.Item label="ID">{user.id}</Descriptions.Item>
+            <Descriptions.Item label="用户名">{user.username}</Descriptions.Item>
+            <Descriptions.Item label="显示名称">{user.displayName}</Descriptions.Item>
             <Descriptions.Item label="头像">
               <Space>
-                <img src={response.avatar_url} alt="avatar" className="w-10 h-10 rounded-full" />
+                <img src={user.avatarUrl} alt="avatar" className="w-10 h-10 rounded-full" />
                 <Text type="secondary" className="text-xs">
-                  {response.avatar_url}
+                  {user.avatarUrl}
                 </Text>
               </Space>
             </Descriptions.Item>
-            <Descriptions.Item label="简介">{response.bio}</Descriptions.Item>
+            <Descriptions.Item label="简介">{user.bio}</Descriptions.Item>
           </Descriptions>
 
           <div className="mt-4 p-3 bg-gray-50 rounded-lg">
             <Text type="secondary" className="text-xs">
-              完整链路验证通过！数据流向：
+              ✅ 完整 gRPC-Web 链路验证通过！
             </Text>
             <div className="mt-1 text-xs text-gray-600 font-mono">
-              React → fetch(/api/v1/users/{'{id}'}) → Vite Proxy → Gateway:8000 → gRPC →
-              svc-user:50051 → Mock Data
+              React → createClient(UserService) → gRPC-Web Transport → Vite Proxy → Gateway:8000
+              (tonic-web) → gRPC → svc-user:50051 → Mock Data
             </div>
-            <pre className="mt-2 text-xs overflow-auto bg-white p-2 rounded border">
-              {JSON.stringify(response, null, 2)}
-            </pre>
+            <div className="mt-2 text-xs text-gray-500">
+              <strong>类型来源：</strong> @luhanxin/shared-types (proto 生成) ·{' '}
+              <strong>传输格式：</strong> application/grpc-web+proto
+            </div>
           </div>
         </Card>
       )}

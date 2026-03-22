@@ -17,6 +17,12 @@ export default defineConfig({
   server: {
     port: 5173,
     proxy: {
+      // gRPC-Web 请求：路径格式为 /<package>.<Service>/<Method>
+      '/luhanxin.community.v1': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+      },
+      // REST 端点（文件上传、health check 等）
       '/api': {
         target: 'http://localhost:8000',
         changeOrigin: true,

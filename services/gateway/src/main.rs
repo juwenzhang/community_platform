@@ -1,29 +1,74 @@
-use axum::{
-    Router,
-    Json,
-    extract::State,
-    routing::get,
-    http::StatusCode,
-};
+use axum::{Json, Router, routing::get};
 use serde_json::{json, Value};
-use tower_http::{
-    cors::CorsLayer,
-    trace::TraceLayer,
-};
-use tracing::{info};
+use tonic::{Request, Response, Status, service::Routes};
+use tonic::service::LayerExt;
+use tonic_web::GrpcWebLayer;
+use tower_http::cors::{AllowHeaders, AllowMethods, AllowOrigin, CorsLayer};
+use tower_http::trace::TraceLayer;
+use tracing::info;
 
-use shared::proto::user_service_client::UserServiceClient;
 use shared::proto::GetUserRequest;
+use shared::proto::GetUserResponse;
+use shared::proto::user_service_client::UserServiceClient;
+use shared::proto::user_service_server::{UserService, UserServiceServer};
 
-/// 应用状态
-#[derive(Clone)]
-struct AppState {
-    user_service_url: String,
+// ─────────────────────────────────────────────
+// GatewayUserService — BFF 层，代理转发到 svc-user
+// ─────────────────────────────────────────────
+
+/// Gateway 作为 BFF 层实现 UserService trait，
+/// 内部通过 gRPC 客户端调用 svc-user 微服务。
+#[derive(Debug, Clone)]
+pub struct GatewayUserService {
+    svc_user_url: String,
 }
 
-/// GET /health — 健康检查
+impl GatewayUserService {
+    pub fn new(svc_user_url: String) -> Self {
+        Self { svc_user_url }
+    }
+}
+
+#[tonic::async_trait]
+impl UserService for GatewayUserService {
+    async fn get_user(
+        &self,
+        request: Request<GetUserRequest>,
+    ) -> Result<Response<GetUserResponse>, Status> {
+        let req_inner = request.into_inner();
+        info!(user_id = %req_inner.user_id, "Gateway: forwarding GetUser to svc-user");
+
+        // 连接 svc-user gRPC 服务
+        let mut client =
+            UserServiceClient::connect(self.svc_user_url.clone())
+                .await
+                .map_err(|e| {
+                    tracing::error!(error = %e, "Failed to connect to svc-user");
+                    Status::unavailable(format!("svc-user is unavailable: {e}"))
+                })?;
+
+        // 转发请求
+        let response = client
+            .get_user(GetUserRequest {
+                user_id: req_inner.user_id,
+            })
+            .await
+            .map_err(|e| {
+                tracing::error!(error = %e, "gRPC call to svc-user failed");
+                e
+            })?;
+
+        Ok(response)
+    }
+}
+
+// ─────────────────────────────────────────────
+// REST 端点
+// ─────────────────────────────────────────────
+
+/// GET /health — 健康检查（保留 REST 格式）
 async fn health(headers: axum::http::HeaderMap) -> Json<Value> {
-    info!("\nHealth check");
+    info!("Health check");
 
     let timestamp = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
@@ -51,57 +96,9 @@ async fn health(headers: axum::http::HeaderMap) -> Json<Value> {
     }))
 }
 
-/// GET /api/v1/users/:user_id — 代理转发到 svc-user
-async fn get_user(
-    State(state): State<AppState>,
-    axum::extract::Path(user_id): axum::extract::Path<String>,
-) -> Result<Json<Value>, (StatusCode, Json<Value>)> {
-    let mut client = UserServiceClient::connect(state.user_service_url.clone())
-        .await
-        .map_err(|e| {
-            tracing::error!(error = %e, "Failed to connect to svc-user");
-            (
-                StatusCode::SERVICE_UNAVAILABLE,
-                Json(json!({
-                    "error": "service_unavailable",
-                    "message": format!("User service is unavailable: {e}")
-                })),
-            )
-        })?;
-
-    let response = client
-        .get_user(GetUserRequest {
-            user_id: user_id.clone(),
-        })
-        .await
-        .map_err(|e| {
-            tracing::error!(error = %e, "gRPC call failed");
-            let (status, msg) = match e.code() {
-                tonic::Code::NotFound => (StatusCode::NOT_FOUND, "User not found"),
-                tonic::Code::InvalidArgument => (StatusCode::BAD_REQUEST, "Invalid argument"),
-                _ => (StatusCode::INTERNAL_SERVER_ERROR, "Internal server error"),
-            };
-            (status, Json(json!({ "error": msg, "details": e.message() })))
-        })?;
-
-    let user = response
-        .into_inner()
-        .user
-        .ok_or_else(|| {
-            (
-                StatusCode::NOT_FOUND,
-                Json(json!({ "error": "User not found" })),
-            )
-        })?;
-
-    Ok(Json(json!({
-        "user_id": user.id,
-        "username": user.username,
-        "display_name": user.display_name,
-        "avatar_url": user.avatar_url,
-        "bio": user.bio,
-    })))
-}
+// ─────────────────────────────────────────────
+// Main
+// ─────────────────────────────────────────────
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -122,21 +119,43 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         shared::net::kill_port_holder(port);
     }
 
-    let state = AppState {
-        user_service_url: svc_user_url,
-    };
+    // ── gRPC 服务（带 gRPC-Web 支持）──
+    let user_service = GatewayUserService::new(svc_user_url);
+    let grpc_service = UserServiceServer::new(user_service);
 
-    let app = Router::new()
+    // 使用 tonic-web GrpcWebLayer 包装 gRPC 服务，使其支持 gRPC-Web 协议
+    let grpc_web_service = GrpcWebLayer::new().named_layer(grpc_service);
+
+    // 将 gRPC 服务转为 axum Router
+    let grpc_router = Routes::new(grpc_web_service).into_axum_router();
+
+    // ── REST 路由 ──
+    let rest_router = Router::new()
         .route("/", get(health))
-        .route("/health", get(health))
-        .route("/api/v1/users/{user_id}", get(get_user))
-        .layer(CorsLayer::permissive())
-        .layer(TraceLayer::new_for_http())
-        .with_state(state);
+        .route("/health", get(health));
+
+    // ── 合并路由：gRPC-Web + REST ──
+    let app = grpc_router
+        .merge(rest_router)
+        .layer(
+            // CORS 配置：允许 gRPC-Web 所需的 headers
+            CorsLayer::new()
+                .allow_origin(AllowOrigin::any())
+                .allow_methods(AllowMethods::any())
+                .allow_headers(AllowHeaders::any())
+                .expose_headers(tower_http::cors::ExposeHeaders::list([
+                    "grpc-status".parse().unwrap(),
+                    "grpc-message".parse().unwrap(),
+                    "grpc-encoding".parse().unwrap(),
+                    "grpc-accept-encoding".parse().unwrap(),
+                ]))
+                .max_age(std::time::Duration::from_secs(86400)),
+        )
+        .layer(TraceLayer::new_for_http());
 
     let addr = format!("0.0.0.0:{gateway_port}");
     let listener = tokio::net::TcpListener::bind(&addr).await?;
-    info!(%addr, "Gateway HTTP server starting, please access via http://localhost:{gateway_port}");
+    info!(%addr, "Gateway starting (gRPC-Web + REST), access via http://localhost:{gateway_port}");
 
     axum::serve(listener, app).await?;
 
