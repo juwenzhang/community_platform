@@ -7,7 +7,6 @@ interface GarfishContainerProps {
   appName: string;
 }
 
-const isDev = import.meta.env.DEV;
 let garfishInitialized = false;
 
 export default function GarfishContainer({ appName }: GarfishContainerProps) {
@@ -31,13 +30,11 @@ export default function GarfishContainer({ appName }: GarfishContainerProps) {
     Garfish.run({
       basename: '/',
       domGetter: '#garfish-container',
-      apps: garfishApps.map((app) => ({
-        ...app,
-        // 开发模式：Vite dev server 输出 ESM，Garfish VM 沙箱不支持 import 语句
-        // 关闭沙箱以避免 "Cannot use import statement outside a module" 错误
-        // 生产模式：子应用构建为 UMD，可正常使用沙箱
-        ...(isDev && { sandbox: { open: false } }),
-      })),
+      // Garfish VM 沙箱通过 eval() 执行脚本，不支持 ESM 的 import/export 语法。
+      // Vite 构建产物默认为 ESM 格式（dev 和 production 均如此），
+      // 因此需要关闭 VM 沙箱。样式隔离仍由 CSS Modules / Tailwind scoping 保障。
+      sandbox: { open: false },
+      apps: garfishApps,
     });
 
     return () => {
