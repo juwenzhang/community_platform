@@ -1,9 +1,9 @@
 import { ApiOutlined, UserOutlined } from '@ant-design/icons';
 import { ConnectError, createClient } from '@connectrpc/connect';
-import type { User } from '@luhanxin/shared-types';
+import type { GetUserRequest, User } from '@luhanxin/shared-types';
 import { UserService } from '@luhanxin/shared-types';
 import { Alert, Button, Card, Descriptions, Input, Space, Tag, Typography } from 'antd';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { transport } from '@/lib/connect';
 
@@ -12,12 +12,18 @@ const { Text } = Typography;
 // 创建类型安全的 gRPC-Web 客户端
 const userClient = createClient(UserService, transport);
 
+// 这里需要进行对应的重构类型一下，只需要自己的一些信息吧
+type RebuildGetUserRequest = Pick<GetUserRequest, 'userId'>;
+
 /** API 请求测试器 — Demo 页面私有组件 */
 export default function ApiTester() {
   const [userId, setUserId] = useState('user-123');
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<{ message: string; code?: string } | null>(null);
+  const [requestStructure, setRequestStructure] = useState<RebuildGetUserRequest>({
+    userId,
+  });
 
   const handleFetch = async () => {
     setLoading(true);
@@ -25,7 +31,7 @@ export default function ApiTester() {
     setUser(null);
 
     try {
-      const res = await userClient.getUser({ userId });
+      const res = await userClient.getUser(requestStructure);
       if (res.user) {
         setUser(res.user);
       } else {
@@ -46,6 +52,15 @@ export default function ApiTester() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    // 监听 userId 变化，自动刷新用户信息
+    if (userId) {
+      setRequestStructure({
+        userId,
+      });
+    }
+  }, [userId]);
 
   return (
     <>
