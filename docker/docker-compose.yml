@@ -58,6 +58,38 @@ services:
       retries: 5
       start_period: 10s
 
+  # ---------- Consul (服务发现) ----------
+  consul:
+    image: hashicorp/consul:latest
+    container_name: luhanxin-consul
+    restart: unless-stopped
+    command: agent -dev -client=0.0.0.0 -ui
+    ports:
+      - "${CONSUL_HTTP_PORT:-8500}:8500"   # HTTP API + Web UI
+      - "${CONSUL_DNS_PORT:-8600}:8600/udp" # DNS
+    healthcheck:
+      test: ["CMD", "consul", "members"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
+  # ---------- NATS (消息队列) ----------
+  nats:
+    image: nats:latest
+    container_name: luhanxin-nats
+    restart: unless-stopped
+    command: -m 8222
+    ports:
+      - "${NATS_PORT:-4222}:4222"          # Client
+      - "${NATS_MONITOR_PORT:-8222}:8222"  # Monitoring / Healthz
+    healthcheck:
+      test: ["CMD", "nats-server", "--signal", "ldm=http://localhost:8222"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 3s
+
 volumes:
   postgres_data:
     name: luhanxin_postgres_data

@@ -130,6 +130,63 @@ impl ArticleStatus {
         }
     }
 }
+/// 事件信封 — 所有异步事件的标准包装
+///
+/// 通过 NATS 发布/订阅，消息体为此消息的 Protobuf 二进制编码。
+/// Subject 命名：luhanxin.events.<domain>.<action>
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct EventEnvelope {
+    /// 唯一事件 ID (UUID v4)
+    #[prost(string, tag = "1")]
+    pub event_id: ::prost::alloc::string::String,
+    /// 事件类型，如 "user.created"、"article.published"
+    #[prost(string, tag = "2")]
+    pub event_type: ::prost::alloc::string::String,
+    /// 来源服务，如 "gateway"、"svc-user"
+    #[prost(string, tag = "3")]
+    pub source: ::prost::alloc::string::String,
+    /// 事件产生时间
+    #[prost(message, optional, tag = "4")]
+    pub timestamp: ::core::option::Option<::prost_types::Timestamp>,
+    /// 事件体（具体的 Proto 消息，使用 Any 包装）
+    #[prost(message, optional, tag = "5")]
+    pub payload: ::core::option::Option<::prost_types::Any>,
+    /// 元数据（trace_id、correlation_id、user_id 等）
+    #[prost(map = "string, string", tag = "6")]
+    pub metadata: ::std::collections::HashMap<::prost::alloc::string::String, ::prost::alloc::string::String>,
+    /// 重试次数（初始为 0）
+    #[prost(int32, tag = "7")]
+    pub retry_count: i32,
+}
+/// Gateway 异步重试信封
+///
+/// 当 Gateway 调用下游 RPC 失败（UNAVAILABLE / DEADLINE_EXCEEDED）时，
+/// 将原始请求打包为 RetryRequest 写入 NATS 重试队列。
+/// Subject 命名：luhanxin.retry.<service>.<method>
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct RetryRequest {
+    /// 请求唯一标识 (UUID v4)
+    #[prost(string, tag = "1")]
+    pub request_id: ::prost::alloc::string::String,
+    /// 目标服务名，如 "svc-user"
+    #[prost(string, tag = "2")]
+    pub target_service: ::prost::alloc::string::String,
+    /// gRPC 方法全名，如 "luhanxin.community.v1.UserService/GetUser"
+    #[prost(string, tag = "3")]
+    pub method: ::prost::alloc::string::String,
+    /// 原始请求的 Protobuf 序列化字节
+    #[prost(bytes = "vec", tag = "4")]
+    pub request_payload: ::prost::alloc::vec::Vec<u8>,
+    /// 已重试次数
+    #[prost(int32, tag = "5")]
+    pub retry_count: i32,
+    /// 最大重试次数
+    #[prost(int32, tag = "6")]
+    pub max_retries: i32,
+    /// 首次入队时间
+    #[prost(message, optional, tag = "7")]
+    pub created_at: ::core::option::Option<::prost_types::Timestamp>,
+}
 /// 获取用户请求
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct GetUserRequest {

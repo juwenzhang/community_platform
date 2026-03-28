@@ -1,0 +1,49 @@
+syntax = "proto3";
+
+package luhanxin.community.v1;
+
+import "google/protobuf/any.proto";
+import "google/protobuf/timestamp.proto";
+
+// 事件信封 — 所有异步事件的标准包装
+//
+// 通过 NATS 发布/订阅，消息体为此消息的 Protobuf 二进制编码。
+// Subject 命名：luhanxin.events.<domain>.<action>
+message EventEnvelope {
+  // 唯一事件 ID (UUID v4)
+  string event_id = 1;
+  // 事件类型，如 "user.created"、"article.published"
+  string event_type = 2;
+  // 来源服务，如 "gateway"、"svc-user"
+  string source = 3;
+  // 事件产生时间
+  google.protobuf.Timestamp timestamp = 4;
+  // 事件体（具体的 Proto 消息，使用 Any 包装）
+  google.protobuf.Any payload = 5;
+  // 元数据（trace_id、correlation_id、user_id 等）
+  map<string, string> metadata = 6;
+  // 重试次数（初始为 0）
+  int32 retry_count = 7;
+}
+
+// Gateway 异步重试信封
+//
+// 当 Gateway 调用下游 RPC 失败（UNAVAILABLE / DEADLINE_EXCEEDED）时，
+// 将原始请求打包为 RetryRequest 写入 NATS 重试队列。
+// Subject 命名：luhanxin.retry.<service>.<method>
+message RetryRequest {
+  // 请求唯一标识 (UUID v4)
+  string request_id = 1;
+  // 目标服务名，如 "svc-user"
+  string target_service = 2;
+  // gRPC 方法全名，如 "luhanxin.community.v1.UserService/GetUser"
+  string method = 3;
+  // 原始请求的 Protobuf 序列化字节
+  bytes request_payload = 4;
+  // 已重试次数
+  int32 retry_count = 5;
+  // 最大重试次数
+  int32 max_retries = 6;
+  // 首次入队时间
+  google.protobuf.Timestamp created_at = 7;
+}
