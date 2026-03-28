@@ -1,104 +1,69 @@
-use axum::{Json, Router, routing::get};
-use serde_json::{json, Value};
-use tonic::{Request, Response, Status, service::Routes};
+mod config;
+mod interceptors;
+mod middleware;
+mod resolver;
+mod routes;
+mod services;
+mod worker;
+
+use std::sync::Arc;
+
+use shared::discovery::ConsulClient;
+use shared::messaging::NatsClient;
+use shared::proto::user_service_server::UserServiceServer;
 use tonic::service::LayerExt;
+use tonic::service::Routes;
 use tonic_web::GrpcWebLayer;
-use tower_http::cors::{AllowHeaders, AllowMethods, AllowOrigin, CorsLayer};
 use tower_http::trace::TraceLayer;
-use tracing::info;
+use tracing::{info, warn};
+use utoipa::OpenApi;
+use utoipa_swagger_ui::SwaggerUi;
 
-use shared::proto::GetUserRequest;
-use shared::proto::GetUserResponse;
-use shared::proto::user_service_client::UserServiceClient;
-use shared::proto::user_service_server::{UserService, UserServiceServer};
+use crate::config::GatewayConfig;
+use crate::interceptors::InterceptorPipeline;
+use crate::interceptors::log::LogInterceptor;
+use crate::interceptors::retry::RetryInterceptor;
+use crate::middleware::cors::cors_layer;
+use crate::resolver::ServiceResolver;
+use crate::routes::health;
+use crate::routes::health::rest_router;
+use crate::routes::user as user_routes;
+use crate::services::user::GatewayUserService;
+use crate::worker::retry_worker;
 
-// ─────────────────────────────────────────────
-// GatewayUserService — BFF 层，代理转发到 svc-user
-// ─────────────────────────────────────────────
-
-/// Gateway 作为 BFF 层实现 UserService trait，
-/// 内部通过 gRPC 客户端调用 svc-user 微服务。
-#[derive(Debug, Clone)]
-pub struct GatewayUserService {
-    svc_user_url: String,
-}
-
-impl GatewayUserService {
-    pub fn new(svc_user_url: String) -> Self {
-        Self { svc_user_url }
-    }
-}
-
-#[tonic::async_trait]
-impl UserService for GatewayUserService {
-    async fn get_user(
-        &self,
-        request: Request<GetUserRequest>,
-    ) -> Result<Response<GetUserResponse>, Status> {
-        let req_inner = request.into_inner();
-        info!(user_id = %req_inner.user_id, "Gateway: forwarding GetUser to svc-user");
-
-        // 连接 svc-user gRPC 服务
-        let mut client =
-            UserServiceClient::connect(self.svc_user_url.clone())
-                .await
-                .map_err(|e| {
-                    tracing::error!(error = %e, "Failed to connect to svc-user");
-                    Status::unavailable(format!("svc-user is unavailable: {e}"))
-                })?;
-
-        // 转发请求
-        let response = client
-            .get_user(GetUserRequest {
-                user_id: req_inner.user_id,
-            })
-            .await
-            .map_err(|e| {
-                tracing::error!(error = %e, "gRPC call to svc-user failed");
-                e
-            })?;
-
-        Ok(response)
-    }
-}
-
-// ─────────────────────────────────────────────
-// REST 端点
-// ─────────────────────────────────────────────
-
-/// GET /health — 健康检查（保留 REST 格式）
-async fn health(headers: axum::http::HeaderMap) -> Json<Value> {
-    info!("Health check");
-
-    let timestamp = std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .map(|d| d.as_secs())
-        .unwrap_or(0);
-
-    let get_header = |name: &str| -> String {
-        headers
-            .get(name)
-            .and_then(|v| v.to_str().ok())
-            .unwrap_or("unknown")
-            .to_string()
-    };
-
-    Json(json!({
-        "status": "ok",
-        "version": "1.0.0",
-        "timestamp": timestamp,
-        "service": "gateway",
-        "data": {
-            "request_origin": get_header("origin"),
-            "request_referrer": get_header("referer"),
-            "request_user_agent": get_header("user-agent"),
-        }
-    }))
-}
-
-// ─────────────────────────────────────────────
-// Main
-// ─────────────────────────────────────────────
+/// Gateway OpenAPI 文档
+///
+/// 类似 Python FastAPI 的自动文档生成：
+/// - 访问 /swagger-ui/ 即可看到可视化的 API 文档
+/// - 访问 /api-docs/openapi.json 获取 OpenAPI JSON spec
+///
+/// gRPC 服务通过 REST proxy 自动暴露为 JSON 端点，
+/// 并集成到此文档中（与 FastAPI 体验一致）。
+#[derive(OpenApi)]
+#[openapi(
+    info(
+        title = "Luhanxin Community Gateway",
+        version = "0.1.0",
+        description = "Gateway API 文档\n\n所有 gRPC 服务均通过 REST proxy 暴露为 JSON 端点，可在此直接测试。\n\n- gRPC 原生调用：使用 Connect Protocol (HTTP/2 + Protobuf)\n- REST JSON 调用：使用下方端点 (HTTP/1.1 + JSON)",
+        contact(name = "luhanxin", email = "hi@luhanxin.com")
+    ),
+    paths(
+        health::health_handler,
+        user_routes::get_user,
+    ),
+    components(schemas(
+        health::HealthResponse,
+        health::RequestData,
+        user_routes::UserDto,
+        user_routes::GetUserDto,
+        user_routes::ApiError,
+    )),
+    tags(
+        (name = "系统", description = "系统管理端点（健康检查、监控等）"),
+        (name = "用户", description = "用户服务 — REST proxy for gRPC UserService")
+    )
+)]
+struct ApiDoc;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -110,52 +75,77 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         )
         .init();
 
-    let gateway_port = std::env::var("GATEWAY_PORT").unwrap_or_else(|_| "8000".to_string());
-    let svc_user_url = std::env::var("SVC_USER_URL")
-        .unwrap_or_else(|_| "http://127.0.0.1:50051".to_string());
+    // 加载配置
+    let config = GatewayConfig::from_env();
 
     // 启动前自动清理被占用的端口
-    if let Ok(port) = gateway_port.parse::<u16>() {
-        shared::net::kill_port_holder(port);
+    shared::net::kill_port_holder(config.port);
+
+    // ── NATS 连接（graceful degradation：失败不阻止启动）──
+    let nats: Option<Arc<NatsClient>> = match NatsClient::connect(&config.nats_url).await {
+        Ok(client) => {
+            info!("Connected to NATS at {}", config.nats_url);
+            Some(Arc::new(client))
+        }
+        Err(e) => {
+            warn!(
+                error = %e,
+                "NATS connection failed, running without async retry/events"
+            );
+            None
+        }
+    };
+
+    // 启动重试 Worker（如果 NATS 可用）
+    if let Some(ref nats_client) = nats {
+        retry_worker::spawn_retry_worker(Arc::clone(nats_client));
     }
 
+    // ── 服务解析器（Consul 动态路由 + 连接池）──
+    let consul = ConsulClient::new(&config.consul_url);
+    let resolver = Arc::new(ServiceResolver::new(consul, config.fallback_urls));
+    resolver.start_watcher("svc-user");
+
+    // ── 拦截器管道 ──
+    let pipeline = Arc::new(
+        InterceptorPipeline::new()
+            .add_pre(LogInterceptor)
+            .add_post(LogInterceptor)
+            .add_post(RetryInterceptor::new(nats.clone())),
+    );
+
     // ── gRPC 服务（带 gRPC-Web 支持）──
-    let user_service = GatewayUserService::new(svc_user_url);
+    let user_service = GatewayUserService::new(Arc::clone(&resolver), Arc::clone(&pipeline));
     let grpc_service = UserServiceServer::new(user_service);
-
-    // 使用 tonic-web GrpcWebLayer 包装 gRPC 服务，使其支持 gRPC-Web 协议
     let grpc_web_service = GrpcWebLayer::new().named_layer(grpc_service);
-
-    // 将 gRPC 服务转为 axum Router
     let grpc_router = Routes::new(grpc_web_service).into_axum_router();
 
-    // ── REST 路由 ──
-    let rest_router = Router::new()
-        .route("/", get(health))
-        .route("/health", get(health));
+    // ── Swagger UI（内嵌，类似 FastAPI 的 /docs）──
+    let swagger_ui = SwaggerUi::new("/swagger-ui")
+        .url("/api-docs/openapi.json", ApiDoc::openapi());
 
-    // ── 合并路由：gRPC-Web + REST ──
+    // ── REST Proxy（gRPC → JSON，集成 Swagger + 拦截器）──
+    let user_rest = user_routes::user_rest_router(Arc::clone(&resolver), Arc::clone(&pipeline));
+
+    // ── 合并路由：gRPC-Web + REST proxy + REST health + Swagger UI ──
+    let rest_and_swagger = rest_router()
+        .merge(user_rest)
+        .merge(swagger_ui);
+
     let app = grpc_router
-        .merge(rest_router)
-        .layer(
-            // CORS 配置：允许 gRPC-Web 所需的 headers
-            CorsLayer::new()
-                .allow_origin(AllowOrigin::any())
-                .allow_methods(AllowMethods::any())
-                .allow_headers(AllowHeaders::any())
-                .expose_headers(tower_http::cors::ExposeHeaders::list([
-                    "grpc-status".parse().unwrap(),
-                    "grpc-message".parse().unwrap(),
-                    "grpc-encoding".parse().unwrap(),
-                    "grpc-accept-encoding".parse().unwrap(),
-                ]))
-                .max_age(std::time::Duration::from_secs(86400)),
-        )
+        .merge(rest_and_swagger)
+        .layer(cors_layer())
         .layer(TraceLayer::new_for_http());
 
-    let addr = format!("0.0.0.0:{gateway_port}");
+    let addr = format!("0.0.0.0:{}", config.port);
     let listener = tokio::net::TcpListener::bind(&addr).await?;
-    info!(%addr, "Gateway starting (gRPC-Web + REST), access via http://localhost:{gateway_port}");
+    info!(
+        %addr,
+        "Gateway starting (gRPC-Web + REST + Swagger UI)"
+    );
+    info!("API docs:  http://localhost:{}/swagger-ui/", config.port);
+    info!("OpenAPI:   http://localhost:{}/api-docs/openapi.json", config.port);
+    info!("Health:    http://localhost:{}/health", config.port);
 
     axum::serve(listener, app).await?;
 
