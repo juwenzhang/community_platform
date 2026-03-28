@@ -20,6 +20,7 @@ tonic = "0.14"
 tonic-prost = "0.14"
 tonic-reflection = "0.14"
 tonic-web = "0.14"
+tonic-health = "0.14"
 prost = "0.14"
 prost-types = "0.14"
 
@@ -42,6 +43,20 @@ tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
 # Error handling
 thiserror = "2"
 anyhow = "1"
+
+# Service discovery (Consul HTTP API)
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
+
+# Messaging (NATS)
+async-nats = "0.38"
+
+# Utilities
+uuid = { version = "1", features = ["v4"] }
+hostname = "0.4"
+
+# API Documentation
+utoipa = { version = "5", features = ["axum_extras"] }
+utoipa-swagger-ui = { version = "9", features = ["axum", "vendored"] }
 
 # ========================
 # Workspace Lints
