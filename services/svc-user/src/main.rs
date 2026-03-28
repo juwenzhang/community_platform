@@ -1,43 +1,17 @@
-use tonic::{transport::Server, Request, Response, Status};
-use tracing::info;
+mod config;
+mod error;
+mod handlers;
+mod services;
 
-use shared::proto::user_service_server::{UserService, UserServiceServer};
-use shared::proto::{GetUserRequest, GetUserResponse, User};
+use tokio::signal;
+use tonic::transport::Server;
+use tracing::{info, warn};
 
-/// UserService gRPC 实现
-#[derive(Debug, Default)]
-pub struct UserServiceImpl;
+use shared::discovery::{ConsulClient, ServiceRegistration};
+use shared::proto::user_service_server::UserServiceServer;
 
-#[tonic::async_trait]
-impl UserService for UserServiceImpl {
-    async fn get_user(
-        &self,
-        request: Request<GetUserRequest>,
-    ) -> Result<Response<GetUserResponse>, Status> {
-        let req = request.into_inner();
-        info!(user_id = %req.user_id, "GetUser called");
-
-        // Mock 数据
-        let user = User {
-            id: req.user_id.clone(),
-            username: "luhanxin".to_string(),
-            email: "hi@luhanxin.com".to_string(),
-            display_name: "Luhanxin".to_string(),
-            avatar_url: "https://blog.luhanxin.com/upload/D1F18B0567B5565BAAF031B586E3B56B.jpg".to_string(),
-            bio: "Full-stack developer & community builder".to_string(),
-            created_at: Some(prost_types::Timestamp {
-                seconds: 1700000000,
-                nanos: 0,
-            }),
-            updated_at: Some(prost_types::Timestamp {
-                seconds: 1700000000,
-                nanos: 0,
-            }),
-        };
-
-        Ok(Response::new(GetUserResponse { user: Some(user) }))
-    }
-}
+use crate::config::SvcUserConfig;
+use crate::services::user::UserServiceImpl;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -49,23 +23,80 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         )
         .init();
 
-    let port = std::env::var("SVC_USER_PORT").unwrap_or_else(|_| "50051".to_string());
+    // 加载配置
+    let config = SvcUserConfig::from_env();
 
     // 启动前自动清理被占用的端口
-    if let Ok(p) = port.parse::<u16>() {
-        shared::net::kill_port_holder(p);
+    shared::net::kill_port_holder(config.port);
+
+    // ── Consul 注册（graceful degradation：失败不阻止启动）──
+    let consul = ConsulClient::new(&config.consul_url);
+    let registration = ServiceRegistration::grpc("svc-user", &config.bind_address, config.port, &config.consul_url).await;
+    let service_id = registration.id.clone();
+
+    match consul.register(&registration).await {
+        Ok(()) => info!("Registered with Consul as '{}'", service_id),
+        Err(e) => warn!(
+            error = %e,
+            "Consul registration failed, running without service discovery"
+        ),
     }
 
-    let addr = format!("0.0.0.0:{port}").parse()?;
-
+    // ── gRPC 服务 ──
+    let addr = format!("0.0.0.0:{}", config.port).parse()?;
     let user_service = UserServiceImpl::default();
+
+    // ── gRPC Health Checking Protocol（Consul 健康检查需要）──
+    let (health_reporter, health_service) = tonic_health::server::health_reporter();
+    // 标记 UserService 为 SERVING 状态
+    health_reporter
+        .set_serving::<UserServiceServer<UserServiceImpl>>()
+        .await;
 
     info!(%addr, "svc-user gRPC server starting");
 
+    // ── 优雅关闭：收到 SIGINT/SIGTERM 时先从 Consul 注销 ──
+    let shutdown_consul = consul.clone();
+    let shutdown_id = service_id.clone();
+
     Server::builder()
+        .add_service(health_service)
         .add_service(UserServiceServer::new(user_service))
-        .serve(addr)
+        .serve_with_shutdown(addr, async move {
+            shutdown_signal().await;
+            info!("Shutdown signal received, deregistering from Consul...");
+            if let Err(e) = shutdown_consul.deregister(&shutdown_id).await {
+                warn!(error = %e, "Failed to deregister from Consul during shutdown");
+            } else {
+                info!("Deregistered from Consul, bye!");
+            }
+        })
         .await?;
 
     Ok(())
+}
+
+/// 等待关闭信号（Ctrl+C 或 SIGTERM）
+async fn shutdown_signal() {
+    let ctrl_c = async {
+        signal::ctrl_c()
+            .await
+            .expect("Failed to install Ctrl+C handler");
+    };
+
+    #[cfg(unix)]
+    let terminate = async {
+        signal::unix::signal(signal::unix::SignalKind::terminate())
+            .expect("Failed to install SIGTERM handler")
+            .recv()
+            .await;
+    };
+
+    #[cfg(not(unix))]
+    let terminate = std::future::pending::<()>();
+
+    tokio::select! {
+        () = ctrl_c => {},
+        () = terminate => {},
+    }
 }
