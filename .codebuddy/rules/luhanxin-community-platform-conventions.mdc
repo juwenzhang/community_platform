@@ -93,11 +93,14 @@ proto/
 ### 3.4 代码生成
 
 ```bash
-# 使用 buf 统一生成
-buf generate
+# ⚠️ 必须使用 make proto，不要直接 buf generate！
+# make proto 会在 buf generate 之后自动运行 gen-proto-mod.sh
+# 生成 services/shared/src/proto/mod.rs（嵌套 mod 结构 + re-export）
+# 如果跳过这步，Rust 编译时 proto 模块不可用
+make proto
 
 # 生成目标:
-# Rust:       services/shared/src/proto/
+# Rust:       services/shared/src/proto/ (含自动生成的 mod.rs)
 # TypeScript: packages/shared-types/src/proto/
 ```
 
@@ -171,11 +174,214 @@ community_platform/
 | 实时通知推送 | WebSocket | Protobuf |
 | AI 流式输出 | SSE | JSON |
 | 微服务间调用 | gRPC (Tonic) | Protobuf |
-| 异步事件 | Redis Streams | Protobuf |
+| 异步事件 | NATS | Protobuf |
 | 文件上传 | HTTP/2 | multipart |
 | CDN 静态资源 | HTTP/3 | - |
+| 服务发现 | Consul HTTP API | JSON |
 
-## 9. 会话日志规范
+## 9. 后端目录结构规范
+
+### 9.0 核心原则：模块即文件夹
+
+**每个模块（如 user、article）都必须是独立文件夹**，不使用扁平文件。这样每个模块可以拥有自己的私有子文件（validator、dto、cache 等），未来扩展无需改结构。
+
+```
+# ❌ 扁平文件（禁止）
+services/user_service.rs
+handlers/user_handler.rs
+
+# ✅ 文件夹模式（必须）
+services/user/mod.rs          ← 以后可加 services/user/validator.rs 等
+handlers/user/mod.rs          ← 以后可加 handlers/user/cache.rs 等
+```
+
+### 9.1 Gateway 目录结构
+
+Gateway 作为 BFF 层，采用模块化目录组织：
+
+```
+gateway/src/
+├── main.rs                    # 入口：初始化 + 启动
+├── config.rs                  # 配置加载
+├── interceptors/              # 🔵 RPC 拦截器（横切关注点）
+│   ├── mod.rs                 # Interceptor trait + Pipeline 定义
+│   ├── log/mod.rs             # 日志拦截器
+│   ├── auth/mod.rs            # 认证拦截器
+│   └── retry/mod.rs           # 重试拦截器
+├── services/                  # 🔵 gRPC Service trait 实现（BFF 层）
+│   ├── mod.rs
+│   └── user/mod.rs            # GatewayUserService
+├── routes/                    # 🔵 REST 路由
+│   ├── mod.rs
+│   └── health/mod.rs
+├── middleware/                 # 🔵 HTTP 中间件
+│   ├── mod.rs
+│   └── cors/mod.rs
+├── resolver.rs                # ServiceResolver（Consul 动态路由）
+└── worker/                    # 🔵 后台任务
+    ├── mod.rs
+    └── retry_worker/mod.rs
+```
+
+### 9.2 微服务（svc-xxx）通用目录结构
+
+```
+svc-xxx/src/
+├── main.rs                    # 入口：gRPC Server 启动 + Consul 注册
+├── config.rs                  # 配置加载
+├── services/                  # 🔵 gRPC Service trait 实现
+│   ├── mod.rs
+│   └── xxx/mod.rs             # 每个 service 一个文件夹
+├── handlers/                  # 🔵 业务逻辑层（不依赖 tonic 类型）
+│   ├── mod.rs
+│   └── xxx/mod.rs             # 每个 handler 一个文件夹
+├── models/                    # 🔵 数据模型（SeaORM Entity）
+│   └── mod.rs
+└── error.rs                   # 服务级错误定义
+```
+
+### 9.3 Shared Crate 模块组织
+
+```
+shared/src/
+├── lib.rs                     # 导出所有公共模块
+├── proto/                     # Proto 生成代码
+├── config.rs                  # 通用配置
+├── error.rs                   # 通用错误
+├── net.rs                     # 网络工具
+├── discovery/                 # Consul 服务发现
+│   └── mod.rs
+└── messaging/                 # NATS 消息
+    └── mod.rs
+```
+
+### 9.4 各层职责
+
+| 层 | 位置 | 职责 | 规则 |
+|----|------|------|------|
+| **Gateway 拦截层** | `gateway/interceptors/` | 认证、限流、审计、重试等横切逻辑 | 通过 `InterceptorPipeline` 组合，不在 service 方法里硬写 |
+| **Gateway BFF 层** | `gateway/services/` | 实现 gRPC Service trait，编排下游调用 | 每个方法：`run_pre → 调用 RPC → run_post` |
+| **RPC 数据层** | `svc-xxx/services/` | 实现 gRPC Service trait，解析请求 + 调用 handler | 不含业务编排，只做 CRUD + 领域逻辑 |
+| **业务逻辑层** | `svc-xxx/handlers/` | 纯业务逻辑，不依赖 tonic 类型 | 可独立单元测试 |
+| **数据模型层** | `svc-xxx/models/` | SeaORM Entity | 纯数据定义 |
+
+## 10. 调试服务清理规范
+
+在调试、验证、自测过程中启动的**前后端开发/测试服务**，任务完成后**必须主动关闭**。
+
+### 规则
+
+1. **记住启动了什么**：每次通过命令启动服务时，记录下启动的进程（PID 或端口）
+2. **自测完立即关闭**：验证完成后，主动 kill 所有启动的前后端进程，不留残留
+3. **需要关闭的**（自己启动的开发/测试进程）：
+   - 前端 dev server（`pnpm dev`、`vite`）
+   - 后端 Rust 服务（`cargo run -p gateway`、`cargo run -p svc-user`）
+   - Preview server（`pnpm preview`）
+   - 任何临时启动的测试服务
+4. **不需要关闭的**（基础设施容器，持续运行）：
+   - Docker Compose 启动的基础设施（PostgreSQL、Redis、Meilisearch、Consul、NATS 等）
+   - 这些是开发环境的持久依赖，保持运行即可
+5. **端口检查**：关闭服务后确认端口已释放，避免下次启动报 `EADDRINUSE`
+
+### 执行清单
+
+```bash
+# 启动前：记录当前占用的端口
+lsof -iTCP -sTCP:LISTEN -P | grep -E '(5173|5174|8000|50051)'
+
+# 自测完成后：
+# 1. 如果用了前台进程 → Ctrl+C 或 kill PID
+# 2. 如果用了后台进程 → kill $(lsof -t -i:PORT)
+# 3. 如果用了 docker compose → docker compose down
+# 4. 确认清理干净
+lsof -iTCP -sTCP:LISTEN -P | grep -E '(5173|5174|8000|50051)'
+```
+
+### 常用端口表
+
+| 端口 | 服务 | 启动命令 |
+|------|------|---------|
+| 5173 | main 前端 dev | `pnpm dev:main` |
+| 5174 | feed 子应用 dev | `pnpm dev:feed` |
+| 4173 | main preview | `pnpm preview` |
+| 8000 | Gateway | `cargo run -p gateway` |
+| 50051 | svc-user | `cargo run -p svc-user` |
+| 5432 | PostgreSQL | docker compose |
+| 6379 | Redis | docker compose |
+| 7700 | Meilisearch | docker compose |
+| 8500 | Consul | docker compose |
+| 4222 | NATS | docker compose |
+
+## 11. 环境问题处理规范（三次重试 + 及时反馈）
+
+### 核心规则
+
+在实施过程中遇到**环境搭建、依赖下载、编译安装**相关的问题时：
+
+1. **最多自行尝试 3 次**（包括换源、重试、清缓存等常规手段）
+2. **3 次失败后立即停下来反馈给用户**，不要继续死磕
+3. 反馈时必须包含以下信息：
+   - 遇到了什么问题（完整错误信息）
+   - 已经尝试了哪 3 种方法
+   - 推测的根因（网络/镜像源/版本不兼容/系统依赖缺失）
+   - **至少 1 个替代方案**，并给出替代方案与原方案的**异同和优劣对比表**
+
+### 中国大陆常见问题及预备方案
+
+| 场景 | 可能的问题 | 预备替代方案 |
+|------|-----------|------------|
+| Docker 镜像拉取 | Docker Hub 被墙或限速 | 使用国内镜像源（阿里云/腾讯云/中科大）或提前 `docker save/load` |
+| Cargo crate 下载 | crates.io 下载慢/超时 | 配置 `[source.crates-io]` 使用 rsproxy.cn 或 ustc 镜像 |
+| npm/pnpm 包安装 | npmjs.org 慢 | 配置 `.npmrc` 使用 npmmirror.com |
+| buf CLI / protoc | GitHub Release 下载慢 | 手动下载或用代理，或 brew install |
+| Rust toolchain | rustup 下载慢 | 配置 `RUSTUP_DIST_SERVER` 使用 rsproxy.cn |
+| Go 工具链（buf 依赖） | 下载慢 | 配置 `GOPROXY=https://goproxy.cn` |
+
+### 反馈模板
+
+```
+⚠️ 环境问题 — 需要你确认
+
+**问题**: [描述问题]
+**错误信息**: [粘贴关键错误]
+**已尝试**:
+1. [方法1] → [结果]
+2. [方法2] → [结果]  
+3. [方法3] → [结果]
+
+**推测根因**: [网络/镜像/版本/...]
+
+**替代方案**:
+
+| 维度 | 原方案 | 替代方案 |
+|------|--------|---------|
+| 做法 | ... | ... |
+| 优势 | ... | ... |
+| 劣势 | ... | ... |
+| 影响范围 | ... | ... |
+
+请确认是否采用替代方案，或者你来看看怎么解决？
+```
+
+### 预防措施
+
+在实施前，优先检查以下配置是否就绪：
+
+```bash
+# Cargo 镜像源 — 检查 ~/.cargo/config.toml 或 services/.cargo/config.toml
+cat services/.cargo/config.toml | grep -A2 'source'
+
+# npm 镜像源
+pnpm config get registry
+
+# Docker 镜像源
+docker info | grep -A5 'Registry Mirrors'
+
+# Rust toolchain
+rustup show
+```
+
+## 12. 会话日志规范
 
 每轮对话完成后，记录到 `.codebuddy/memory/YYYY-MM-DD.md`，包含：
 - 完成了什么工作

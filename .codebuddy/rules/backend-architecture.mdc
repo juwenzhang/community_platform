@@ -1,0 +1,134 @@
+---
+description: 后端架构规范 — Gateway 拦截器、服务发现、消息队列、连接管理
+globs: services/**/*.rs
+alwaysApply: false
+---
+
+# 后端架构规范
+
+## 1. Gateway 拦截器规范
+
+### 1.1 拦截器只操作 metadata，不访问请求体
+
+```rust
+// ✅ 正确：通过 MetadataMap 获取认证信息
+async fn intercept(&self, ctx: &mut RpcContext, metadata: &MetadataMap) -> Result<(), Status> {
+    let token = metadata.get("authorization").ok_or(Status::unauthenticated("missing token"))?;
+    // ...
+}
+
+// ❌ 错误：不要在拦截器中反序列化请求体
+// 需要请求体的逻辑放在 service 方法中
+```
+
+### 1.2 Gateway RPC 方法统一模板
+
+每个 Gateway gRPC 方法必须遵循 `pre → call → post` 模板：
+
+```rust
+async fn any_method(&self, request: Request<T>) -> Result<Response<R>, Status> {
+    let mut ctx = RpcContext::new("service_name", "method_name");
+    self.pipeline.run_pre(&mut ctx, request.metadata()).await?;
+    let channel = self.resolver.get_channel("svc-xxx").await?;
+    let result = XxxServiceClient::new(channel).method(request).await;
+    self.pipeline.run_post(&ctx, &result.as_ref().map(|_| ())).await?;
+    result
+}
+```
+
+### 1.3 Pre 拦截器短路，Post 拦截器不短路
+
+- Pre 拦截器返回 `Err` → 后续 Pre 不执行 → 不调用 RPC → 直接返回错误
+- Post 拦截器返回 `Err` → 记录日志但不影响 RPC 结果 → 继续执行后续 Post
+
+## 2. 服务发现规范
+
+### 2.1 Consul 注册信息
+
+每个微服务注册时必须包含：
+- `name`: 服务名（如 `svc-user`）
+- `id`: 实例 ID（`{name}-{hostname}` 或 `{name}-{uuid}`）
+- `address` + `port`: 绑定地址
+- `tags`: `["grpc", "v1"]`
+- gRPC 健康检查端点
+
+### 2.2 Graceful Degradation
+
+所有基础设施依赖必须有降级策略：
+
+```rust
+// ✅ Consul 不可达 → 使用缓存/环境变量
+// ✅ NATS 不可达 → 只打日志，不影响主流程
+// ❌ 不允许因 Consul/NATS 不可达而阻止服务启动
+```
+
+### 2.3 连接池
+
+Gateway 必须使用 Channel 连接池，禁止每次请求 `connect()`:
+
+```rust
+// ✅ 从连接池获取 Channel
+let channel = self.resolver.get_channel("svc-user").await?;
+let client = UserServiceClient::new(channel);
+
+// ❌ 禁止每次创建新连接
+let client = UserServiceClient::connect(url).await?;
+```
+
+## 3. 消息队列规范
+
+### 3.1 NATS Subject 命名
+
+```
+luhanxin.events.<domain>.<action>      # 领域事件
+luhanxin.retry.<service>.<method>      # 重试队列
+luhanxin.deadletter.<service>          # 死信队列
+```
+
+### 3.2 消息格式
+
+所有 NATS 消息必须使用 Protobuf 编码：
+- 领域事件：包裹在 `EventEnvelope` 中
+- 重试请求：使用 `RetryRequest` 消息
+
+### 3.3 重试策略
+
+- 仅对 `UNAVAILABLE` 和 `DEADLINE_EXCEEDED` 触发重试
+- 指数退避：1s → 2s → 4s
+- 最大重试次数：3
+- 超过上限进死信队列
+
+## 4. 并发安全规范
+
+### 4.1 优先使用无锁原子操作
+
+```rust
+// ✅ 计数器用 AtomicUsize
+counter.fetch_add(1, Ordering::Relaxed)
+
+// ❌ 不要用 Mutex 保护简单计数器
+let mut guard = mutex.lock().await;
+*guard += 1;
+```
+
+### 4.2 读多写少场景用 RwLock
+
+```rust
+// ✅ 服务缓存：99% 读，1% 写
+Arc<RwLock<HashMap<String, ServicePool>>>
+
+// ❌ 不要用 Mutex（所有操作互斥）
+Arc<Mutex<HashMap<String, ServicePool>>>
+```
+
+### 4.3 跨 .await 不持有 std 锁
+
+```rust
+// ❌ std::sync::RwLock 跨 await 会阻塞线程
+let guard = std_rwlock.read().unwrap();
+some_async_fn().await;  // 💀 阻塞 tokio worker thread
+
+// ✅ 使用 tokio::sync::RwLock
+let guard = tokio_rwlock.read().await;
+some_async_fn().await;  // ✅ 安全
+```

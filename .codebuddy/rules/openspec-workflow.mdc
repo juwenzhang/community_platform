@@ -1,9 +1,7 @@
 ---
 description: 
+globs:
 alwaysApply: true
-enabled: true
-updatedAt: 2026-03-21T15:02:38.470Z
-provider: 
 ---
 
 # OpenSpec 先文档后代码开发规范
