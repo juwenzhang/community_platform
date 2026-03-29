@@ -1,0 +1,112 @@
+// NavSidebar — 首页左侧分类导航（花里胡哨版 ✨）
+
+.sidebar {
+  @apply flex flex-col flex-shrink-0;
+  width: 180px;
+  position: sticky;
+  top: calc(var(--header-height) + 16px);
+  align-self: flex-start;
+  background: var(--color-bg-card);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border-light);
+  box-shadow: var(--shadow-sm);
+  padding: 12px 8px;
+  gap: 2px;
+
+  .title {
+    @apply text-xs font-semibold uppercase tracking-widest;
+    color: var(--color-text-3);
+    padding: 4px 12px 10px;
+    border-bottom: 1px solid var(--color-border-light);
+    margin-bottom: 6px;
+    letter-spacing: 0.12em;
+  }
+
+  .navItem {
+    @apply relative flex items-center gap-3 text-left;
+    appearance: none;
+    border: none;
+    background: none;
+    padding: 10px 12px;
+    border-radius: var(--radius-md);
+    font-size: 14px;
+    color: var(--color-text-2);
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+
+    &:hover {
+      color: var(--color-text-1);
+      background: var(--color-bg-hover);
+      transform: translateX(2px);
+
+      .iconWrap {
+        background: var(--color-bg-active);
+        transform: scale(1.08);
+      }
+    }
+
+    &.active {
+      color: var(--color-primary);
+      font-weight: 600;
+      background: linear-gradient(135deg, #e8f3ff 0%, #f0e6ff 100%);
+
+      .iconWrap {
+        color: #fff;
+        box-shadow: 0 2px 8px rgba(30, 128, 255, 0.3);
+        transform: scale(1.05);
+      }
+
+      .label {
+        background: linear-gradient(135deg, #1e80ff, #764ba2);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+    }
+
+    .iconWrap {
+      @apply flex items-center justify-center rounded-lg flex-shrink-0;
+      width: 32px;
+      height: 32px;
+      font-size: 16px;
+      color: var(--color-text-3);
+      background: var(--color-bg-page);
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .label {
+      @apply flex-1 truncate;
+      transition: all 0.2s;
+    }
+
+    .indicator {
+      @apply absolute;
+      right: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 3px;
+      height: 18px;
+      border-radius: 3px;
+      background: linear-gradient(180deg, #1e80ff 0%, #764ba2 100%);
+      animation: indicatorSlide 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+  }
+}
+
+@keyframes indicatorSlide {
+  from {
+    opacity: 0;
+    height: 0;
+  }
+  to {
+    opacity: 1;
+    height: 18px;
+  }
+}
+
+// 窄屏隐藏 NavSidebar
+@media (max-width: 1200px) {
+  .sidebar {
+    display: none;
+  }
+}

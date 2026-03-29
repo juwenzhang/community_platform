@@ -14,7 +14,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file luhanxin/community/v1/user.proto.
  */
 export const file_luhanxin_community_v1_user: GenFile = /*@__PURE__*/
-  fileDesc("CiBsdWhhbnhpbi9jb21tdW5pdHkvdjEvdXNlci5wcm90bxIVbHVoYW54aW4uY29tbXVuaXR5LnYxIiEKDkdldFVzZXJSZXF1ZXN0Eg8KB3VzZXJfaWQYASABKAkiLAoYR2V0VXNlckJ5VXNlcm5hbWVSZXF1ZXN0EhAKCHVzZXJuYW1lGAEgASgJIjwKD0dldFVzZXJSZXNwb25zZRIpCgR1c2VyGAEgASgLMhsubHVoYW54aW4uY29tbXVuaXR5LnYxLlVzZXIiXwoQTGlzdFVzZXJzUmVxdWVzdBINCgVxdWVyeRgBIAEoCRI8CgpwYWdpbmF0aW9uGAIgASgLMigubHVoYW54aW4uY29tbXVuaXR5LnYxLlBhZ2luYXRpb25SZXF1ZXN0In4KEUxpc3RVc2Vyc1Jlc3BvbnNlEioKBXVzZXJzGAEgAygLMhsubHVoYW54aW4uY29tbXVuaXR5LnYxLlVzZXISPQoKcGFnaW5hdGlvbhgCIAEoCzIpLmx1aGFueGluLmNvbW11bml0eS52MS5QYWdpbmF0aW9uUmVzcG9uc2UiFwoVR2V0Q3VycmVudFVzZXJSZXF1ZXN0IkQKD1JlZ2lzdGVyUmVxdWVzdBIQCgh1c2VybmFtZRgBIAEoCRINCgVlbWFpbBgCIAEoCRIQCghwYXNzd29yZBgDIAEoCSIyCgxMb2dpblJlcXVlc3QSEAoIdXNlcm5hbWUYASABKAkSEAoIcGFzc3dvcmQYAiABKAkiSAoMQXV0aFJlc3BvbnNlEg0KBXRva2VuGAEgASgJEikKBHVzZXIYAiABKAsyGy5sdWhhbnhpbi5jb21tdW5pdHkudjEuVXNlciJNChRVcGRhdGVQcm9maWxlUmVxdWVzdBIUCgxkaXNwbGF5X25hbWUYASABKAkSEgoKYXZhdGFyX3VybBgCIAEoCRILCgNiaW8YAyABKAkiQgoVVXBkYXRlUHJvZmlsZVJlc3BvbnNlEikKBHVzZXIYASABKAsyGy5sdWhhbnhpbi5jb21tdW5pdHkudjEuVXNlciLKAQoEVXNlchIKCgJpZBgBIAEoCRIQCgh1c2VybmFtZRgCIAEoCRINCgVlbWFpbBgDIAEoCRIUCgxkaXNwbGF5X25hbWUYBCABKAkSEgoKYXZhdGFyX3VybBgFIAEoCRILCgNiaW8YBiABKAkSLgoKY3JlYXRlZF9hdBgHIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASLgoKdXBkYXRlZF9hdBgIIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXAytQUKC1VzZXJTZXJ2aWNlElgKB0dldFVzZXISJS5sdWhhbnhpbi5jb21tdW5pdHkudjEuR2V0VXNlclJlcXVlc3QaJi5sdWhhbnhpbi5jb21tdW5pdHkudjEuR2V0VXNlclJlc3BvbnNlEmwKEUdldFVzZXJCeVVzZXJuYW1lEi8ubHVoYW54aW4uY29tbXVuaXR5LnYxLkdldFVzZXJCeVVzZXJuYW1lUmVxdWVzdBomLmx1aGFueGluLmNvbW11bml0eS52MS5HZXRVc2VyUmVzcG9uc2USXgoJTGlzdFVzZXJzEicubHVoYW54aW4uY29tbXVuaXR5LnYxLkxpc3RVc2Vyc1JlcXVlc3QaKC5sdWhhbnhpbi5jb21tdW5pdHkudjEuTGlzdFVzZXJzUmVzcG9uc2USZgoOR2V0Q3VycmVudFVzZXISLC5sdWhhbnhpbi5jb21tdW5pdHkudjEuR2V0Q3VycmVudFVzZXJSZXF1ZXN0GiYubHVoYW54aW4uY29tbXVuaXR5LnYxLkdldFVzZXJSZXNwb25zZRJXCghSZWdpc3RlchImLmx1aGFueGluLmNvbW11bml0eS52MS5SZWdpc3RlclJlcXVlc3QaIy5sdWhhbnhpbi5jb21tdW5pdHkudjEuQXV0aFJlc3BvbnNlElEKBUxvZ2luEiMubHVoYW54aW4uY29tbXVuaXR5LnYxLkxvZ2luUmVxdWVzdBojLmx1aGFueGluLmNvbW11bml0eS52MS5BdXRoUmVzcG9uc2USagoNVXBkYXRlUHJvZmlsZRIrLmx1aGFueGluLmNvbW11bml0eS52MS5VcGRhdGVQcm9maWxlUmVxdWVzdBosLmx1aGFueGluLmNvbW11bml0eS52MS5VcGRhdGVQcm9maWxlUmVzcG9uc2ViBnByb3RvMw", [file_google_protobuf_timestamp, file_luhanxin_community_v1_common]);
+  fileDesc("CiBsdWhhbnhpbi9jb21tdW5pdHkvdjEvdXNlci5wcm90bxIVbHVoYW54aW4uY29tbXVuaXR5LnYxIiEKDkdldFVzZXJSZXF1ZXN0Eg8KB3VzZXJfaWQYASABKAkiLAoYR2V0VXNlckJ5VXNlcm5hbWVSZXF1ZXN0EhAKCHVzZXJuYW1lGAEgASgJIjwKD0dldFVzZXJSZXNwb25zZRIpCgR1c2VyGAEgASgLMhsubHVoYW54aW4uY29tbXVuaXR5LnYxLlVzZXIiXwoQTGlzdFVzZXJzUmVxdWVzdBINCgVxdWVyeRgBIAEoCRI8CgpwYWdpbmF0aW9uGAIgASgLMigubHVoYW54aW4uY29tbXVuaXR5LnYxLlBhZ2luYXRpb25SZXF1ZXN0In4KEUxpc3RVc2Vyc1Jlc3BvbnNlEioKBXVzZXJzGAEgAygLMhsubHVoYW54aW4uY29tbXVuaXR5LnYxLlVzZXISPQoKcGFnaW5hdGlvbhgCIAEoCzIpLmx1aGFueGluLmNvbW11bml0eS52MS5QYWdpbmF0aW9uUmVzcG9uc2UiFwoVR2V0Q3VycmVudFVzZXJSZXF1ZXN0IkQKD1JlZ2lzdGVyUmVxdWVzdBIQCgh1c2VybmFtZRgBIAEoCRINCgVlbWFpbBgCIAEoCRIQCghwYXNzd29yZBgDIAEoCSIyCgxMb2dpblJlcXVlc3QSEAoIdXNlcm5hbWUYASABKAkSEAoIcGFzc3dvcmQYAiABKAkiSAoMQXV0aFJlc3BvbnNlEg0KBXRva2VuGAEgASgJEikKBHVzZXIYAiABKAsyGy5sdWhhbnhpbi5jb21tdW5pdHkudjEuVXNlciK6AQoUVXBkYXRlUHJvZmlsZVJlcXVlc3QSFAoMZGlzcGxheV9uYW1lGAEgASgJEhIKCmF2YXRhcl91cmwYAiABKAkSCwoDYmlvGAMgASgJEg8KB2NvbXBhbnkYBCABKAkSEAoIbG9jYXRpb24YBSABKAkSDwoHd2Vic2l0ZRgGIAEoCRI3Cgxzb2NpYWxfbGlua3MYByADKAsyIS5sdWhhbnhpbi5jb21tdW5pdHkudjEuU29jaWFsTGluayJCChVVcGRhdGVQcm9maWxlUmVzcG9uc2USKQoEdXNlchgBIAEoCzIbLmx1aGFueGluLmNvbW11bml0eS52MS5Vc2VyIisKClNvY2lhbExpbmsSEAoIcGxhdGZvcm0YASABKAkSCwoDdXJsGAIgASgJIrcCCgRVc2VyEgoKAmlkGAEgASgJEhAKCHVzZXJuYW1lGAIgASgJEg0KBWVtYWlsGAMgASgJEhQKDGRpc3BsYXlfbmFtZRgEIAEoCRISCgphdmF0YXJfdXJsGAUgASgJEgsKA2JpbxgGIAEoCRIuCgpjcmVhdGVkX2F0GAcgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBIuCgp1cGRhdGVkX2F0GAggASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBIPCgdjb21wYW55GAkgASgJEhAKCGxvY2F0aW9uGAogASgJEg8KB3dlYnNpdGUYCyABKAkSNwoMc29jaWFsX2xpbmtzGAwgAygLMiEubHVoYW54aW4uY29tbXVuaXR5LnYxLlNvY2lhbExpbmsytQUKC1VzZXJTZXJ2aWNlElgKB0dldFVzZXISJS5sdWhhbnhpbi5jb21tdW5pdHkudjEuR2V0VXNlclJlcXVlc3QaJi5sdWhhbnhpbi5jb21tdW5pdHkudjEuR2V0VXNlclJlc3BvbnNlEmwKEUdldFVzZXJCeVVzZXJuYW1lEi8ubHVoYW54aW4uY29tbXVuaXR5LnYxLkdldFVzZXJCeVVzZXJuYW1lUmVxdWVzdBomLmx1aGFueGluLmNvbW11bml0eS52MS5HZXRVc2VyUmVzcG9uc2USXgoJTGlzdFVzZXJzEicubHVoYW54aW4uY29tbXVuaXR5LnYxLkxpc3RVc2Vyc1JlcXVlc3QaKC5sdWhhbnhpbi5jb21tdW5pdHkudjEuTGlzdFVzZXJzUmVzcG9uc2USZgoOR2V0Q3VycmVudFVzZXISLC5sdWhhbnhpbi5jb21tdW5pdHkudjEuR2V0Q3VycmVudFVzZXJSZXF1ZXN0GiYubHVoYW54aW4uY29tbXVuaXR5LnYxLkdldFVzZXJSZXNwb25zZRJXCghSZWdpc3RlchImLmx1aGFueGluLmNvbW11bml0eS52MS5SZWdpc3RlclJlcXVlc3QaIy5sdWhhbnhpbi5jb21tdW5pdHkudjEuQXV0aFJlc3BvbnNlElEKBUxvZ2luEiMubHVoYW54aW4uY29tbXVuaXR5LnYxLkxvZ2luUmVxdWVzdBojLmx1aGFueGluLmNvbW11bml0eS52MS5BdXRoUmVzcG9uc2USagoNVXBkYXRlUHJvZmlsZRIrLmx1aGFueGluLmNvbW11bml0eS52MS5VcGRhdGVQcm9maWxlUmVxdWVzdBosLmx1aGFueGluLmNvbW11bml0eS52MS5VcGRhdGVQcm9maWxlUmVzcG9uc2ViBnByb3RvMw", [file_google_protobuf_timestamp, file_luhanxin_community_v1_common]);
 
 /**
  * @generated from message luhanxin.community.v1.GetUserRequest
@@ -230,25 +230,53 @@ export const AuthResponseSchema: GenMessage<AuthResponse> = /*@__PURE__*/
  */
 export type UpdateProfileRequest = Message<"luhanxin.community.v1.UpdateProfileRequest"> & {
   /**
-   * 显示名称（可选，空字符串表示不更新）
+   * 显示名称
    *
    * @generated from field: string display_name = 1;
    */
   displayName: string;
 
   /**
-   * 头像 URL（可选）
+   * 头像 URL
    *
    * @generated from field: string avatar_url = 2;
    */
   avatarUrl: string;
 
   /**
-   * 个人简介（可选）
+   * 个人简介
    *
    * @generated from field: string bio = 3;
    */
   bio: string;
+
+  /**
+   * 公司/组织
+   *
+   * @generated from field: string company = 4;
+   */
+  company: string;
+
+  /**
+   * 所在地
+   *
+   * @generated from field: string location = 5;
+   */
+  location: string;
+
+  /**
+   * 个人网站
+   *
+   * @generated from field: string website = 6;
+   */
+  website: string;
+
+  /**
+   * 社交链接（整体替换）
+   *
+   * @generated from field: repeated luhanxin.community.v1.SocialLink social_links = 7;
+   */
+  socialLinks: SocialLink[];
 };
 
 /**
@@ -276,6 +304,34 @@ export type UpdateProfileResponse = Message<"luhanxin.community.v1.UpdateProfile
  */
 export const UpdateProfileResponseSchema: GenMessage<UpdateProfileResponse> = /*@__PURE__*/
   messageDesc(file_luhanxin_community_v1_user, 10);
+
+/**
+ * 社交链接
+ *
+ * @generated from message luhanxin.community.v1.SocialLink
+ */
+export type SocialLink = Message<"luhanxin.community.v1.SocialLink"> & {
+  /**
+   * 平台标识：github, twitter, weibo, linkedin, juejin, zhihu, bilibili, website
+   *
+   * @generated from field: string platform = 1;
+   */
+  platform: string;
+
+  /**
+   * 链接 URL
+   *
+   * @generated from field: string url = 2;
+   */
+  url: string;
+};
+
+/**
+ * Describes the message luhanxin.community.v1.SocialLink.
+ * Use `create(SocialLinkSchema)` to create a new message.
+ */
+export const SocialLinkSchema: GenMessage<SocialLink> = /*@__PURE__*/
+  messageDesc(file_luhanxin_community_v1_user, 11);
 
 /**
  * 用户信息
@@ -338,6 +394,34 @@ export type User = Message<"luhanxin.community.v1.User"> & {
    * @generated from field: google.protobuf.Timestamp updated_at = 8;
    */
   updatedAt?: Timestamp;
+
+  /**
+   * 公司/组织
+   *
+   * @generated from field: string company = 9;
+   */
+  company: string;
+
+  /**
+   * 所在地
+   *
+   * @generated from field: string location = 10;
+   */
+  location: string;
+
+  /**
+   * 个人网站
+   *
+   * @generated from field: string website = 11;
+   */
+  website: string;
+
+  /**
+   * 社交链接
+   *
+   * @generated from field: repeated luhanxin.community.v1.SocialLink social_links = 12;
+   */
+  socialLinks: SocialLink[];
 };
 
 /**
@@ -345,7 +429,7 @@ export type User = Message<"luhanxin.community.v1.User"> & {
  * Use `create(UserSchema)` to create a new message.
  */
 export const UserSchema: GenMessage<User> = /*@__PURE__*/
-  messageDesc(file_luhanxin_community_v1_user, 11);
+  messageDesc(file_luhanxin_community_v1_user, 12);
 
 /**
  * 用户服务

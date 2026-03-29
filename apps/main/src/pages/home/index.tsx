@@ -1,13 +1,15 @@
 import { useCallback, useState } from 'react';
 
-import ArticleList from '../article/components/ArticleList';
+import ArticleList from '@/components/ArticleList';
 import HeroBanner from './components/HeroBanner';
+import NavSidebar from './components/NavSidebar';
 import UserList from './components/UserList';
 import styles from './home.module.less';
 
 export default function HomePage() {
   const [articleCount, setArticleCount] = useState<number | null>(null);
   const [userCount, setUserCount] = useState<number | null>(null);
+  const [activeTag, setActiveTag] = useState('');
 
   const handleArticleLoad = useCallback((totalCount: number) => {
     setArticleCount(totalCount);
@@ -19,6 +21,9 @@ export default function HomePage() {
 
   return (
     <div className={styles.page}>
+      {/* 左侧导航 */}
+      <NavSidebar activeTag={activeTag} onTagChange={setActiveTag} />
+
       {/* 主内容：文章列表 */}
       <div className={styles.content}>
         <div className={styles.tabs}>
@@ -27,7 +32,7 @@ export default function HomePage() {
             <span className={`${styles.tab} ${styles.disabled}`}>最新</span>
           </div>
         </div>
-        <ArticleList onLoad={handleArticleLoad} />
+        <ArticleList tag={activeTag || undefined} onLoad={handleArticleLoad} />
       </div>
 
       {/* 右侧栏 */}
@@ -46,7 +51,6 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* 活跃用户 */}
         <div className={styles.card}>
           <h4 className={styles.cardTitle}>🔥 活跃用户</h4>
           <UserList onLoad={handleUserListLoad} compact />

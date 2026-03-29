@@ -13,10 +13,12 @@
     "@connectrpc/connect-web": "^2.0.0",
     "@garfish/bridge-vue-v3": "1.19.8",
     "@luhanxin/shared-types": "workspace:*",
+    "markdown-it": "^14.1.0",
     "naive-ui": "^2.40.0",
     "vue": "^3.5.0"
   },
   "devDependencies": {
+    "@types/markdown-it": "^14.1.0",
     "@luhanxin/dev-kit": "workspace:*",
     "@vitejs/plugin-vue": "^5.0.0",
     "typescript": "^5.6.0",

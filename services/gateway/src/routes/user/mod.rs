@@ -30,6 +30,15 @@ use crate::resolver::ServiceResolver;
 // Swagger DTO（映射 Proto 消息）
 // ────────────────────────────────────────────
 
+/// 社交链接
+#[derive(Serialize, Deserialize, ToSchema)]
+pub struct SocialLinkDto {
+    /// 平台标识
+    pub platform: String,
+    /// 链接 URL
+    pub url: String,
+}
+
 /// 用户信息
 #[derive(Serialize, Deserialize, ToSchema)]
 pub struct UserDto {
@@ -49,6 +58,14 @@ pub struct UserDto {
     pub created_at: Option<String>,
     /// 更新时间
     pub updated_at: Option<String>,
+    /// 公司/组织
+    pub company: String,
+    /// 所在地
+    pub location: String,
+    /// 个人网站
+    pub website: String,
+    /// 社交链接
+    pub social_links: Vec<SocialLinkDto>,
 }
 
 /// 获取用户响应
@@ -86,10 +103,10 @@ pub struct LoginDto {
     pub password: String,
 }
 
-/// 更新资料请求
+/// 更新资料请求（全量覆盖）
 #[derive(Serialize, Deserialize, ToSchema)]
 pub struct UpdateProfileDto {
-    /// 显示名称（空字符串表示不更新）
+    /// 显示名称
     #[serde(default)]
     pub display_name: String,
     /// 头像 URL
@@ -98,6 +115,18 @@ pub struct UpdateProfileDto {
     /// 个人简介
     #[serde(default)]
     pub bio: String,
+    /// 公司/组织
+    #[serde(default)]
+    pub company: String,
+    /// 所在地
+    #[serde(default)]
+    pub location: String,
+    /// 个人网站
+    #[serde(default)]
+    pub website: String,
+    /// 社交链接
+    #[serde(default)]
+    pub social_links: Vec<SocialLinkDto>,
 }
 
 /// 用户列表响应
@@ -159,6 +188,10 @@ fn user_to_dto(user: shared::proto::User) -> UserDto {
         bio: user.bio,
         created_at: user.created_at.as_ref().map(timestamp_to_string),
         updated_at: user.updated_at.as_ref().map(timestamp_to_string),
+        company: user.company,
+        location: user.location,
+        website: user.website,
+        social_links: user.social_links.into_iter().map(|l| SocialLinkDto { platform: l.platform, url: l.url }).collect(),
     }
 }
 
@@ -494,6 +527,10 @@ pub async fn update_profile(
         display_name: body.display_name,
         avatar_url: body.avatar_url,
         bio: body.bio,
+        company: body.company,
+        location: body.location,
+        website: body.website,
+        social_links: body.social_links.into_iter().map(|l| shared::proto::SocialLink { platform: l.platform, url: l.url }).collect(),
     });
     if let Some(uid) = ctx.attrs.get("user_id") {
         if let Ok(val) = uid.parse() {

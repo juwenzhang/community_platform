@@ -1,4 +1,4 @@
-// UserArea — 用户头像下拉菜单
+// UserArea — 头像下拉面板
 
 .userArea {
   display: flex;
@@ -27,4 +27,67 @@
   border-radius: var(--radius-sm);
   background: var(--color-primary);
   border-color: var(--color-primary);
+}
+
+// 下拉面板
+.panel {
+  width: 220px;
+
+  .userCard {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+
+    .userInfo {
+      flex: 1;
+      min-width: 0;
+
+      .displayName {
+        font-size: 15px;
+        font-weight: 600;
+        color: var(--color-text-1);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .username {
+        font-size: 12px;
+        color: var(--color-text-3);
+        margin-top: 2px;
+      }
+    }
+  }
+
+  .divider {
+    height: 1px;
+    background: var(--color-border);
+    margin: 0;
+  }
+
+  .menuItem {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 16px;
+    font-size: 14px;
+    color: var(--color-text-2);
+    cursor: pointer;
+    transition: all 0.15s;
+
+    &:hover {
+      background: var(--color-bg-hover);
+      color: var(--color-text-1);
+    }
+
+    &.danger {
+      color: #f53f3f;
+
+      &:hover {
+        background: #fff1f0;
+        color: #f53f3f;
+      }
+    }
+  }
 }

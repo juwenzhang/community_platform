@@ -1,0 +1,30 @@
+// SocialIcons — 社交链接图标组
+
+.socialIcons {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  .iconLink {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    font-size: 16px;
+    transition: all 0.15s;
+    background: var(--color-bg-hover);
+
+    &:hover {
+      opacity: 0.8;
+      transform: scale(1.1);
+    }
+  }
+
+  .customIcon {
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1;
+  }
+}

@@ -17,6 +17,7 @@ sea-orm.workspace = true
 uuid.workspace = true
 chrono.workspace = true
 bcrypt.workspace = true
+serde_json.workspace = true
 
 [lints]
 workspace = true

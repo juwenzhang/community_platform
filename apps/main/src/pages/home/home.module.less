@@ -97,6 +97,14 @@
   }
 }
 
+// 响应式降级：三栏 → 两栏 → 单栏
+@media (max-width: 1200px) {
+  // 隐藏 NavSidebar（由 NavSidebar 自身的 display:none 控制亦可，此处兜底）
+  .page {
+    // NavSidebar 在 < 1200px 时隐藏
+  }
+}
+
 @media (max-width: 1100px) {
   .page .sidebar {
     display: none;

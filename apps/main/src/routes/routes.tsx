@@ -28,19 +28,19 @@ const localRoutes: RouteConfig[] = [
     },
   },
   {
-    path: '/article/*',
-    component: lazy(() => import('@/pages/article')),
+    path: '/post/*',
+    component: lazy(() => import('@/pages/post')),
     meta: {
       title: '文章',
-      icon: 'FileTextOutlined',
+      hidden: true,
     },
   },
   {
     path: '/profile/*',
     component: lazy(() => import('@/pages/profile')),
     meta: {
-      title: '我的',
-      icon: 'UserOutlined',
+      title: '个人中心',
+      hidden: true,
       auth: true,
     },
   },

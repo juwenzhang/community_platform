@@ -132,6 +132,21 @@ pub async fn list_users(
 
 /// Entity Model → Proto User 转换
 pub fn user_model_to_proto(model: users::Model) -> User {
+    // social_links: JSONB → Vec<SocialLink>
+    let social_links = model
+        .social_links
+        .as_array()
+        .map(|arr| {
+            arr.iter()
+                .filter_map(|v| {
+                    let platform = v.get("platform")?.as_str()?.to_string();
+                    let url = v.get("url")?.as_str()?.to_string();
+                    Some(shared::proto::SocialLink { platform, url })
+                })
+                .collect()
+        })
+        .unwrap_or_default();
+
     User {
         id: model.id.to_string(),
         username: model.username,
@@ -141,6 +156,10 @@ pub fn user_model_to_proto(model: users::Model) -> User {
         bio: model.bio,
         created_at: Some(datetime_to_timestamp(model.created_at)),
         updated_at: Some(datetime_to_timestamp(model.updated_at)),
+        company: model.company,
+        location: model.location,
+        website: model.website,
+        social_links,
     }
 }
 
