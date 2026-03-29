@@ -20,6 +20,14 @@ const localRoutes: RouteConfig[] = [
     },
   },
   {
+    path: '/auth',
+    component: lazy(() => import('@/pages/auth')),
+    meta: {
+      title: '登录',
+      hidden: true,
+    },
+  },
+  {
     path: '/demo',
     component: lazy(() => import('@/pages/demo')),
     meta: {
@@ -41,6 +49,7 @@ const localRoutes: RouteConfig[] = [
     meta: {
       title: '我的',
       icon: 'UserOutlined',
+      auth: true,
     },
   },
 ];
