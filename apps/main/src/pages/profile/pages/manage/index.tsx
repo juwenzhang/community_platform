@@ -12,10 +12,9 @@ import { ArticleService, ArticleStatus } from '@luhanxin/shared-types';
 import { Button, message, Popconfirm } from 'antd';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-
+import ArticleEditor from '@/components/ArticleEditor';
 import { transport } from '@/lib/connect';
 import { useAuthStore } from '@/stores/useAuthStore';
-import ArticleEditor from '../../components/ArticleEditor';
 import styles from './manage.module.less';
 
 const articleClient = createClient(ArticleService, transport);
@@ -254,10 +253,10 @@ export default function ArticleManagePage() {
                     <div className={styles.itemTitleRow}>
                       <h3 className={styles.itemTitle}>
                         <a
-                          href={`/article/${article.id}`}
+                          href={`/post/${article.id}`}
                           onClick={(e) => {
                             e.preventDefault();
-                            navigate(`/article/${article.id}`);
+                            navigate(`/post/${article.id}`);
                           }}
                         >
                           {article.title}

@@ -58,9 +58,11 @@ export default function Layout({ routes }: LayoutProps) {
         </div>
       </header>
 
-      {/* 内容区 */}
+      {/* 内容区 — 路由切换动画 */}
       <main className={styles.main}>
-        <Outlet />
+        <div key={location.pathname} className={styles.pageTransition}>
+          <Outlet />
+        </div>
       </main>
     </div>
   );

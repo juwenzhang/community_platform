@@ -17,10 +17,9 @@ import rehypeHighlight from 'rehype-highlight';
 import rehypeSlug from 'rehype-slug';
 import remarkBreaks from 'remark-breaks';
 import remarkGfm from 'remark-gfm';
-
+import ArticleToc from '@/components/ArticleToc';
 import { transport } from '@/lib/connect';
 import { useAuthStore } from '@/stores/useAuthStore';
-import ArticleToc from '../../components/ArticleToc';
 import styles from './detail.module.less';
 
 const articleClient = createClient(ArticleService, transport);
@@ -67,7 +66,7 @@ export default function ArticleDetailPage() {
         <div className={styles.detail}>
           <div className={styles.error}>
             <p>{error || '文章不存在'}</p>
-            <Button onClick={() => navigate('/article')}>返回文章列表</Button>
+            <Button onClick={() => navigate('/')}>返回首页</Button>
           </div>
         </div>
       </div>
@@ -136,14 +135,14 @@ export default function ArticleDetailPage() {
         </div>
 
         <div className={styles.actions}>
-          <Button icon={<ArrowLeftOutlined />} onClick={() => navigate('/article')}>
-            返回列表
+          <Button icon={<ArrowLeftOutlined />} onClick={() => navigate('/')}>
+            返回首页
           </Button>
           {isAuthor && (
             <Button
               type="primary"
               icon={<EditOutlined />}
-              onClick={() => navigate(`/article/${article.id}/edit`)}
+              onClick={() => navigate(`/post/${article.id}/edit`)}
             >
               编辑文章
             </Button>

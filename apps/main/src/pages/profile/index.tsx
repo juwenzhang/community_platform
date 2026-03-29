@@ -1,52 +1,19 @@
-import { EditOutlined } from '@ant-design/icons';
-import { Button, Empty } from 'antd';
-import { useState } from 'react';
-import { useAuthStore } from '@/stores/useAuthStore';
-import ArticleList from '../article/components/ArticleList';
+import { lazy, Suspense } from 'react';
+import { Route, Routes } from 'react-router-dom';
 
-import EditProfileForm from './components/EditProfileForm';
-import ProfileCard from './components/ProfileCard';
-import styles from './profile.module.less';
+import Loading from '@/components/Loading';
 
-export default function ProfilePage() {
-  const { user, isLoading } = useAuthStore();
-  const [editing, setEditing] = useState(false);
+const ProfileSettings = lazy(() => import('./components/ProfileSettings'));
+const ManagePage = lazy(() => import('./pages/manage'));
 
-  if (!user && !isLoading) {
-    return (
-      <div className={styles.page}>
-        <div className={styles.empty}>
-          <Empty description="请先登录" />
-        </div>
-      </div>
-    );
-  }
-
+/** 个人中心模块入口 — 子路由分发 */
+export default function ProfileModule() {
   return (
-    <div className={styles.page}>
-      <div className={styles.header}>
-        <h2 className={styles.title}>个人设置</h2>
-        <Button
-          type={editing ? 'default' : 'primary'}
-          size="small"
-          icon={<EditOutlined />}
-          onClick={() => setEditing(!editing)}
-        >
-          {editing ? '取消编辑' : '编辑资料'}
-        </Button>
-      </div>
-
-      <div className={styles.body}>
-        <ProfileCard user={user} loading={isLoading} />
-        {editing && user && <EditProfileForm user={user} onSuccess={() => setEditing(false)} />}
-      </div>
-
-      {user && (
-        <div className={styles.section}>
-          <h3 className={styles.sectionTitle}>📝 我的文章</h3>
-          <ArticleList authorId={user.id} />
-        </div>
-      )}
-    </div>
+    <Suspense fallback={<Loading />}>
+      <Routes>
+        <Route index element={<ProfileSettings />} />
+        <Route path="manage" element={<ManagePage />} />
+      </Routes>
+    </Suspense>
   );
 }

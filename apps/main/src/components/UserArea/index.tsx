@@ -1,10 +1,4 @@
-import {
-  EditOutlined,
-  FormOutlined,
-  LoginOutlined,
-  LogoutOutlined,
-  UserOutlined,
-} from '@ant-design/icons';
+import { FormOutlined, LoginOutlined, LogoutOutlined, UserOutlined } from '@ant-design/icons';
 import { Avatar, Button, Popover } from 'antd';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -74,30 +68,15 @@ export default function UserArea() {
       </div>
       <div
         className={styles.menuItem}
-        onClick={() => handleNav('/article/create')}
+        onClick={() => handleNav('/profile/manage')}
         onKeyDown={(e) => {
-          if (e.key === 'Enter') handleNav('/article/create');
+          if (e.key === 'Enter') handleNav('/profile/manage');
         }}
         role="menuitem"
         tabIndex={0}
       >
         <FormOutlined />
         <span>创作中心</span>
-      </div>
-
-      <div className={styles.divider} />
-
-      <div
-        className={styles.menuItem}
-        onClick={() => handleNav('/profile')}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter') handleNav('/profile');
-        }}
-        role="menuitem"
-        tabIndex={0}
-      >
-        <EditOutlined />
-        <span>编辑资料</span>
       </div>
 
       <div className={styles.divider} />

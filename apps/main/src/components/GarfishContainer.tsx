@@ -28,6 +28,10 @@ function ensureGarfishInit() {
     domGetter: `#garfish-app-${app.name}`,
     props: {
       getCurrentUser: () => useAuthStore.getState().user,
+      getRouteParams: () => {
+        const match = window.location.pathname.match(/^\/user\/([^/]+)/);
+        return { username: match?.[1] || '' };
+      },
     },
   }));
 

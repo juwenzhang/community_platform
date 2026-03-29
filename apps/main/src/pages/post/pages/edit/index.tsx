@@ -4,10 +4,9 @@ import { ArticleService } from '@luhanxin/shared-types';
 import { message, Skeleton } from 'antd';
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-
+import ArticleEditor from '@/components/ArticleEditor';
 import { transport } from '@/lib/connect';
 import { useAuthStore } from '@/stores/useAuthStore';
-import ArticleEditor from '../../components/ArticleEditor';
 
 const articleClient = createClient(ArticleService, transport);
 
@@ -29,7 +28,7 @@ export default function EditArticlePage() {
       })
       .catch((err) => {
         message.error(err.message || '加载文章失败');
-        navigate('/article/create');
+        navigate('/');
       })
       .finally(() => setLoading(false));
   }, [id, navigate]);
@@ -80,7 +79,7 @@ export default function EditArticlePage() {
         status: data.status,
       });
       message.success('文章更新成功');
-      navigate(`/article/${id}`);
+      navigate(`/post/${id}`);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : '更新失败';
       message.error(msg);
@@ -96,7 +95,7 @@ export default function EditArticlePage() {
       initialTags={article.tags}
       initialStatus={article.status}
       onSave={handleSave}
-      onCancel={() => navigate('/article/create')}
+      onCancel={() => navigate(`/post/${id}`)}
       saving={saving}
     />
   );

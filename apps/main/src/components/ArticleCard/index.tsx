@@ -21,11 +21,7 @@ export default function ArticleCard({ article }: ArticleCardProps) {
     : '';
 
   return (
-    <button
-      type="button"
-      className={styles.card}
-      onClick={() => navigate(`/article/${article.id}`)}
-    >
+    <button type="button" className={styles.card} onClick={() => navigate(`/post/${article.id}`)}>
       <div className={styles.main}>
         <div className={styles.titleRow}>
           <h3 className={styles.title}>{article.title}</h3>
