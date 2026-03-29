@@ -5,7 +5,7 @@
 pub mod auth;
 pub mod profile;
 
-use sea_orm::{ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter, QueryOrder, QuerySelect};
+use sea_orm::{ColumnTrait, DatabaseConnection, EntityTrait, PaginatorTrait, QueryFilter, QueryOrder, QuerySelect};
 use tonic::Status;
 use uuid::Uuid;
 
@@ -67,30 +67,41 @@ pub async fn list_users(
 ) -> Result<(Vec<User>, String, i32), Status> {
     let limit = page_size.clamp(1, 100) as u64;
 
-    let mut select = Users::find().order_by_desc(users::Column::CreatedAt);
+    let mut base_filter = Users::find().order_by_desc(users::Column::CreatedAt);
 
     // 搜索过滤
     if !query.is_empty() {
         let pattern = format!("%{query}%");
-        select = select.filter(
+        base_filter = base_filter.filter(
             users::Column::Username
                 .contains(&pattern)
                 .or(users::Column::DisplayName.contains(&pattern)),
         );
     }
 
+    // 总数查询（不带游标分页条件，反映搜索结果的完整总数）
+    let total_count = base_filter
+        .clone()
+        .count(db)
+        .await
+        .map_err(|e| {
+            tracing::error!(error = %e, "Count query failed");
+            Status::internal("Count query failed")
+        })? as i32;
+
     // 游标分页（page_token = 上一页最后一条的 created_at timestamp）
+    let mut paginated = base_filter;
     if !page_token.is_empty() {
         if let Ok(ts) = page_token.parse::<i64>() {
             let cursor_time = chrono::DateTime::from_timestamp(ts, 0)
                 .map(|dt| dt.fixed_offset())
                 .ok_or_else(|| Status::invalid_argument("Invalid page_token"))?;
-            select = select.filter(users::Column::CreatedAt.lt(cursor_time));
+            paginated = paginated.filter(users::Column::CreatedAt.lt(cursor_time));
         }
     }
 
     // 多取一条判断是否有下一页
-    let models = select
+    let models = paginated
         .limit(limit + 1)
         .all(db)
         .await
@@ -115,9 +126,8 @@ pub async fn list_users(
     };
 
     let users: Vec<User> = results.into_iter().map(user_model_to_proto).collect();
-    let total = users.len() as i32;
 
-    Ok((users, next_page_token, total))
+    Ok((users, next_page_token, total_count))
 }
 
 /// Entity Model → Proto User 转换
