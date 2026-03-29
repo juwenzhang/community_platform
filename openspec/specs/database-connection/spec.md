@@ -71,3 +71,34 @@ svc-user 的 `GetUser` RPC SHALL 从 PostgreSQL 查询用户数据，替代 mock
 
 - **WHEN** 调用 `GetUser(user_id="not-a-uuid")`
 - **THEN** 返回 gRPC Status `INVALID_ARGUMENT`
+
+### Requirement: svc-user 扩展 RPC 方法
+
+svc-user SHALL 扩展以下 RPC 方法：
+
+- `Register(RegisterRequest) → AuthResponse` — 用户注册（bcrypt hash via spawn_blocking）
+- `Login(LoginRequest) → AuthResponse` — 用户登录（bcrypt verify via spawn_blocking）
+- `UpdateProfile(UpdateProfileRequest) → UpdateProfileResponse` — 更新资料（通过 `x-user-id` metadata 获取当前用户）
+- `GetUserByUsername` — 按用户名查询
+- `ListUsers` — 用户列表（游标分页 + 搜索）
+- `GetCurrentUser` — 获取当前认证用户
+
+handler 层组织：
+- `handlers/user/auth.rs` — register + login
+- `handlers/user/profile.rs` — update_profile
+- `handlers/user/mod.rs` — get_user_by_id, get_user_by_username, list_users
+
+#### Scenario: Register RPC 端到端
+
+- **WHEN** 前端调用 Register → Gateway 转发 → svc-user 处理
+- **THEN** 返回 JWT token + 用户信息
+
+#### Scenario: Login RPC 端到端
+
+- **WHEN** 前端调用 Login → Gateway 转发 → svc-user 处理
+- **THEN** 返回 JWT token + 用户信息
+
+#### Scenario: UpdateProfile 需认证
+
+- **WHEN** 无 token 调用 UpdateProfile
+- **THEN** Gateway AuthInterceptor 拦截，返回 UNAUTHENTICATED
