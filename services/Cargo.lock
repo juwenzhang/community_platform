@@ -3295,6 +3295,24 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "13c2bddecc57b384dee18652358fb23172facb8a2c51ccc10d74c157bdea3292"
 
 [[package]]
+name = "svc-content"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "prost",
+ "prost-types",
+ "sea-orm",
+ "shared",
+ "thiserror 2.0.18",
+ "tokio",
+ "tonic",
+ "tonic-health",
+ "tracing",
+ "tracing-subscriber",
+ "uuid",
+]
+
+[[package]]
 name = "svc-user"
 version = "0.1.0"
 dependencies = [

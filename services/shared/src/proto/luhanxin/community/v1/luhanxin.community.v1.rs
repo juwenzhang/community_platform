@@ -20,173 +20,6 @@ pub struct PaginationResponse {
     #[prost(int32, tag = "2")]
     pub total_count: i32,
 }
-/// 获取文章请求
-#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
-pub struct GetArticleRequest {
-    /// 文章 ID
-    #[prost(string, tag = "1")]
-    pub article_id: ::prost::alloc::string::String,
-}
-/// 获取文章响应
-#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
-pub struct GetArticleResponse {
-    /// 文章详情
-    #[prost(message, optional, tag = "1")]
-    pub article: ::core::option::Option<Article>,
-}
-/// 获取文章列表请求
-#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
-pub struct ListArticlesRequest {
-    /// 分页参数
-    #[prost(message, optional, tag = "1")]
-    pub pagination: ::core::option::Option<PaginationRequest>,
-    /// 可选：按作者筛选
-    #[prost(string, tag = "2")]
-    pub author_id: ::prost::alloc::string::String,
-}
-/// 获取文章列表响应
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct ListArticlesResponse {
-    /// 文章列表
-    #[prost(message, repeated, tag = "1")]
-    pub articles: ::prost::alloc::vec::Vec<Article>,
-    /// 分页元数据
-    #[prost(message, optional, tag = "2")]
-    pub pagination: ::core::option::Option<PaginationResponse>,
-}
-/// 文章信息
-#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
-pub struct Article {
-    /// 文章唯一标识
-    #[prost(string, tag = "1")]
-    pub id: ::prost::alloc::string::String,
-    /// 文章标题
-    #[prost(string, tag = "2")]
-    pub title: ::prost::alloc::string::String,
-    /// URL slug
-    #[prost(string, tag = "3")]
-    pub slug: ::prost::alloc::string::String,
-    /// 文章摘要
-    #[prost(string, tag = "4")]
-    pub summary: ::prost::alloc::string::String,
-    /// 文章内容 (Markdown)
-    #[prost(string, tag = "5")]
-    pub content: ::prost::alloc::string::String,
-    /// 作者 ID
-    #[prost(string, tag = "6")]
-    pub author_id: ::prost::alloc::string::String,
-    /// 标签列表
-    #[prost(string, repeated, tag = "7")]
-    pub tags: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
-    /// 浏览次数
-    #[prost(int32, tag = "8")]
-    pub view_count: i32,
-    /// 点赞次数
-    #[prost(int32, tag = "9")]
-    pub like_count: i32,
-    /// 文章状态
-    #[prost(enumeration = "ArticleStatus", tag = "10")]
-    pub status: i32,
-    /// 创建时间
-    #[prost(message, optional, tag = "11")]
-    pub created_at: ::core::option::Option<::prost_types::Timestamp>,
-    /// 更新时间
-    #[prost(message, optional, tag = "12")]
-    pub updated_at: ::core::option::Option<::prost_types::Timestamp>,
-    /// 发布时间
-    #[prost(message, optional, tag = "13")]
-    pub published_at: ::core::option::Option<::prost_types::Timestamp>,
-}
-/// 文章状态枚举
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
-#[repr(i32)]
-pub enum ArticleStatus {
-    Unspecified = 0,
-    Draft = 1,
-    Published = 2,
-    Archived = 3,
-}
-impl ArticleStatus {
-    /// String value of the enum field names used in the ProtoBuf definition.
-    ///
-    /// The values are not transformed in any way and thus are considered stable
-    /// (if the ProtoBuf definition does not change) and safe for programmatic use.
-    pub fn as_str_name(&self) -> &'static str {
-        match self {
-            Self::Unspecified => "ARTICLE_STATUS_UNSPECIFIED",
-            Self::Draft => "ARTICLE_STATUS_DRAFT",
-            Self::Published => "ARTICLE_STATUS_PUBLISHED",
-            Self::Archived => "ARTICLE_STATUS_ARCHIVED",
-        }
-    }
-    /// Creates an enum from field names used in the ProtoBuf definition.
-    pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
-        match value {
-            "ARTICLE_STATUS_UNSPECIFIED" => Some(Self::Unspecified),
-            "ARTICLE_STATUS_DRAFT" => Some(Self::Draft),
-            "ARTICLE_STATUS_PUBLISHED" => Some(Self::Published),
-            "ARTICLE_STATUS_ARCHIVED" => Some(Self::Archived),
-            _ => None,
-        }
-    }
-}
-/// 事件信封 — 所有异步事件的标准包装
-///
-/// 通过 NATS 发布/订阅，消息体为此消息的 Protobuf 二进制编码。
-/// Subject 命名：luhanxin.events.<domain>.<action>
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct EventEnvelope {
-    /// 唯一事件 ID (UUID v4)
-    #[prost(string, tag = "1")]
-    pub event_id: ::prost::alloc::string::String,
-    /// 事件类型，如 "user.created"、"article.published"
-    #[prost(string, tag = "2")]
-    pub event_type: ::prost::alloc::string::String,
-    /// 来源服务，如 "gateway"、"svc-user"
-    #[prost(string, tag = "3")]
-    pub source: ::prost::alloc::string::String,
-    /// 事件产生时间
-    #[prost(message, optional, tag = "4")]
-    pub timestamp: ::core::option::Option<::prost_types::Timestamp>,
-    /// 事件体（具体的 Proto 消息，使用 Any 包装）
-    #[prost(message, optional, tag = "5")]
-    pub payload: ::core::option::Option<::prost_types::Any>,
-    /// 元数据（trace_id、correlation_id、user_id 等）
-    #[prost(map = "string, string", tag = "6")]
-    pub metadata: ::std::collections::HashMap<::prost::alloc::string::String, ::prost::alloc::string::String>,
-    /// 重试次数（初始为 0）
-    #[prost(int32, tag = "7")]
-    pub retry_count: i32,
-}
-/// Gateway 异步重试信封
-///
-/// 当 Gateway 调用下游 RPC 失败（UNAVAILABLE / DEADLINE_EXCEEDED）时，
-/// 将原始请求打包为 RetryRequest 写入 NATS 重试队列。
-/// Subject 命名：luhanxin.retry.<service>.<method>
-#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
-pub struct RetryRequest {
-    /// 请求唯一标识 (UUID v4)
-    #[prost(string, tag = "1")]
-    pub request_id: ::prost::alloc::string::String,
-    /// 目标服务名，如 "svc-user"
-    #[prost(string, tag = "2")]
-    pub target_service: ::prost::alloc::string::String,
-    /// gRPC 方法全名，如 "luhanxin.community.v1.UserService/GetUser"
-    #[prost(string, tag = "3")]
-    pub method: ::prost::alloc::string::String,
-    /// 原始请求的 Protobuf 序列化字节
-    #[prost(bytes = "vec", tag = "4")]
-    pub request_payload: ::prost::alloc::vec::Vec<u8>,
-    /// 已重试次数
-    #[prost(int32, tag = "5")]
-    pub retry_count: i32,
-    /// 最大重试次数
-    #[prost(int32, tag = "6")]
-    pub max_retries: i32,
-    /// 首次入队时间
-    #[prost(message, optional, tag = "7")]
-    pub created_at: ::core::option::Option<::prost_types::Timestamp>,
-}
 // ──── 获取用户 ────
 
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
@@ -318,6 +151,255 @@ pub struct User {
     /// 更新时间
     #[prost(message, optional, tag = "8")]
     pub updated_at: ::core::option::Option<::prost_types::Timestamp>,
+}
+// ──── 获取文章 ────
+
+/// 获取文章请求
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct GetArticleRequest {
+    /// 文章 ID
+    #[prost(string, tag = "1")]
+    pub article_id: ::prost::alloc::string::String,
+}
+/// 获取文章响应
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct GetArticleResponse {
+    /// 文章详情
+    #[prost(message, optional, tag = "1")]
+    pub article: ::core::option::Option<Article>,
+}
+// ──── 文章列表 ────
+
+/// 获取文章列表请求
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct ListArticlesRequest {
+    /// 分页参数
+    #[prost(message, optional, tag = "1")]
+    pub pagination: ::core::option::Option<PaginationRequest>,
+    /// 可选：按作者筛选
+    #[prost(string, tag = "2")]
+    pub author_id: ::prost::alloc::string::String,
+    /// 可选：标题模糊搜索（SQL LIKE，预留后续替换为 Meilisearch）
+    #[prost(string, tag = "3")]
+    pub query: ::prost::alloc::string::String,
+    /// 可选：按标签筛选（PostgreSQL array contains）
+    #[prost(string, tag = "4")]
+    pub tag: ::prost::alloc::string::String,
+}
+/// 获取文章列表响应
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ListArticlesResponse {
+    /// 文章列表
+    #[prost(message, repeated, tag = "1")]
+    pub articles: ::prost::alloc::vec::Vec<Article>,
+    /// 分页元数据
+    #[prost(message, optional, tag = "2")]
+    pub pagination: ::core::option::Option<PaginationResponse>,
+}
+// ──── 创建文章 ────
+
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct CreateArticleRequest {
+    /// 文章标题
+    #[prost(string, tag = "1")]
+    pub title: ::prost::alloc::string::String,
+    /// 文章内容 (Markdown)
+    #[prost(string, tag = "2")]
+    pub content: ::prost::alloc::string::String,
+    /// 文章摘要（可选，为空时自动截取 content 前 200 字）
+    #[prost(string, tag = "3")]
+    pub summary: ::prost::alloc::string::String,
+    /// 标签列表
+    #[prost(string, repeated, tag = "4")]
+    pub tags: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+    /// 文章状态（DRAFT 或 PUBLISHED）
+    #[prost(enumeration = "ArticleStatus", tag = "5")]
+    pub status: i32,
+}
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct CreateArticleResponse {
+    /// 创建后的文章（含生成的 id/slug）
+    #[prost(message, optional, tag = "1")]
+    pub article: ::core::option::Option<Article>,
+}
+// ──── 更新文章 ────
+
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct UpdateArticleRequest {
+    /// 文章 ID
+    #[prost(string, tag = "1")]
+    pub article_id: ::prost::alloc::string::String,
+    /// 文章标题（可选，为空不更新）
+    #[prost(string, tag = "2")]
+    pub title: ::prost::alloc::string::String,
+    /// 文章内容（可选，为空不更新）
+    #[prost(string, tag = "3")]
+    pub content: ::prost::alloc::string::String,
+    /// 文章摘要（可选，为空不更新）
+    #[prost(string, tag = "4")]
+    pub summary: ::prost::alloc::string::String,
+    /// 标签列表（可选，空数组不更新）
+    #[prost(string, repeated, tag = "5")]
+    pub tags: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+    /// 文章状态（可选，UNSPECIFIED 不更新）
+    #[prost(enumeration = "ArticleStatus", tag = "6")]
+    pub status: i32,
+}
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct UpdateArticleResponse {
+    /// 更新后的文章
+    #[prost(message, optional, tag = "1")]
+    pub article: ::core::option::Option<Article>,
+}
+// ──── 删除文章 ────
+
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct DeleteArticleRequest {
+    /// 文章 ID
+    #[prost(string, tag = "1")]
+    pub article_id: ::prost::alloc::string::String,
+}
+/// 空响应，软删除成功
+#[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct DeleteArticleResponse {
+}
+// ──── 公共类型 ────
+
+/// 文章信息
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct Article {
+    /// 文章唯一标识
+    #[prost(string, tag = "1")]
+    pub id: ::prost::alloc::string::String,
+    /// 文章标题
+    #[prost(string, tag = "2")]
+    pub title: ::prost::alloc::string::String,
+    /// URL slug
+    #[prost(string, tag = "3")]
+    pub slug: ::prost::alloc::string::String,
+    /// 文章摘要
+    #[prost(string, tag = "4")]
+    pub summary: ::prost::alloc::string::String,
+    /// 文章内容 (Markdown)
+    #[prost(string, tag = "5")]
+    pub content: ::prost::alloc::string::String,
+    /// 作者 ID
+    #[prost(string, tag = "6")]
+    pub author_id: ::prost::alloc::string::String,
+    /// 标签列表
+    #[prost(string, repeated, tag = "7")]
+    pub tags: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+    /// 浏览次数
+    #[prost(int32, tag = "8")]
+    pub view_count: i32,
+    /// 点赞次数
+    #[prost(int32, tag = "9")]
+    pub like_count: i32,
+    /// 文章状态
+    #[prost(enumeration = "ArticleStatus", tag = "10")]
+    pub status: i32,
+    /// 创建时间
+    #[prost(message, optional, tag = "11")]
+    pub created_at: ::core::option::Option<::prost_types::Timestamp>,
+    /// 更新时间
+    #[prost(message, optional, tag = "12")]
+    pub updated_at: ::core::option::Option<::prost_types::Timestamp>,
+    /// 发布时间
+    #[prost(message, optional, tag = "13")]
+    pub published_at: ::core::option::Option<::prost_types::Timestamp>,
+    /// 作者信息（可选，由 Gateway BFF 层填充，svc-content 不填）
+    #[prost(message, optional, tag = "14")]
+    pub author: ::core::option::Option<User>,
+}
+/// 文章状态枚举
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
+#[repr(i32)]
+pub enum ArticleStatus {
+    Unspecified = 0,
+    Draft = 1,
+    Published = 2,
+    Archived = 3,
+}
+impl ArticleStatus {
+    /// String value of the enum field names used in the ProtoBuf definition.
+    ///
+    /// The values are not transformed in any way and thus are considered stable
+    /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+    pub fn as_str_name(&self) -> &'static str {
+        match self {
+            Self::Unspecified => "ARTICLE_STATUS_UNSPECIFIED",
+            Self::Draft => "ARTICLE_STATUS_DRAFT",
+            Self::Published => "ARTICLE_STATUS_PUBLISHED",
+            Self::Archived => "ARTICLE_STATUS_ARCHIVED",
+        }
+    }
+    /// Creates an enum from field names used in the ProtoBuf definition.
+    pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+        match value {
+            "ARTICLE_STATUS_UNSPECIFIED" => Some(Self::Unspecified),
+            "ARTICLE_STATUS_DRAFT" => Some(Self::Draft),
+            "ARTICLE_STATUS_PUBLISHED" => Some(Self::Published),
+            "ARTICLE_STATUS_ARCHIVED" => Some(Self::Archived),
+            _ => None,
+        }
+    }
+}
+/// 事件信封 — 所有异步事件的标准包装
+///
+/// 通过 NATS 发布/订阅，消息体为此消息的 Protobuf 二进制编码。
+/// Subject 命名：luhanxin.events.<domain>.<action>
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct EventEnvelope {
+    /// 唯一事件 ID (UUID v4)
+    #[prost(string, tag = "1")]
+    pub event_id: ::prost::alloc::string::String,
+    /// 事件类型，如 "user.created"、"article.published"
+    #[prost(string, tag = "2")]
+    pub event_type: ::prost::alloc::string::String,
+    /// 来源服务，如 "gateway"、"svc-user"
+    #[prost(string, tag = "3")]
+    pub source: ::prost::alloc::string::String,
+    /// 事件产生时间
+    #[prost(message, optional, tag = "4")]
+    pub timestamp: ::core::option::Option<::prost_types::Timestamp>,
+    /// 事件体（具体的 Proto 消息，使用 Any 包装）
+    #[prost(message, optional, tag = "5")]
+    pub payload: ::core::option::Option<::prost_types::Any>,
+    /// 元数据（trace_id、correlation_id、user_id 等）
+    #[prost(map = "string, string", tag = "6")]
+    pub metadata: ::std::collections::HashMap<::prost::alloc::string::String, ::prost::alloc::string::String>,
+    /// 重试次数（初始为 0）
+    #[prost(int32, tag = "7")]
+    pub retry_count: i32,
+}
+/// Gateway 异步重试信封
+///
+/// 当 Gateway 调用下游 RPC 失败（UNAVAILABLE / DEADLINE_EXCEEDED）时，
+/// 将原始请求打包为 RetryRequest 写入 NATS 重试队列。
+/// Subject 命名：luhanxin.retry.<service>.<method>
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct RetryRequest {
+    /// 请求唯一标识 (UUID v4)
+    #[prost(string, tag = "1")]
+    pub request_id: ::prost::alloc::string::String,
+    /// 目标服务名，如 "svc-user"
+    #[prost(string, tag = "2")]
+    pub target_service: ::prost::alloc::string::String,
+    /// gRPC 方法全名，如 "luhanxin.community.v1.UserService/GetUser"
+    #[prost(string, tag = "3")]
+    pub method: ::prost::alloc::string::String,
+    /// 原始请求的 Protobuf 序列化字节
+    #[prost(bytes = "vec", tag = "4")]
+    pub request_payload: ::prost::alloc::vec::Vec<u8>,
+    /// 已重试次数
+    #[prost(int32, tag = "5")]
+    pub retry_count: i32,
+    /// 最大重试次数
+    #[prost(int32, tag = "6")]
+    pub max_retries: i32,
+    /// 首次入队时间
+    #[prost(message, optional, tag = "7")]
+    pub created_at: ::core::option::Option<::prost_types::Timestamp>,
 }
 include!("luhanxin.community.v1.tonic.rs");
 // @@protoc_insertion_point(module)

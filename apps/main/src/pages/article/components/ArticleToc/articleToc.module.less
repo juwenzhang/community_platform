@@ -1,0 +1,53 @@
+// ArticleToc — 文章目录导航
+
+.toc {
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 16px;
+  position: sticky;
+  top: 68px;
+  max-height: calc(100vh - 100px);
+  overflow-y: auto;
+
+  .tocTitle {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--color-text-3);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+    padding: 0 8px;
+  }
+
+  .tocNav {
+    display: flex;
+    flex-direction: column;
+
+    .tocItem {
+      font-size: 13px;
+      color: var(--color-text-3);
+      text-decoration: none;
+      padding: 4px 8px;
+      border-radius: 3px;
+      line-height: 1.5;
+      transition: all 0.15s;
+      border-left: 2px solid transparent;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+
+      &:hover {
+        color: var(--color-text-1);
+        background: var(--color-bg-hover);
+      }
+
+      &.active {
+        color: var(--color-primary);
+        border-left-color: var(--color-primary);
+        background: var(--color-primary-bg);
+        font-weight: 500;
+      }
+    }
+  }
+}

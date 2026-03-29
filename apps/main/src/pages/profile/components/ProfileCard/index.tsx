@@ -1,6 +1,9 @@
 import { MailOutlined, UserOutlined } from '@ant-design/icons';
 import type { User } from '@luhanxin/shared-types';
 import { Avatar, Skeleton } from 'antd';
+import Markdown from 'react-markdown';
+import remarkBreaks from 'remark-breaks';
+import remarkGfm from 'remark-gfm';
 
 import styles from '../../profile.module.less';
 
@@ -38,7 +41,13 @@ export default function ProfileCard({ user, loading }: ProfileCardProps) {
                 </span>
               )}
             </div>
-            <p className={styles.bio}>{user.bio || '这个人很懒，还没有写简介...'}</p>
+            <div className={styles.bio}>
+              {user.bio ? (
+                <Markdown remarkPlugins={[remarkGfm, remarkBreaks]}>{user.bio}</Markdown>
+              ) : (
+                <p className={styles.bioEmpty}>这个人很懒，还没有写简介...</p>
+              )}
+            </div>
           </div>
         </div>
       </div>

@@ -8,13 +8,15 @@ import type { Timestamp } from "@bufbuild/protobuf/wkt";
 import { file_google_protobuf_timestamp } from "@bufbuild/protobuf/wkt";
 import type { PaginationRequest, PaginationResponse } from "./common_pb";
 import { file_luhanxin_community_v1_common } from "./common_pb";
+import type { User } from "./user_pb";
+import { file_luhanxin_community_v1_user } from "./user_pb";
 import type { Message } from "@bufbuild/protobuf";
 
 /**
  * Describes the file luhanxin/community/v1/article.proto.
  */
 export const file_luhanxin_community_v1_article: GenFile = /*@__PURE__*/
-  fileDesc("CiNsdWhhbnhpbi9jb21tdW5pdHkvdjEvYXJ0aWNsZS5wcm90bxIVbHVoYW54aW4uY29tbXVuaXR5LnYxIicKEUdldEFydGljbGVSZXF1ZXN0EhIKCmFydGljbGVfaWQYASABKAkiRQoSR2V0QXJ0aWNsZVJlc3BvbnNlEi8KB2FydGljbGUYASABKAsyHi5sdWhhbnhpbi5jb21tdW5pdHkudjEuQXJ0aWNsZSJmChNMaXN0QXJ0aWNsZXNSZXF1ZXN0EjwKCnBhZ2luYXRpb24YASABKAsyKC5sdWhhbnhpbi5jb21tdW5pdHkudjEuUGFnaW5hdGlvblJlcXVlc3QSEQoJYXV0aG9yX2lkGAIgASgJIocBChRMaXN0QXJ0aWNsZXNSZXNwb25zZRIwCghhcnRpY2xlcxgBIAMoCzIeLmx1aGFueGluLmNvbW11bml0eS52MS5BcnRpY2xlEj0KCnBhZ2luYXRpb24YAiABKAsyKS5sdWhhbnhpbi5jb21tdW5pdHkudjEuUGFnaW5hdGlvblJlc3BvbnNlIuUCCgdBcnRpY2xlEgoKAmlkGAEgASgJEg0KBXRpdGxlGAIgASgJEgwKBHNsdWcYAyABKAkSDwoHc3VtbWFyeRgEIAEoCRIPCgdjb250ZW50GAUgASgJEhEKCWF1dGhvcl9pZBgGIAEoCRIMCgR0YWdzGAcgAygJEhIKCnZpZXdfY291bnQYCCABKAUSEgoKbGlrZV9jb3VudBgJIAEoBRI0CgZzdGF0dXMYCiABKA4yJC5sdWhhbnhpbi5jb21tdW5pdHkudjEuQXJ0aWNsZVN0YXR1cxIuCgpjcmVhdGVkX2F0GAsgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBIuCgp1cGRhdGVkX2F0GAwgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBIwCgxwdWJsaXNoZWRfYXQYDSABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wKoQBCg1BcnRpY2xlU3RhdHVzEh4KGkFSVElDTEVfU1RBVFVTX1VOU1BFQ0lGSUVEEAASGAoUQVJUSUNMRV9TVEFUVVNfRFJBRlQQARIcChhBUlRJQ0xFX1NUQVRVU19QVUJMSVNIRUQQAhIbChdBUlRJQ0xFX1NUQVRVU19BUkNISVZFRBADMtwBCg5BcnRpY2xlU2VydmljZRJhCgpHZXRBcnRpY2xlEigubHVoYW54aW4uY29tbXVuaXR5LnYxLkdldEFydGljbGVSZXF1ZXN0GikubHVoYW54aW4uY29tbXVuaXR5LnYxLkdldEFydGljbGVSZXNwb25zZRJnCgxMaXN0QXJ0aWNsZXMSKi5sdWhhbnhpbi5jb21tdW5pdHkudjEuTGlzdEFydGljbGVzUmVxdWVzdBorLmx1aGFueGluLmNvbW11bml0eS52MS5MaXN0QXJ0aWNsZXNSZXNwb25zZWIGcHJvdG8z", [file_google_protobuf_timestamp, file_luhanxin_community_v1_common]);
+  fileDesc("CiNsdWhhbnhpbi9jb21tdW5pdHkvdjEvYXJ0aWNsZS5wcm90bxIVbHVoYW54aW4uY29tbXVuaXR5LnYxIicKEUdldEFydGljbGVSZXF1ZXN0EhIKCmFydGljbGVfaWQYASABKAkiRQoSR2V0QXJ0aWNsZVJlc3BvbnNlEi8KB2FydGljbGUYASABKAsyHi5sdWhhbnhpbi5jb21tdW5pdHkudjEuQXJ0aWNsZSKCAQoTTGlzdEFydGljbGVzUmVxdWVzdBI8CgpwYWdpbmF0aW9uGAEgASgLMigubHVoYW54aW4uY29tbXVuaXR5LnYxLlBhZ2luYXRpb25SZXF1ZXN0EhEKCWF1dGhvcl9pZBgCIAEoCRINCgVxdWVyeRgDIAEoCRILCgN0YWcYBCABKAkihwEKFExpc3RBcnRpY2xlc1Jlc3BvbnNlEjAKCGFydGljbGVzGAEgAygLMh4ubHVoYW54aW4uY29tbXVuaXR5LnYxLkFydGljbGUSPQoKcGFnaW5hdGlvbhgCIAEoCzIpLmx1aGFueGluLmNvbW11bml0eS52MS5QYWdpbmF0aW9uUmVzcG9uc2UiiwEKFENyZWF0ZUFydGljbGVSZXF1ZXN0Eg0KBXRpdGxlGAEgASgJEg8KB2NvbnRlbnQYAiABKAkSDwoHc3VtbWFyeRgDIAEoCRIMCgR0YWdzGAQgAygJEjQKBnN0YXR1cxgFIAEoDjIkLmx1aGFueGluLmNvbW11bml0eS52MS5BcnRpY2xlU3RhdHVzIkgKFUNyZWF0ZUFydGljbGVSZXNwb25zZRIvCgdhcnRpY2xlGAEgASgLMh4ubHVoYW54aW4uY29tbXVuaXR5LnYxLkFydGljbGUinwEKFFVwZGF0ZUFydGljbGVSZXF1ZXN0EhIKCmFydGljbGVfaWQYASABKAkSDQoFdGl0bGUYAiABKAkSDwoHY29udGVudBgDIAEoCRIPCgdzdW1tYXJ5GAQgASgJEgwKBHRhZ3MYBSADKAkSNAoGc3RhdHVzGAYgASgOMiQubHVoYW54aW4uY29tbXVuaXR5LnYxLkFydGljbGVTdGF0dXMiSAoVVXBkYXRlQXJ0aWNsZVJlc3BvbnNlEi8KB2FydGljbGUYASABKAsyHi5sdWhhbnhpbi5jb21tdW5pdHkudjEuQXJ0aWNsZSIqChREZWxldGVBcnRpY2xlUmVxdWVzdBISCgphcnRpY2xlX2lkGAEgASgJIhcKFURlbGV0ZUFydGljbGVSZXNwb25zZSKSAwoHQXJ0aWNsZRIKCgJpZBgBIAEoCRINCgV0aXRsZRgCIAEoCRIMCgRzbHVnGAMgASgJEg8KB3N1bW1hcnkYBCABKAkSDwoHY29udGVudBgFIAEoCRIRCglhdXRob3JfaWQYBiABKAkSDAoEdGFncxgHIAMoCRISCgp2aWV3X2NvdW50GAggASgFEhIKCmxpa2VfY291bnQYCSABKAUSNAoGc3RhdHVzGAogASgOMiQubHVoYW54aW4uY29tbXVuaXR5LnYxLkFydGljbGVTdGF0dXMSLgoKY3JlYXRlZF9hdBgLIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASLgoKdXBkYXRlZF9hdBgMIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASMAoMcHVibGlzaGVkX2F0GA0gASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBIrCgZhdXRob3IYDiABKAsyGy5sdWhhbnhpbi5jb21tdW5pdHkudjEuVXNlciqEAQoNQXJ0aWNsZVN0YXR1cxIeChpBUlRJQ0xFX1NUQVRVU19VTlNQRUNJRklFRBAAEhgKFEFSVElDTEVfU1RBVFVTX0RSQUZUEAESHAoYQVJUSUNMRV9TVEFUVVNfUFVCTElTSEVEEAISGwoXQVJUSUNMRV9TVEFUVVNfQVJDSElWRUQQAzKgBAoOQXJ0aWNsZVNlcnZpY2USYQoKR2V0QXJ0aWNsZRIoLmx1aGFueGluLmNvbW11bml0eS52MS5HZXRBcnRpY2xlUmVxdWVzdBopLmx1aGFueGluLmNvbW11bml0eS52MS5HZXRBcnRpY2xlUmVzcG9uc2USZwoMTGlzdEFydGljbGVzEioubHVoYW54aW4uY29tbXVuaXR5LnYxLkxpc3RBcnRpY2xlc1JlcXVlc3QaKy5sdWhhbnhpbi5jb21tdW5pdHkudjEuTGlzdEFydGljbGVzUmVzcG9uc2USagoNQ3JlYXRlQXJ0aWNsZRIrLmx1aGFueGluLmNvbW11bml0eS52MS5DcmVhdGVBcnRpY2xlUmVxdWVzdBosLmx1aGFueGluLmNvbW11bml0eS52MS5DcmVhdGVBcnRpY2xlUmVzcG9uc2USagoNVXBkYXRlQXJ0aWNsZRIrLmx1aGFueGluLmNvbW11bml0eS52MS5VcGRhdGVBcnRpY2xlUmVxdWVzdBosLmx1aGFueGluLmNvbW11bml0eS52MS5VcGRhdGVBcnRpY2xlUmVzcG9uc2USagoNRGVsZXRlQXJ0aWNsZRIrLmx1aGFueGluLmNvbW11bml0eS52MS5EZWxldGVBcnRpY2xlUmVxdWVzdBosLmx1aGFueGluLmNvbW11bml0eS52MS5EZWxldGVBcnRpY2xlUmVzcG9uc2ViBnByb3RvMw", [file_google_protobuf_timestamp, file_luhanxin_community_v1_common, file_luhanxin_community_v1_user]);
 
 /**
  * 获取文章请求
@@ -77,6 +79,20 @@ export type ListArticlesRequest = Message<"luhanxin.community.v1.ListArticlesReq
    * @generated from field: string author_id = 2;
    */
   authorId: string;
+
+  /**
+   * 可选：标题模糊搜索（SQL LIKE，预留后续替换为 Meilisearch）
+   *
+   * @generated from field: string query = 3;
+   */
+  query: string;
+
+  /**
+   * 可选：按标签筛选（PostgreSQL array contains）
+   *
+   * @generated from field: string tag = 4;
+   */
+  tag: string;
 };
 
 /**
@@ -113,6 +129,179 @@ export type ListArticlesResponse = Message<"luhanxin.community.v1.ListArticlesRe
  */
 export const ListArticlesResponseSchema: GenMessage<ListArticlesResponse> = /*@__PURE__*/
   messageDesc(file_luhanxin_community_v1_article, 3);
+
+/**
+ * @generated from message luhanxin.community.v1.CreateArticleRequest
+ */
+export type CreateArticleRequest = Message<"luhanxin.community.v1.CreateArticleRequest"> & {
+  /**
+   * 文章标题
+   *
+   * @generated from field: string title = 1;
+   */
+  title: string;
+
+  /**
+   * 文章内容 (Markdown)
+   *
+   * @generated from field: string content = 2;
+   */
+  content: string;
+
+  /**
+   * 文章摘要（可选，为空时自动截取 content 前 200 字）
+   *
+   * @generated from field: string summary = 3;
+   */
+  summary: string;
+
+  /**
+   * 标签列表
+   *
+   * @generated from field: repeated string tags = 4;
+   */
+  tags: string[];
+
+  /**
+   * 文章状态（DRAFT 或 PUBLISHED）
+   *
+   * @generated from field: luhanxin.community.v1.ArticleStatus status = 5;
+   */
+  status: ArticleStatus;
+};
+
+/**
+ * Describes the message luhanxin.community.v1.CreateArticleRequest.
+ * Use `create(CreateArticleRequestSchema)` to create a new message.
+ */
+export const CreateArticleRequestSchema: GenMessage<CreateArticleRequest> = /*@__PURE__*/
+  messageDesc(file_luhanxin_community_v1_article, 4);
+
+/**
+ * @generated from message luhanxin.community.v1.CreateArticleResponse
+ */
+export type CreateArticleResponse = Message<"luhanxin.community.v1.CreateArticleResponse"> & {
+  /**
+   * 创建后的文章（含生成的 id/slug）
+   *
+   * @generated from field: luhanxin.community.v1.Article article = 1;
+   */
+  article?: Article;
+};
+
+/**
+ * Describes the message luhanxin.community.v1.CreateArticleResponse.
+ * Use `create(CreateArticleResponseSchema)` to create a new message.
+ */
+export const CreateArticleResponseSchema: GenMessage<CreateArticleResponse> = /*@__PURE__*/
+  messageDesc(file_luhanxin_community_v1_article, 5);
+
+/**
+ * @generated from message luhanxin.community.v1.UpdateArticleRequest
+ */
+export type UpdateArticleRequest = Message<"luhanxin.community.v1.UpdateArticleRequest"> & {
+  /**
+   * 文章 ID
+   *
+   * @generated from field: string article_id = 1;
+   */
+  articleId: string;
+
+  /**
+   * 文章标题（可选，为空不更新）
+   *
+   * @generated from field: string title = 2;
+   */
+  title: string;
+
+  /**
+   * 文章内容（可选，为空不更新）
+   *
+   * @generated from field: string content = 3;
+   */
+  content: string;
+
+  /**
+   * 文章摘要（可选，为空不更新）
+   *
+   * @generated from field: string summary = 4;
+   */
+  summary: string;
+
+  /**
+   * 标签列表（可选，空数组不更新）
+   *
+   * @generated from field: repeated string tags = 5;
+   */
+  tags: string[];
+
+  /**
+   * 文章状态（可选，UNSPECIFIED 不更新）
+   *
+   * @generated from field: luhanxin.community.v1.ArticleStatus status = 6;
+   */
+  status: ArticleStatus;
+};
+
+/**
+ * Describes the message luhanxin.community.v1.UpdateArticleRequest.
+ * Use `create(UpdateArticleRequestSchema)` to create a new message.
+ */
+export const UpdateArticleRequestSchema: GenMessage<UpdateArticleRequest> = /*@__PURE__*/
+  messageDesc(file_luhanxin_community_v1_article, 6);
+
+/**
+ * @generated from message luhanxin.community.v1.UpdateArticleResponse
+ */
+export type UpdateArticleResponse = Message<"luhanxin.community.v1.UpdateArticleResponse"> & {
+  /**
+   * 更新后的文章
+   *
+   * @generated from field: luhanxin.community.v1.Article article = 1;
+   */
+  article?: Article;
+};
+
+/**
+ * Describes the message luhanxin.community.v1.UpdateArticleResponse.
+ * Use `create(UpdateArticleResponseSchema)` to create a new message.
+ */
+export const UpdateArticleResponseSchema: GenMessage<UpdateArticleResponse> = /*@__PURE__*/
+  messageDesc(file_luhanxin_community_v1_article, 7);
+
+/**
+ * @generated from message luhanxin.community.v1.DeleteArticleRequest
+ */
+export type DeleteArticleRequest = Message<"luhanxin.community.v1.DeleteArticleRequest"> & {
+  /**
+   * 文章 ID
+   *
+   * @generated from field: string article_id = 1;
+   */
+  articleId: string;
+};
+
+/**
+ * Describes the message luhanxin.community.v1.DeleteArticleRequest.
+ * Use `create(DeleteArticleRequestSchema)` to create a new message.
+ */
+export const DeleteArticleRequestSchema: GenMessage<DeleteArticleRequest> = /*@__PURE__*/
+  messageDesc(file_luhanxin_community_v1_article, 8);
+
+/**
+ * 空响应，软删除成功
+ *
+ * @generated from message luhanxin.community.v1.DeleteArticleResponse
+ */
+export type DeleteArticleResponse = Message<"luhanxin.community.v1.DeleteArticleResponse"> & {
+};
+
+/**
+ * Describes the message luhanxin.community.v1.DeleteArticleResponse.
+ * Use `create(DeleteArticleResponseSchema)` to create a new message.
+ */
+export const DeleteArticleResponseSchema: GenMessage<DeleteArticleResponse> = /*@__PURE__*/
+  messageDesc(file_luhanxin_community_v1_article, 9);
 
 /**
  * 文章信息
@@ -210,6 +399,13 @@ export type Article = Message<"luhanxin.community.v1.Article"> & {
    * @generated from field: google.protobuf.Timestamp published_at = 13;
    */
   publishedAt?: Timestamp;
+
+  /**
+   * 作者信息（可选，由 Gateway BFF 层填充，svc-content 不填）
+   *
+   * @generated from field: luhanxin.community.v1.User author = 14;
+   */
+  author?: User;
 };
 
 /**
@@ -217,7 +413,7 @@ export type Article = Message<"luhanxin.community.v1.Article"> & {
  * Use `create(ArticleSchema)` to create a new message.
  */
 export const ArticleSchema: GenMessage<Article> = /*@__PURE__*/
-  messageDesc(file_luhanxin_community_v1_article, 4);
+  messageDesc(file_luhanxin_community_v1_article, 10);
 
 /**
  * 文章状态枚举
@@ -277,6 +473,36 @@ export const ArticleService: GenService<{
     methodKind: "unary";
     input: typeof ListArticlesRequestSchema;
     output: typeof ListArticlesResponseSchema;
+  },
+  /**
+   * 创建文章（需认证）
+   *
+   * @generated from rpc luhanxin.community.v1.ArticleService.CreateArticle
+   */
+  createArticle: {
+    methodKind: "unary";
+    input: typeof CreateArticleRequestSchema;
+    output: typeof CreateArticleResponseSchema;
+  },
+  /**
+   * 更新文章（需认证，仅作者）
+   *
+   * @generated from rpc luhanxin.community.v1.ArticleService.UpdateArticle
+   */
+  updateArticle: {
+    methodKind: "unary";
+    input: typeof UpdateArticleRequestSchema;
+    output: typeof UpdateArticleResponseSchema;
+  },
+  /**
+   * 删除文章（需认证，仅作者，软删除）
+   *
+   * @generated from rpc luhanxin.community.v1.ArticleService.DeleteArticle
+   */
+  deleteArticle: {
+    methodKind: "unary";
+    input: typeof DeleteArticleRequestSchema;
+    output: typeof DeleteArticleResponseSchema;
   },
 }> = /*@__PURE__*/
   serviceDesc(file_luhanxin_community_v1_article, 0);
