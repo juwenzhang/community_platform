@@ -3,6 +3,7 @@
 //! 定义 PreInterceptor / PostInterceptor trait 和 InterceptorPipeline，
 //! 用于在 gRPC 调用前后插入横切逻辑（认证、限流、日志、重试等）。
 
+pub mod auth;
 pub mod log;
 pub mod retry;
 

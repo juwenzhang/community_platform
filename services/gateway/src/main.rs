@@ -21,6 +21,7 @@ use utoipa_swagger_ui::SwaggerUi;
 
 use crate::config::GatewayConfig;
 use crate::interceptors::InterceptorPipeline;
+use crate::interceptors::auth::AuthInterceptor;
 use crate::interceptors::log::LogInterceptor;
 use crate::interceptors::retry::RetryInterceptor;
 use crate::middleware::cors::cors_layer;
@@ -106,10 +107,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let resolver = Arc::new(ServiceResolver::new(consul, config.fallback_urls));
     resolver.start_watcher("svc-user");
 
-    // ── 拦截器管道 ──
+    // ── 拦截器管道（执行顺序：Log → Auth → 调用 → Log → Retry）──
     let pipeline = Arc::new(
         InterceptorPipeline::new()
             .add_pre(LogInterceptor)
+            .add_pre(AuthInterceptor::new())
             .add_post(LogInterceptor)
             .add_post(RetryInterceptor::new(nats.clone())),
     );
