@@ -3,10 +3,14 @@ mod error;
 mod handlers;
 mod services;
 
+use std::sync::Arc;
+
+use sea_orm::DatabaseConnection;
 use tokio::signal;
 use tonic::transport::Server;
 use tracing::{info, warn};
 
+use shared::database::{self, DatabaseConfig};
 use shared::discovery::{ConsulClient, ServiceRegistration};
 use shared::proto::user_service_server::UserServiceServer;
 
@@ -29,9 +33,27 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // 启动前自动清理被占用的端口
     shared::net::kill_port_holder(config.port);
 
+    // ── 数据库连接池（graceful degradation：失败不阻止启动）──
+    let db: Option<Arc<DatabaseConnection>> =
+        match database::connect(&DatabaseConfig::from_env()).await {
+            Ok(conn) => {
+                info!("Database connection pool established");
+                Some(Arc::new(conn))
+            }
+            Err(e) => {
+                warn!(
+                    error = %e,
+                    "Database connection failed, running without database (queries will return UNAVAILABLE)"
+                );
+                None
+            }
+        };
+
     // ── Consul 注册（graceful degradation：失败不阻止启动）──
     let consul = ConsulClient::new(&config.consul_url);
-    let registration = ServiceRegistration::grpc("svc-user", &config.bind_address, config.port, &config.consul_url).await;
+    let registration =
+        ServiceRegistration::grpc("svc-user", &config.bind_address, config.port, &config.consul_url)
+            .await;
     let service_id = registration.id.clone();
 
     match consul.register(&registration).await {
@@ -44,11 +66,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // ── gRPC 服务 ──
     let addr = format!("0.0.0.0:{}", config.port).parse()?;
-    let user_service = UserServiceImpl::default();
+    let user_service = UserServiceImpl::new(db);
 
     // ── gRPC Health Checking Protocol（Consul 健康检查需要）──
     let (health_reporter, health_service) = tonic_health::server::health_reporter();
-    // 标记 UserService 为 SERVING 状态
     health_reporter
         .set_serving::<UserServiceServer<UserServiceImpl>>()
         .await;

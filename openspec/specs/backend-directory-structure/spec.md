@@ -90,13 +90,29 @@ shared/src/
 ├── config.rs                  # 通用配置（已有）
 ├── error.rs                   # 通用错误（已有）
 ├── net.rs                     # 网络工具（已有）
-├── discovery/                 # Consul 服务发现（新增）
+├── discovery/                 # Consul 服务发现
 │   └── mod.rs
-└── messaging/                 # NATS 消息（新增）
-    └── mod.rs
+├── messaging/                 # NATS 消息
+│   └── mod.rs
+├── database/                  # 数据库连接池封装
+│   └── mod.rs
+└── entity/                    # SeaORM Entity 自动生成代码
+    ├── mod.rs
+    ├── users.rs
+    └── articles.rs
 ```
 
 #### Scenario: 所有模块可正常导出
 
 - **WHEN** gateway 或 svc-user 引用 `shared::discovery::ConsulClient`
 - **THEN** 编译成功，类型可正常使用
+
+#### Scenario: database 模块可正常导出
+
+- **WHEN** svc-user 引用 `shared::database::connect`
+- **THEN** 编译成功，可获取 `DatabaseConnection`
+
+#### Scenario: entity 模块可正常导出
+
+- **WHEN** svc-user 引用 `shared::entity::users::Entity`
+- **THEN** 编译成功，可使用 Entity 执行查询
