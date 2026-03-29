@@ -34,7 +34,7 @@ pub struct GetUserByUsernameRequest {
     #[prost(string, tag = "1")]
     pub username: ::prost::alloc::string::String,
 }
-#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct GetUserResponse {
     /// 用户信息
     #[prost(message, optional, tag = "1")]
@@ -93,7 +93,7 @@ pub struct LoginRequest {
 }
 // ──── 认证响应（注册/登录共用）────
 
-#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct AuthResponse {
     /// JWT token
     #[prost(string, tag = "1")]
@@ -102,21 +102,33 @@ pub struct AuthResponse {
     #[prost(message, optional, tag = "2")]
     pub user: ::core::option::Option<User>,
 }
-// ──── 更新资料 ────
+// ──── 更新资料（全量覆盖：前端发送所有字段当前值）────
 
-#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct UpdateProfileRequest {
-    /// 显示名称（可选，空字符串表示不更新）
+    /// 显示名称
     #[prost(string, tag = "1")]
     pub display_name: ::prost::alloc::string::String,
-    /// 头像 URL（可选）
+    /// 头像 URL
     #[prost(string, tag = "2")]
     pub avatar_url: ::prost::alloc::string::String,
-    /// 个人简介（可选）
+    /// 个人简介
     #[prost(string, tag = "3")]
     pub bio: ::prost::alloc::string::String,
+    /// 公司/组织
+    #[prost(string, tag = "4")]
+    pub company: ::prost::alloc::string::String,
+    /// 所在地
+    #[prost(string, tag = "5")]
+    pub location: ::prost::alloc::string::String,
+    /// 个人网站
+    #[prost(string, tag = "6")]
+    pub website: ::prost::alloc::string::String,
+    /// 社交链接（整体替换）
+    #[prost(message, repeated, tag = "7")]
+    pub social_links: ::prost::alloc::vec::Vec<SocialLink>,
 }
-#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct UpdateProfileResponse {
     /// 更新后的用户信息
     #[prost(message, optional, tag = "1")]
@@ -124,8 +136,18 @@ pub struct UpdateProfileResponse {
 }
 // ──── 公共类型 ────
 
-/// 用户信息
+/// 社交链接
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct SocialLink {
+    /// 平台标识：github, twitter, weibo, linkedin, juejin, zhihu, bilibili, website
+    #[prost(string, tag = "1")]
+    pub platform: ::prost::alloc::string::String,
+    /// 链接 URL
+    #[prost(string, tag = "2")]
+    pub url: ::prost::alloc::string::String,
+}
+/// 用户信息
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct User {
     /// 用户唯一标识
     #[prost(string, tag = "1")]
@@ -151,6 +173,18 @@ pub struct User {
     /// 更新时间
     #[prost(message, optional, tag = "8")]
     pub updated_at: ::core::option::Option<::prost_types::Timestamp>,
+    /// 公司/组织
+    #[prost(string, tag = "9")]
+    pub company: ::prost::alloc::string::String,
+    /// 所在地
+    #[prost(string, tag = "10")]
+    pub location: ::prost::alloc::string::String,
+    /// 个人网站
+    #[prost(string, tag = "11")]
+    pub website: ::prost::alloc::string::String,
+    /// 社交链接
+    #[prost(message, repeated, tag = "12")]
+    pub social_links: ::prost::alloc::vec::Vec<SocialLink>,
 }
 // ──── 获取文章 ────
 
@@ -162,7 +196,7 @@ pub struct GetArticleRequest {
     pub article_id: ::prost::alloc::string::String,
 }
 /// 获取文章响应
-#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct GetArticleResponse {
     /// 文章详情
     #[prost(message, optional, tag = "1")]
@@ -216,7 +250,7 @@ pub struct CreateArticleRequest {
     #[prost(enumeration = "ArticleStatus", tag = "5")]
     pub status: i32,
 }
-#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct CreateArticleResponse {
     /// 创建后的文章（含生成的 id/slug）
     #[prost(message, optional, tag = "1")]
@@ -245,7 +279,7 @@ pub struct UpdateArticleRequest {
     #[prost(enumeration = "ArticleStatus", tag = "6")]
     pub status: i32,
 }
-#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct UpdateArticleResponse {
     /// 更新后的文章
     #[prost(message, optional, tag = "1")]
@@ -266,7 +300,7 @@ pub struct DeleteArticleResponse {
 // ──── 公共类型 ────
 
 /// 文章信息
-#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Article {
     /// 文章唯一标识
     #[prost(string, tag = "1")]

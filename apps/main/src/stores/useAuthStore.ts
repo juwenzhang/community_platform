@@ -23,6 +23,8 @@ interface AuthState {
   logout: () => void;
   /** 从 token 恢复用户状态（页面刷新时调用） */
   restore: () => Promise<void>;
+  /** 编辑资料后同步更新本地 user 状态 */
+  updateUser: (user: User) => void;
 }
 
 /** 保存认证响应到 state + localStorage */
@@ -100,5 +102,9 @@ export const useAuthStore = create<AuthState>((set) => ({
         isLoading: false,
       });
     }
+  },
+
+  updateUser: (user: User) => {
+    set({ user });
   },
 }));

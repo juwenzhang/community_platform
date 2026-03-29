@@ -3,21 +3,48 @@
     <div class="banner" />
 
     <div class="info">
-      <img
-        v-if="avatarUrl"
-        :src="avatarUrl"
-        :alt="displayName"
-        class="avatar"
-      />
-      <div v-else class="avatar placeholder">
-        {{ displayName?.charAt(0)?.toUpperCase() || '?' }}
+      <div class="top-row">
+        <img
+          v-if="avatarUrl"
+          :src="avatarUrl"
+          :alt="displayName"
+          class="avatar"
+        />
+        <div v-else class="avatar placeholder">
+          {{ displayName?.charAt(0)?.toUpperCase() || '?' }}
+        </div>
+
+        <!-- 社交链接图标 -->
+        <div v-if="socialLinks.length > 0 || isOwner" class="top-actions">
+          <a
+            v-for="link in socialLinks"
+            :key="`${link.platform}-${link.url}`"
+            :href="link.url"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="social-icon"
+            :title="platformLabel(link.platform)"
+          >
+            {{ platformEmoji(link.platform) }}
+          </a>
+          <a v-if="isOwner" href="/profile" class="edit-link">编辑资料</a>
+        </div>
       </div>
 
       <h2 class="name">{{ displayName || username }}</h2>
 
       <div class="meta">
-        <span class="username">@{{ username }}</span>
+        <span class="username-tag">@{{ username }}</span>
         <span v-if="email" class="email">{{ email }}</span>
+      </div>
+
+      <!-- 结构化信息 -->
+      <div v-if="company || location || website" class="details">
+        <span v-if="company" class="detail">🏢 {{ company }}</span>
+        <span v-if="location" class="detail">📍 {{ location }}</span>
+        <span v-if="website" class="detail">
+          🔗 <a :href="website" target="_blank" rel="noopener noreferrer">{{ websiteDisplay }}</a>
+        </span>
       </div>
 
       <p class="bio" :class="{ empty: !bio }">
@@ -28,13 +55,52 @@
 </template>
 
 <script setup lang="ts">
-defineProps<{
+import { computed } from 'vue';
+
+const props = defineProps<{
   username: string;
   displayName: string;
   email: string;
   avatarUrl: string;
   bio: string;
+  company: string;
+  location: string;
+  website: string;
+  socialLinks: { platform: string; url: string }[];
+  isOwner: boolean;
 }>();
+
+const websiteDisplay = computed(() => props.website.replace(/^https?:\/\//, ''));
+
+const PLATFORM_LABELS: Record<string, string> = {
+  github: 'GitHub',
+  twitter: 'Twitter/X',
+  weibo: '微博',
+  linkedin: 'LinkedIn',
+  juejin: '掘金',
+  zhihu: '知乎',
+  bilibili: 'B站',
+  website: '个人网站',
+};
+
+const PLATFORM_EMOJIS: Record<string, string> = {
+  github: '🐙',
+  twitter: '𝕏',
+  weibo: '🔴',
+  linkedin: '🔗',
+  juejin: '💎',
+  zhihu: '知',
+  bilibili: '📺',
+  website: '🌐',
+};
+
+function platformLabel(platform: string) {
+  return PLATFORM_LABELS[platform] || platform;
+}
+
+function platformEmoji(platform: string) {
+  return PLATFORM_EMOJIS[platform] || '🔗';
+}
 </script>
 
 <style scoped>
@@ -52,6 +118,13 @@ defineProps<{
   .info {
     padding: 0 24px 24px;
     margin-top: -40px;
+
+    .top-row {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
 
     .avatar {
       width: 80px;
@@ -72,8 +145,48 @@ defineProps<{
       }
     }
 
+    .top-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding-bottom: 8px;
+
+      .social-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background: #f2f3f5;
+        font-size: 14px;
+        text-decoration: none;
+        transition: all 0.15s;
+
+        &:hover {
+          background: #e4e6eb;
+          transform: scale(1.1);
+        }
+      }
+
+      .edit-link {
+        font-size: 12px;
+        color: #1e80ff;
+        text-decoration: none;
+        padding: 4px 12px;
+        border: 1px solid #1e80ff;
+        border-radius: 4px;
+        transition: all 0.15s;
+
+        &:hover {
+          background: #1e80ff;
+          color: #fff;
+        }
+      }
+    }
+
     .name {
-      margin: 12px 0 4px;
+      margin: 0 0 4px;
       font-size: 20px;
       font-weight: 600;
       color: #252933;
@@ -85,7 +198,7 @@ defineProps<{
       gap: 12px;
       margin-bottom: 12px;
 
-      .username {
+      .username-tag {
         color: #1e80ff;
         font-weight: 500;
         font-size: 14px;
@@ -94,6 +207,28 @@ defineProps<{
       .email {
         color: #8a919f;
         font-size: 13px;
+      }
+    }
+
+    .details {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+      font-size: 13px;
+      color: #8a919f;
+      margin-bottom: 12px;
+
+      .detail {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+
+        a {
+          color: #1e80ff;
+          text-decoration: none;
+          &:hover { text-decoration: underline; }
+        }
       }
     }
 

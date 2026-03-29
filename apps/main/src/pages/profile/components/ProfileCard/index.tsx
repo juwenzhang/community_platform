@@ -1,11 +1,17 @@
-import { MailOutlined, UserOutlined } from '@ant-design/icons';
+import {
+  EnvironmentOutlined,
+  GlobalOutlined,
+  HomeOutlined,
+  MailOutlined,
+  UserOutlined,
+} from '@ant-design/icons';
 import type { User } from '@luhanxin/shared-types';
 import { Avatar, Skeleton } from 'antd';
 import Markdown from 'react-markdown';
 import remarkBreaks from 'remark-breaks';
 import remarkGfm from 'remark-gfm';
-
 import styles from '../../profile.module.less';
+import SocialIcons from '../SocialIcons';
 
 interface ProfileCardProps {
   user: User | null;
@@ -32,7 +38,10 @@ export default function ProfileCard({ user, loading }: ProfileCardProps) {
             size={64}
           />
           <div className={styles.info}>
-            <h2 className={styles.name}>{user.displayName || user.username}</h2>
+            <div className={styles.nameRow}>
+              <h2 className={styles.name}>{user.displayName || user.username}</h2>
+              {user.socialLinks.length > 0 && <SocialIcons links={user.socialLinks} />}
+            </div>
             <div className={styles.meta}>
               <span>@{user.username}</span>
               {user.email && (
@@ -41,6 +50,31 @@ export default function ProfileCard({ user, loading }: ProfileCardProps) {
                 </span>
               )}
             </div>
+
+            {/* 结构化信息 */}
+            {(user.company || user.location || user.website) && (
+              <div className={styles.details}>
+                {user.company && (
+                  <span className={styles.detail}>
+                    <HomeOutlined /> {user.company}
+                  </span>
+                )}
+                {user.location && (
+                  <span className={styles.detail}>
+                    <EnvironmentOutlined /> {user.location}
+                  </span>
+                )}
+                {user.website && (
+                  <span className={styles.detail}>
+                    <GlobalOutlined />
+                    <a href={user.website} target="_blank" rel="noopener noreferrer">
+                      {user.website.replace(/^https?:\/\//, '')}
+                    </a>
+                  </span>
+                )}
+              </div>
+            )}
+
             <div className={styles.bio}>
               {user.bio ? (
                 <Markdown remarkPlugins={[remarkGfm, remarkBreaks]}>{user.bio}</Markdown>

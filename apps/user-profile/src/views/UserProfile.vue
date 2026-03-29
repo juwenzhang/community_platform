@@ -23,11 +23,16 @@
         :email="user.email"
         :avatar-url="user.avatarUrl"
         :bio="user.bio"
+        :company="user.company || ''"
+        :location="user.location || ''"
+        :website="user.website || ''"
+        :social-links="user.socialLinks || []"
+        :is-owner="isOwner"
       />
 
       <!-- Ta 的文章 -->
       <div class="section">
-        <h3 class="section-title">📝 Ta 的文章</h3>
+        <h3 class="section-title">{{ isOwner ? '📝 我的文章' : '📝 Ta 的文章' }}</h3>
         <div v-if="articlesLoading" class="articles-loading">加载文章中...</div>
         <div v-else-if="articles.length === 0" class="articles-empty">暂无文章</div>
         <div v-else class="article-list">
@@ -59,7 +64,7 @@
 import { createClient } from '@connectrpc/connect';
 import type { Article, User } from '@luhanxin/shared-types';
 import { ArticleService, UserService } from '@luhanxin/shared-types';
-import { onMounted, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 
 import ProfileCard from '../components/ProfileCard.vue';
 import { transport } from '../lib/connect';
@@ -77,6 +82,13 @@ const articlesLoading = ref(false);
 // 从 URL 提取 username（Garfish 挂载在 /user/:username）
 const pathParts = window.location.pathname.split('/');
 const username = ref(pathParts[pathParts.length - 1] || pathParts[pathParts.length - 2] || '');
+
+// 通过 Garfish props 获取当前登录用户
+const garfishProps = (window as any).__GARFISH_EXPORTS__?.props
+  || (window as any).Garfish?.appInfos?.['user-profile']?.props
+  || {};
+const currentUser = garfishProps.getCurrentUser?.();
+const isOwner = computed(() => !!currentUser && currentUser.username === username.value);
 
 function formatDate(timestamp: { seconds: bigint } | undefined): string {
   if (!timestamp) return '';
@@ -200,13 +212,8 @@ onMounted(async () => {
         color: inherit;
         transition: background 0.15s;
 
-        &:last-child {
-          border-bottom: none;
-        }
-
-        &:hover {
-          background: #f7f8fa;
-        }
+        &:last-child { border-bottom: none; }
+        &:hover { background: #f7f8fa; }
 
         .article-title {
           font-size: 16px;
@@ -232,13 +239,6 @@ onMounted(async () => {
           gap: 12px;
           font-size: 12px;
           color: #c2c8d1;
-
-          .article-date,
-          .article-views {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-          }
 
           .article-tag {
             color: #1e80ff;

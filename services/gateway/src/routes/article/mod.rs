@@ -173,6 +173,10 @@ fn proto_to_article_dto(a: shared::proto::Article) -> ArticleDto {
             bio: u.bio,
             created_at: u.created_at.map(|t| format!("{}", t.seconds)),
             updated_at: u.updated_at.map(|t| format!("{}", t.seconds)),
+            company: u.company,
+            location: u.location,
+            website: u.website,
+            social_links: u.social_links.into_iter().map(|l| super::super::routes::user::SocialLinkDto { platform: l.platform, url: l.url }).collect(),
         }),
     }
 }

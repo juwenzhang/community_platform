@@ -2,6 +2,7 @@ import { getGarfishApps } from '@luhanxin/app-registry/adapters';
 import Garfish from 'garfish';
 import { useEffect, useRef } from 'react';
 import { registry } from '@/lib/registry';
+import { useAuthStore } from '@/stores/useAuthStore';
 
 interface GarfishContainerProps {
   appName: string;
@@ -21,10 +22,13 @@ function ensureGarfishInit() {
 
   const garfishApps = getGarfishApps(registry);
 
-  // 为每个子应用设置独立的 domGetter，避免共用同一个 DOM 节点
+  // 为每个子应用设置独立的 domGetter + 共享 props
   const appsWithDom = garfishApps.map((app) => ({
     ...app,
     domGetter: `#garfish-app-${app.name}`,
+    props: {
+      getCurrentUser: () => useAuthStore.getState().user,
+    },
   }));
 
   Garfish.run({

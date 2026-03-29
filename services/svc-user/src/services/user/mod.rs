@@ -167,6 +167,10 @@ impl UserService for UserServiceImpl {
             &req.display_name,
             &req.avatar_url,
             &req.bio,
+            &req.company,
+            &req.location,
+            &req.website,
+            &req.social_links,
         )
         .await?;
 

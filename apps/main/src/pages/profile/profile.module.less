@@ -16,27 +16,6 @@
       color: var(--color-text-1);
       margin: 0;
     }
-
-    .headerActions {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .writeBtn {
-      border-radius: var(--radius-sm);
-      background: var(--color-primary);
-      border-color: var(--color-primary);
-    }
-
-    .editBtn {
-      border-radius: var(--radius-sm);
-
-      &.primary {
-        background: var(--color-primary);
-        border-color: var(--color-primary);
-      }
-    }
   }
 
   .body {
@@ -88,11 +67,19 @@
         flex: 1;
         min-width: 0;
 
+        .nameRow {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 12px;
+          margin-bottom: 4px;
+        }
+
         .name {
           font-size: 18px;
           font-weight: 600;
           color: var(--color-text-1);
-          margin-bottom: 4px;
+          margin: 0;
         }
 
         .meta {
@@ -107,6 +94,28 @@
             display: flex;
             align-items: center;
             gap: 4px;
+          }
+        }
+
+        .details {
+          display: flex;
+          align-items: center;
+          flex-wrap: wrap;
+          gap: 16px;
+          font-size: 13px;
+          color: var(--color-text-3);
+          margin-bottom: 10px;
+
+          .detail {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+
+            a {
+              color: var(--color-primary);
+              text-decoration: none;
+              &:hover { text-decoration: underline; }
+            }
           }
         }
 
@@ -132,7 +141,6 @@
     }
   }
 
-  // skeleton 态
   &.skeleton {
     padding: 24px;
   }
@@ -160,5 +168,33 @@
     border-radius: var(--radius-sm);
     background: var(--color-primary);
     border-color: var(--color-primary);
+  }
+
+  .socialSection {
+    margin-bottom: 8px;
+
+    .socialHeader {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+
+      .socialLabel {
+        font-size: 14px;
+        color: var(--color-text-1);
+      }
+    }
+
+    .socialRow {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+
+      .socialInput {
+        flex: 1;
+        border-radius: var(--radius-sm);
+      }
+    }
   }
 }

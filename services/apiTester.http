@@ -40,7 +40,7 @@ Content-Type: {{contentType}}
 GET {{baseUrl}}/api/v1/auth/me
 Authorization: Bearer {{login.response.body.token}}
 
-### 更新用户资料
+### 更新用户资料（全量覆盖，含社交链接）
 PUT {{baseUrl}}/api/v1/auth/profile
 Content-Type: {{contentType}}
 Authorization: Bearer {{login.response.body.token}}
@@ -48,7 +48,15 @@ Authorization: Bearer {{login.response.body.token}}
 {
   "display_name": "Alice Updated",
   "avatar_url": "",
-  "bio": "Hello from REST Client!"
+  "bio": "Hello from REST Client! 🚀",
+  "company": "Luhanxin Inc.",
+  "location": "Beijing, China",
+  "website": "https://luhanxin.com",
+  "social_links": [
+    { "platform": "github", "url": "https://github.com/alice" },
+    { "platform": "twitter", "url": "https://x.com/alice" },
+    { "platform": "juejin", "url": "https://juejin.cn/user/alice" }
+  ]
 }
 
 ### ──────────── 用户查询（公开）────────────
