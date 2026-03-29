@@ -3,6 +3,7 @@ resolver = "2"
 members = [
     "shared",
     "svc-user",
+    "svc-content",
     "gateway",
     "migration",
 ]

@@ -1,0 +1,21 @@
+[package]
+name = "svc-content"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+shared = { path = "../shared" }
+tokio.workspace = true
+tonic.workspace = true
+tonic-health.workspace = true
+prost.workspace = true
+prost-types.workspace = true
+thiserror.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+sea-orm.workspace = true
+uuid.workspace = true
+chrono.workspace = true
+
+[lints]
+workspace = true

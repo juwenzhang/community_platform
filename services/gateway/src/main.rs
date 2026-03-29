@@ -11,6 +11,7 @@ use std::sync::Arc;
 use shared::discovery::ConsulClient;
 use shared::messaging::NatsClient;
 use shared::proto::user_service_server::UserServiceServer;
+use shared::proto::article_service_server::ArticleServiceServer;
 use tonic::service::LayerExt;
 use tonic::service::Routes;
 use tonic_web::GrpcWebLayer;
@@ -29,7 +30,9 @@ use crate::resolver::ServiceResolver;
 use crate::routes::health;
 use crate::routes::health::rest_router;
 use crate::routes::user as user_routes;
+use crate::routes::article as article_routes;
 use crate::services::user::GatewayUserService;
+use crate::services::article::GatewayArticleService;
 use crate::worker::retry_worker;
 
 /// Gateway OpenAPI 文档
@@ -57,6 +60,11 @@ use crate::worker::retry_worker;
         user_routes::login,
         user_routes::get_current_user,
         user_routes::update_profile,
+        article_routes::get_article,
+        article_routes::list_articles,
+        article_routes::create_article,
+        article_routes::update_article,
+        article_routes::delete_article,
     ),
     components(schemas(
         health::HealthResponse,
@@ -70,11 +78,18 @@ use crate::worker::retry_worker;
         user_routes::ListUsersDto,
         user_routes::ListUsersQuery,
         user_routes::ApiError,
+        article_routes::ArticleDto,
+        article_routes::GetArticleDto,
+        article_routes::ListArticlesDto,
+        article_routes::ListArticlesQuery,
+        article_routes::CreateArticleDto,
+        article_routes::UpdateArticleDto,
     )),
     tags(
         (name = "系统", description = "系统管理端点（健康检查、监控等）"),
         (name = "用户", description = "用户查询"),
-        (name = "认证", description = "注册、登录、当前用户、资料更新")
+        (name = "认证", description = "注册、登录、当前用户、资料更新"),
+        (name = "文章", description = "文章 CRUD")
     )
 )]
 struct ApiDoc;
@@ -119,6 +134,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let consul = ConsulClient::new(&config.consul_url);
     let resolver = Arc::new(ServiceResolver::new(consul, config.fallback_urls));
     resolver.start_watcher("svc-user");
+    resolver.start_watcher("svc-content");
 
     // ── 拦截器管道（执行顺序：Log → Auth → 调用 → Log → Retry）──
     let pipeline = Arc::new(
@@ -131,9 +147,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // ── gRPC 服务（带 gRPC-Web 支持）──
     let user_service = GatewayUserService::new(Arc::clone(&resolver), Arc::clone(&pipeline));
-    let grpc_service = UserServiceServer::new(user_service);
-    let grpc_web_service = GrpcWebLayer::new().named_layer(grpc_service);
-    let grpc_router = Routes::new(grpc_web_service).into_axum_router();
+    let article_service = GatewayArticleService::new(Arc::clone(&resolver), Arc::clone(&pipeline));
+
+    let grpc_router = Routes::new(GrpcWebLayer::new().named_layer(UserServiceServer::new(user_service)))
+        .add_service(GrpcWebLayer::new().named_layer(ArticleServiceServer::new(article_service)))
+        .into_axum_router();
 
     // ── Swagger UI（内嵌，类似 FastAPI 的 /docs）──
     let swagger_ui = SwaggerUi::new("/swagger-ui")
@@ -141,10 +159,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // ── REST Proxy（gRPC → JSON，集成 Swagger + 拦截器）──
     let user_rest = user_routes::user_rest_router(Arc::clone(&resolver), Arc::clone(&pipeline));
+    let article_rest = article_routes::article_rest_router(Arc::clone(&resolver), Arc::clone(&pipeline));
 
     // ── 合并路由：gRPC-Web + REST proxy + REST health + Swagger UI ──
     let rest_and_swagger = rest_router()
         .merge(user_rest)
+        .merge(article_rest)
         .merge(swagger_ui);
 
     let app = grpc_router

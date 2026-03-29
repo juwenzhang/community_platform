@@ -125,3 +125,102 @@ Content-Type: {{contentType}}
   "email": "ab@example.com",
   "password": "Pass1234"
 }
+
+### ──────────── 文章（公开）────────────
+
+### 文章列表（默认，已发布文章）
+GET {{baseUrl}}/api/v1/articles
+
+### 文章列表（分页）
+GET {{baseUrl}}/api/v1/articles?page_size=5
+
+### 文章列表（按作者筛选）
+GET {{baseUrl}}/api/v1/articles?author_id=a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11
+
+### 文章列表（标题搜索）
+GET {{baseUrl}}/api/v1/articles?query=rust
+
+### 文章列表（按标签筛选）
+GET {{baseUrl}}/api/v1/articles?tag=rust
+
+### 获取文章详情（替换为实际 article_id）
+GET {{baseUrl}}/api/v1/articles/00000000-0000-0000-0000-000000000001
+
+### ──────────── 文章（需 Token）────────────
+
+### 创建文章（草稿）
+# @name createArticle
+POST {{baseUrl}}/api/v1/articles
+Content-Type: {{contentType}}
+Authorization: Bearer {{login.response.body.token}}
+
+{
+  "title": "Rust 异步编程入门",
+  "content": "## 前言\n\nRust 的异步编程模型基于 Future trait...\n\n### tokio\n\n```rust\n#[tokio::main]\nasync fn main() {\n    println!(\"Hello async!\");\n}\n```\n\n这是一篇测试文章，用于验证文章 CRUD 功能。",
+  "tags": ["rust", "async", "tokio"],
+  "status": 1
+}
+
+### 创建文章（直接发布）
+POST {{baseUrl}}/api/v1/articles
+Content-Type: {{contentType}}
+Authorization: Bearer {{login.response.body.token}}
+
+{
+  "title": "前端微服务架构实践",
+  "content": "## 微前端\n\n微前端是一种将单体前端应用拆分为多个独立子应用的架构模式。\n\n### Garfish\n\nGarfish 是字节跳动开源的微前端框架...",
+  "summary": "微前端架构的实践经验分享，包括 Garfish 框架的使用",
+  "tags": ["frontend", "micro-frontend", "garfish"],
+  "status": 2
+}
+
+### 更新文章（改标题 + 发布）
+PUT {{baseUrl}}/api/v1/articles/{{createArticle.response.body.article.id}}
+Content-Type: {{contentType}}
+Authorization: Bearer {{login.response.body.token}}
+
+{
+  "title": "Rust 异步编程完全指南（更新版）",
+  "status": 2
+}
+
+### 删除文章（软删除 → ARCHIVED）
+DELETE {{baseUrl}}/api/v1/articles/{{createArticle.response.body.article.id}}
+Authorization: Bearer {{login.response.body.token}}
+
+### ──────────── 文章错误场景 ────────────
+
+### 无 token 创建文章 → 401
+POST {{baseUrl}}/api/v1/articles
+Content-Type: {{contentType}}
+
+{
+  "title": "Should fail",
+  "content": "No auth"
+}
+
+### 获取不存在的文章 → 404
+GET {{baseUrl}}/api/v1/articles/00000000-0000-0000-0000-000000000000
+
+### 无效 UUID → 400
+GET {{baseUrl}}/api/v1/articles/not-a-uuid
+
+### 创建文章缺少标题 → 400
+POST {{baseUrl}}/api/v1/articles
+Content-Type: {{contentType}}
+Authorization: Bearer {{login.response.body.token}}
+
+{
+  "title": "",
+  "content": "Missing title"
+}
+
+### 创建文章缺少内容 → 400
+POST {{baseUrl}}/api/v1/articles
+Content-Type: {{contentType}}
+Authorization: Bearer {{login.response.body.token}}
+
+{
+  "title": "No content",
+  "content": ""
+}

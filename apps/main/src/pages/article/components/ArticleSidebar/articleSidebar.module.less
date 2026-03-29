@@ -1,0 +1,38 @@
+// ArticleSidebar — 文章模块侧边栏导航
+
+.sidebar {
+  width: 200px;
+  flex-shrink: 0;
+
+  .sideNav {
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    padding: 8px;
+    position: sticky;
+    top: 68px;
+
+    .sideNavItem {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: var(--radius-sm);
+      font-size: 14px;
+      color: var(--color-text-2);
+      text-decoration: none;
+      transition: all 0.15s;
+
+      &:hover {
+        background: var(--color-bg-hover);
+        color: var(--color-text-1);
+      }
+
+      &.active {
+        background: var(--color-primary-bg);
+        color: var(--color-primary);
+        font-weight: 500;
+      }
+    }
+  }
+}

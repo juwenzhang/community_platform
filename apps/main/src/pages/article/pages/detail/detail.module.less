@@ -1,0 +1,225 @@
+// 文章详情页 — 双栏布局（正文 + 右侧 TOC）
+
+.detailLayout {
+  display: flex;
+  gap: 16px;
+
+  .tocSidebar {
+    width: 220px;
+    flex-shrink: 0;
+  }
+}
+
+// 响应式：窄屏隐藏 TOC
+@media (max-width: 1000px) {
+  .detailLayout {
+    .tocSidebar {
+      display: none;
+    }
+  }
+}
+
+.detail {
+  flex: 1;
+  min-width: 0;
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 32px 40px;
+
+  .header {
+    margin-bottom: 24px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--color-border);
+
+    .title {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--color-text-1);
+      margin-bottom: 12px;
+      line-height: 1.4;
+    }
+
+    .meta {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      font-size: 13px;
+      color: var(--color-text-3);
+
+      .author {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+
+        .authorName {
+          color: var(--color-text-2);
+          font-weight: 500;
+        }
+      }
+
+      .date,
+      .views {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+    }
+
+    .tags {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 12px;
+      font-size: 12px;
+      color: var(--color-text-4);
+
+      .tag {
+        color: var(--color-primary);
+        background: var(--color-primary-bg);
+        border-radius: var(--radius-sm);
+        padding: 2px 8px;
+      }
+    }
+  }
+
+  .content {
+    font-size: 15px;
+    line-height: 1.8;
+    color: var(--color-text-1);
+    word-break: break-word;
+    min-height: 200px;
+
+    // Markdown 渲染样式
+    h1, h2, h3, h4, h5, h6 {
+      color: var(--color-text-1);
+      margin: 1.5em 0 0.5em;
+      font-weight: 600;
+    }
+
+    h1 { font-size: 24px; }
+    h2 { font-size: 20px; border-bottom: 1px solid var(--color-border); padding-bottom: 8px; }
+    h3 { font-size: 17px; }
+
+    p { margin: 0 0 1em; }
+
+    a {
+      color: var(--color-primary);
+      text-decoration: none;
+      &:hover { text-decoration: underline; }
+    }
+
+    img {
+      max-width: 100%;
+      border-radius: var(--radius-sm);
+    }
+
+    code {
+      background: var(--color-bg-hover);
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-size: 0.9em;
+      font-family: 'SF Mono', 'Menlo', 'Monaco', 'Consolas', monospace;
+    }
+
+    pre {
+      background: #1e1e1e;
+      color: #d4d4d4;
+      padding: 16px;
+      border-radius: var(--radius-sm);
+      overflow-x: auto;
+      margin: 1em 0;
+
+      code {
+        background: none;
+        padding: 0;
+        color: inherit;
+        font-size: 13px;
+      }
+    }
+
+    blockquote {
+      border-left: 3px solid var(--color-primary);
+      padding-left: 16px;
+      color: var(--color-text-3);
+      margin: 1em 0;
+    }
+
+    ul, ol {
+      padding-left: 24px;
+      margin: 0.5em 0;
+
+      li { margin: 4px 0; }
+
+      // 嵌套列表
+      ul, ol { margin: 2px 0; }
+    }
+    ul { list-style-type: disc; }
+    ol { list-style-type: decimal; }
+
+    // GFM 任务列表
+    ul:has(> li > input[type="checkbox"]) {
+      list-style-type: none;
+      padding-left: 4px;
+
+      li {
+        display: flex;
+        align-items: flex-start;
+        gap: 6px;
+
+        input[type="checkbox"] {
+          margin-top: 5px;
+          accent-color: var(--color-primary);
+        }
+      }
+    }
+
+    // GFM 删除线
+    del {
+      color: var(--color-text-4);
+      text-decoration: line-through;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1em 0;
+
+      th, td {
+        border: 1px solid var(--color-border);
+        padding: 8px 12px;
+        text-align: left;
+      }
+
+      th {
+        background: var(--color-bg-hover);
+        font-weight: 600;
+      }
+    }
+
+    hr {
+      border: none;
+      border-top: 1px solid var(--color-border);
+      margin: 2em 0;
+    }
+  }
+
+  .actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 32px;
+    padding-top: 20px;
+    border-top: 1px solid var(--color-border);
+  }
+
+  .error {
+    text-align: center;
+    padding: 48px 0;
+    color: var(--color-text-3);
+
+    p {
+      margin-bottom: 16px;
+    }
+  }
+}

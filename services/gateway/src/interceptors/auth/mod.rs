@@ -18,6 +18,8 @@ const PUBLIC_METHODS: &[(&str, &str)] = &[
     ("user", "get_user"),
     ("user", "get_user_by_username"),
     ("user", "list_users"),
+    ("article", "get_article"),
+    ("article", "list_articles"),
 ];
 
 /// JWT 认证拦截器
@@ -41,51 +43,68 @@ impl AuthInterceptor {
 #[tonic::async_trait]
 impl PreInterceptor for AuthInterceptor {
     async fn intercept(&self, ctx: &mut RpcContext, metadata: &MetadataMap) -> Result<(), Status> {
-        // 公开方法跳过认证
-        if Self::is_public(&ctx.service, &ctx.method) {
-            debug!(
-                service = %ctx.service,
-                method = %ctx.method,
-                "Public method, skipping auth"
-            );
-            return Ok(());
-        }
+        let is_public = Self::is_public(&ctx.service, &ctx.method);
 
-        // 提取 Authorization header
+        // 提取 Authorization header（公开方法可选，非公开方法必须）
         let token = metadata
             .get("authorization")
             .and_then(|v| v.to_str().ok())
-            .and_then(|v| v.strip_prefix("Bearer "))
-            .ok_or_else(|| {
-                warn!(
-                    service = %ctx.service,
-                    method = %ctx.method,
-                    "Missing authorization token"
-                );
-                Status::unauthenticated("Missing authorization token")
-            })?;
+            .and_then(|v| v.strip_prefix("Bearer "));
 
-        // 验证 JWT
-        let token_data = auth::verify_token(token, &self.auth_config).map_err(|e| {
-            warn!(
-                service = %ctx.service,
-                method = %ctx.method,
-                error = %e,
-                "Invalid or expired token"
-            );
-            Status::unauthenticated("Invalid or expired token")
-        })?;
-
-        // 注入 user_id 到上下文
-        ctx.attrs
-            .insert("user_id".to_string(), token_data.claims.sub.clone());
-
-        debug!(
-            service = %ctx.service,
-            method = %ctx.method,
-            user_id = %token_data.claims.sub,
-            "Auth passed"
-        );
+        match token {
+            Some(token) => {
+                // 验证 JWT
+                match auth::verify_token(token, &self.auth_config) {
+                    Ok(token_data) => {
+                        ctx.attrs
+                            .insert("user_id".to_string(), token_data.claims.sub.clone());
+                        debug!(
+                            service = %ctx.service,
+                            method = %ctx.method,
+                            user_id = %token_data.claims.sub,
+                            "Auth passed"
+                        );
+                    }
+                    Err(e) => {
+                        if is_public {
+                            // 公开方法：token 无效就忽略，当作匿名访问
+                            debug!(
+                                service = %ctx.service,
+                                method = %ctx.method,
+                                "Public method with invalid token, treating as anonymous"
+                            );
+                        } else {
+                            // 非公开方法：token 无效就拒绝
+                            warn!(
+                                service = %ctx.service,
+                                method = %ctx.method,
+                                error = %e,
+                                "Invalid or expired token"
+                            );
+                            return Err(Status::unauthenticated("Invalid or expired token"));
+                        }
+                    }
+                }
+            }
+            None => {
+                if is_public {
+                    // 公开方法：无 token 正常放行
+                    debug!(
+                        service = %ctx.service,
+                        method = %ctx.method,
+                        "Public method, no token, anonymous access"
+                    );
+                } else {
+                    // 非公开方法：无 token 拒绝
+                    warn!(
+                        service = %ctx.service,
+                        method = %ctx.method,
+                        "Missing authorization token"
+                    );
+                    return Err(Status::unauthenticated("Missing authorization token"));
+                }
+            }
+        }
 
         Ok(())
     }
