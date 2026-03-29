@@ -73,5 +73,6 @@ alwaysApply: true
 | 05 | `05-service-discovery-and-mq.md` | 后端服务发现与消息队列 | 2026-03-23 |
 | 06 | `06-gateway-interceptor-pattern.md` | Gateway 拦截器模式与设计模式 | 2026-03-23 |
 | 07 | `07-swagger-interceptor-consul-healthcheck.md` | Swagger 集成、拦截器统一与 Consul 健康检查 | 2026-03-29 |
+| 08 | `08-grpcurl-testing-guide.md` | grpcurl 测试技巧 — gRPC API 命令行调试 | 2026-03-29 |
 
 > 每次新增 tech 文档后，更新此索引表。
