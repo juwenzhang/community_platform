@@ -21,7 +21,7 @@ export default function LoginForm() {
     setError(null);
     try {
       await login(values.username, values.password);
-      message.success('登录成功！');
+      message.success('登录成功');
       navigate('/');
     } catch (e) {
       if (e instanceof ConnectError) {
@@ -46,15 +46,29 @@ export default function LoginForm() {
       )}
 
       <Form.Item name="username" rules={[{ required: true, message: '请输入用户名' }]}>
-        <Input prefix={<UserOutlined />} placeholder="用户名" />
+        <Input
+          prefix={<UserOutlined className="text-[#8a919f]" />}
+          placeholder="用户名"
+          className="rounded"
+        />
       </Form.Item>
 
       <Form.Item name="password" rules={[{ required: true, message: '请输入密码' }]}>
-        <Input.Password prefix={<LockOutlined />} placeholder="密码" />
+        <Input.Password
+          prefix={<LockOutlined className="text-[#8a919f]" />}
+          placeholder="密码"
+          className="rounded"
+        />
       </Form.Item>
 
-      <Form.Item>
-        <Button type="primary" htmlType="submit" loading={isLoading} block>
+      <Form.Item className="mb-0">
+        <Button
+          type="primary"
+          htmlType="submit"
+          loading={isLoading}
+          block
+          className="rounded bg-[#1e80ff] border-[#1e80ff] h-10"
+        >
           登录
         </Button>
       </Form.Item>

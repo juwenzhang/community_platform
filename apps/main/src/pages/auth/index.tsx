@@ -1,5 +1,4 @@
-import { LoginOutlined, UserAddOutlined } from '@ant-design/icons';
-import { Card, Tabs } from 'antd';
+import { Tabs } from 'antd';
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -8,12 +7,10 @@ import { useAuthStore } from '@/stores/useAuthStore';
 import LoginForm from './components/LoginForm';
 import RegisterForm from './components/RegisterForm';
 
-/** 登录/注册页面 */
 export default function AuthPage() {
   const { isAuthenticated } = useAuthStore();
   const navigate = useNavigate();
 
-  // 已登录用户自动跳转首页
   useEffect(() => {
     if (isAuthenticated) {
       navigate('/', { replace: true });
@@ -21,38 +18,27 @@ export default function AuthPage() {
   }, [isAuthenticated, navigate]);
 
   return (
-    <div className="flex items-center justify-center min-h-[60vh]">
-      <Card className="w-full max-w-md shadow-lg">
-        <div className="text-center mb-6">
-          <h1 className="text-2xl font-bold text-gray-800">Luhanxin Community</h1>
-          <p className="text-gray-500 mt-1">加入社区，分享你的想法</p>
-        </div>
+    <div className="flex items-center justify-center" style={{ minHeight: 'calc(100vh - 200px)' }}>
+      <div className="w-full max-w-[400px]">
+        <div className="bg-white rounded-lg border border-[#e4e6eb] p-8">
+          <div className="text-center mb-6">
+            <div className="w-10 h-10 rounded-lg bg-[#1e80ff] flex items-center justify-center mx-auto mb-3">
+              <span className="text-white font-bold text-base">L</span>
+            </div>
+            <h1 className="text-lg font-semibold text-[#252933] mb-1">Luhanxin Community</h1>
+            <p className="text-sm text-[#8a919f]">加入社区，和开发者一起成长</p>
+          </div>
 
-        <Tabs
-          centered
-          defaultActiveKey="login"
-          items={[
-            {
-              key: 'login',
-              label: (
-                <span>
-                  <LoginOutlined /> 登录
-                </span>
-              ),
-              children: <LoginForm />,
-            },
-            {
-              key: 'register',
-              label: (
-                <span>
-                  <UserAddOutlined /> 注册
-                </span>
-              ),
-              children: <RegisterForm />,
-            },
-          ]}
-        />
-      </Card>
+          <Tabs
+            centered
+            defaultActiveKey="login"
+            items={[
+              { key: 'login', label: '登录', children: <LoginForm /> },
+              { key: 'register', label: '注册', children: <RegisterForm /> },
+            ]}
+          />
+        </div>
+      </div>
     </div>
   );
 }

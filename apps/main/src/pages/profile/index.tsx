@@ -1,17 +1,43 @@
-import { UserOutlined } from '@ant-design/icons';
-import { Empty, Typography } from 'antd';
+import { EditOutlined } from '@ant-design/icons';
+import { Button, Empty } from 'antd';
+import { useState } from 'react';
 
-const { Title } = Typography;
+import { useAuthStore } from '@/stores/useAuthStore';
 
-/** 个人主页 — 占位页面 */
+import EditProfileForm from './components/EditProfileForm';
+import ProfileCard from './components/ProfileCard';
+
 export default function ProfilePage() {
+  const { user, isLoading } = useAuthStore();
+  const [editing, setEditing] = useState(false);
+
+  if (!user && !isLoading) {
+    return (
+      <div className="bg-white rounded-lg border border-[#e4e6eb] p-12">
+        <Empty description="请先登录" />
+      </div>
+    );
+  }
+
   return (
-    <div className="max-w-4xl mx-auto">
-      <Title level={2}>
-        <UserOutlined className="mr-2 text-primary-500" />
-        个人主页
-      </Title>
-      <Empty description="个人主页即将上线，敬请期待 🚧" />
+    <div className="max-w-[720px] mx-auto">
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-base font-semibold text-[#252933] m-0">我的资料</h2>
+        <Button
+          type={editing ? 'default' : 'primary'}
+          size="small"
+          icon={<EditOutlined />}
+          onClick={() => setEditing(!editing)}
+          className={`rounded ${!editing ? 'bg-[#1e80ff] border-[#1e80ff]' : ''}`}
+        >
+          {editing ? '取消' : '编辑'}
+        </Button>
+      </div>
+
+      <div className="space-y-4">
+        <ProfileCard user={user} loading={isLoading} />
+        {editing && user && <EditProfileForm user={user} onSuccess={() => setEditing(false)} />}
+      </div>
     </div>
   );
 }

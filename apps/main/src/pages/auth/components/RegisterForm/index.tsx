@@ -23,7 +23,7 @@ export default function RegisterForm() {
     setError(null);
     try {
       await register(values.username, values.email, values.password);
-      message.success('注册成功！');
+      message.success('注册成功');
       navigate('/');
     } catch (e) {
       if (e instanceof ConnectError) {
@@ -51,35 +51,44 @@ export default function RegisterForm() {
         name="username"
         rules={[
           { required: true, message: '请输入用户名' },
-          { min: 3, max: 20, message: '用户名 3-20 个字符' },
-          { pattern: /^[a-zA-Z0-9][a-zA-Z0-9_-]*$/, message: '字母或数字开头，可含下划线和连字符' },
+          { min: 3, max: 20, message: '3-20 个字符' },
+          { pattern: /^[a-zA-Z0-9][a-zA-Z0-9_-]*$/, message: '字母或数字开头' },
         ]}
       >
-        <Input prefix={<UserOutlined />} placeholder="用户名" />
+        <Input
+          prefix={<UserOutlined className="text-[#8a919f]" />}
+          placeholder="用户名"
+          className="rounded"
+        />
       </Form.Item>
 
       <Form.Item
         name="email"
         rules={[
           { required: true, message: '请输入邮箱' },
-          { type: 'email', message: '请输入有效的邮箱地址' },
+          { type: 'email', message: '请输入有效邮箱' },
         ]}
       >
-        <Input prefix={<MailOutlined />} placeholder="邮箱" />
+        <Input
+          prefix={<MailOutlined className="text-[#8a919f]" />}
+          placeholder="邮箱"
+          className="rounded"
+        />
       </Form.Item>
 
       <Form.Item
         name="password"
         rules={[
           { required: true, message: '请输入密码' },
-          { min: 8, max: 72, message: '密码 8-72 个字符' },
-          {
-            pattern: /(?=.*[a-zA-Z])(?=.*\d)/,
-            message: '密码需包含字母和数字',
-          },
+          { min: 8, max: 72, message: '8-72 个字符' },
+          { pattern: /(?=.*[a-zA-Z])(?=.*\d)/, message: '需包含字母和数字' },
         ]}
       >
-        <Input.Password prefix={<LockOutlined />} placeholder="密码" />
+        <Input.Password
+          prefix={<LockOutlined className="text-[#8a919f]" />}
+          placeholder="密码"
+          className="rounded"
+        />
       </Form.Item>
 
       <Form.Item
@@ -89,19 +98,27 @@ export default function RegisterForm() {
           { required: true, message: '请确认密码' },
           ({ getFieldValue }) => ({
             validator(_, value) {
-              if (!value || getFieldValue('password') === value) {
-                return Promise.resolve();
-              }
+              if (!value || getFieldValue('password') === value) return Promise.resolve();
               return Promise.reject(new Error('两次密码不一致'));
             },
           }),
         ]}
       >
-        <Input.Password prefix={<LockOutlined />} placeholder="确认密码" />
+        <Input.Password
+          prefix={<LockOutlined className="text-[#8a919f]" />}
+          placeholder="确认密码"
+          className="rounded"
+        />
       </Form.Item>
 
-      <Form.Item>
-        <Button type="primary" htmlType="submit" loading={isLoading} block>
+      <Form.Item className="mb-0">
+        <Button
+          type="primary"
+          htmlType="submit"
+          loading={isLoading}
+          block
+          className="rounded bg-[#1e80ff] border-[#1e80ff] h-10"
+        >
           注册
         </Button>
       </Form.Item>

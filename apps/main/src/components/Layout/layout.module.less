@@ -1,0 +1,92 @@
+// Layout — 顶栏 + 内容区
+// Less 变量引用 CSS 自定义属性（运行时主题切换）
+
+.layout {
+  min-height: 100vh;
+  background: var(--color-bg-page);
+}
+
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  height: var(--header-height);
+  background: var(--color-bg-card);
+  border-bottom: 1px solid var(--color-border);
+
+  .headerInner {
+    max-width: var(--content-max-width);
+    margin: 0 auto;
+    padding: 0 24px;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    .left {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+
+      .logo {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        text-decoration: none;
+        flex-shrink: 0;
+
+        .logoIcon {
+          width: 24px;
+          height: 24px;
+          border-radius: var(--radius-sm);
+          background: var(--color-primary);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: #fff;
+          font-weight: bold;
+          font-size: 11px;
+        }
+
+        .logoText {
+          font-size: 14px;
+          font-weight: 600;
+          color: var(--color-text-1);
+        }
+      }
+
+      .nav {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+
+        .navItem {
+          padding: 4px 12px;
+          border-radius: var(--radius-sm);
+          font-size: 14px;
+          text-decoration: none;
+          color: var(--color-text-2);
+          transition: all 0.15s;
+
+          &:hover {
+            color: var(--color-primary);
+            background: var(--color-bg-hover);
+          }
+
+          &.active {
+            color: var(--color-primary);
+            font-weight: 600;
+            background: var(--color-bg-active);
+          }
+        }
+      }
+    }
+  }
+}
+
+.main {
+  max-width: var(--content-max-width);
+  margin: 0 auto;
+  padding: 16px 24px;
+  min-height: calc(100vh - var(--header-height));
+}

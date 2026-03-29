@@ -28,14 +28,6 @@ const localRoutes: RouteConfig[] = [
     },
   },
   {
-    path: '/demo',
-    component: lazy(() => import('@/pages/demo')),
-    meta: {
-      title: 'Demo',
-      icon: 'ThunderboltOutlined',
-    },
-  },
-  {
     path: '/article/*',
     component: lazy(() => import('@/pages/article')),
     meta: {
