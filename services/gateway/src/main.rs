@@ -21,6 +21,7 @@ use utoipa_swagger_ui::SwaggerUi;
 
 use crate::config::GatewayConfig;
 use crate::interceptors::InterceptorPipeline;
+use crate::interceptors::auth::AuthInterceptor;
 use crate::interceptors::log::LogInterceptor;
 use crate::interceptors::retry::RetryInterceptor;
 use crate::middleware::cors::cors_layer;
@@ -50,17 +51,30 @@ use crate::worker::retry_worker;
     paths(
         health::health_handler,
         user_routes::get_user,
+        user_routes::get_user_by_username,
+        user_routes::list_users,
+        user_routes::register,
+        user_routes::login,
+        user_routes::get_current_user,
+        user_routes::update_profile,
     ),
     components(schemas(
         health::HealthResponse,
         health::RequestData,
         user_routes::UserDto,
         user_routes::GetUserDto,
+        user_routes::AuthDto,
+        user_routes::RegisterDto,
+        user_routes::LoginDto,
+        user_routes::UpdateProfileDto,
+        user_routes::ListUsersDto,
+        user_routes::ListUsersQuery,
         user_routes::ApiError,
     )),
     tags(
         (name = "系统", description = "系统管理端点（健康检查、监控等）"),
-        (name = "用户", description = "用户服务 — REST proxy for gRPC UserService")
+        (name = "用户", description = "用户查询"),
+        (name = "认证", description = "注册、登录、当前用户、资料更新")
     )
 )]
 struct ApiDoc;
@@ -106,10 +120,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let resolver = Arc::new(ServiceResolver::new(consul, config.fallback_urls));
     resolver.start_watcher("svc-user");
 
-    // ── 拦截器管道 ──
+    // ── 拦截器管道（执行顺序：Log → Auth → 调用 → Log → Retry）──
     let pipeline = Arc::new(
         InterceptorPipeline::new()
             .add_pre(LogInterceptor)
+            .add_pre(AuthInterceptor::new())
             .add_post(LogInterceptor)
             .add_post(RetryInterceptor::new(nats.clone())),
     );

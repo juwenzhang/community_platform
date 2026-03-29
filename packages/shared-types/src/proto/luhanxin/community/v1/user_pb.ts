@@ -6,17 +6,17 @@ import type { GenFile, GenMessage, GenService } from "@bufbuild/protobuf/codegen
 import { fileDesc, messageDesc, serviceDesc } from "@bufbuild/protobuf/codegenv2";
 import type { Timestamp } from "@bufbuild/protobuf/wkt";
 import { file_google_protobuf_timestamp } from "@bufbuild/protobuf/wkt";
+import type { PaginationRequest, PaginationResponse } from "./common_pb";
+import { file_luhanxin_community_v1_common } from "./common_pb";
 import type { Message } from "@bufbuild/protobuf";
 
 /**
  * Describes the file luhanxin/community/v1/user.proto.
  */
 export const file_luhanxin_community_v1_user: GenFile = /*@__PURE__*/
-  fileDesc("CiBsdWhhbnhpbi9jb21tdW5pdHkvdjEvdXNlci5wcm90bxIVbHVoYW54aW4uY29tbXVuaXR5LnYxIiEKDkdldFVzZXJSZXF1ZXN0Eg8KB3VzZXJfaWQYASABKAkiPAoPR2V0VXNlclJlc3BvbnNlEikKBHVzZXIYASABKAsyGy5sdWhhbnhpbi5jb21tdW5pdHkudjEuVXNlciLKAQoEVXNlchIKCgJpZBgBIAEoCRIQCgh1c2VybmFtZRgCIAEoCRINCgVlbWFpbBgDIAEoCRIUCgxkaXNwbGF5X25hbWUYBCABKAkSEgoKYXZhdGFyX3VybBgFIAEoCRILCgNiaW8YBiABKAkSLgoKY3JlYXRlZF9hdBgHIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASLgoKdXBkYXRlZF9hdBgIIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXAyZwoLVXNlclNlcnZpY2USWAoHR2V0VXNlchIlLmx1aGFueGluLmNvbW11bml0eS52MS5HZXRVc2VyUmVxdWVzdBomLmx1aGFueGluLmNvbW11bml0eS52MS5HZXRVc2VyUmVzcG9uc2ViBnByb3RvMw", [file_google_protobuf_timestamp]);
+  fileDesc("CiBsdWhhbnhpbi9jb21tdW5pdHkvdjEvdXNlci5wcm90bxIVbHVoYW54aW4uY29tbXVuaXR5LnYxIiEKDkdldFVzZXJSZXF1ZXN0Eg8KB3VzZXJfaWQYASABKAkiLAoYR2V0VXNlckJ5VXNlcm5hbWVSZXF1ZXN0EhAKCHVzZXJuYW1lGAEgASgJIjwKD0dldFVzZXJSZXNwb25zZRIpCgR1c2VyGAEgASgLMhsubHVoYW54aW4uY29tbXVuaXR5LnYxLlVzZXIiXwoQTGlzdFVzZXJzUmVxdWVzdBINCgVxdWVyeRgBIAEoCRI8CgpwYWdpbmF0aW9uGAIgASgLMigubHVoYW54aW4uY29tbXVuaXR5LnYxLlBhZ2luYXRpb25SZXF1ZXN0In4KEUxpc3RVc2Vyc1Jlc3BvbnNlEioKBXVzZXJzGAEgAygLMhsubHVoYW54aW4uY29tbXVuaXR5LnYxLlVzZXISPQoKcGFnaW5hdGlvbhgCIAEoCzIpLmx1aGFueGluLmNvbW11bml0eS52MS5QYWdpbmF0aW9uUmVzcG9uc2UiFwoVR2V0Q3VycmVudFVzZXJSZXF1ZXN0IkQKD1JlZ2lzdGVyUmVxdWVzdBIQCgh1c2VybmFtZRgBIAEoCRINCgVlbWFpbBgCIAEoCRIQCghwYXNzd29yZBgDIAEoCSIyCgxMb2dpblJlcXVlc3QSEAoIdXNlcm5hbWUYASABKAkSEAoIcGFzc3dvcmQYAiABKAkiSAoMQXV0aFJlc3BvbnNlEg0KBXRva2VuGAEgASgJEikKBHVzZXIYAiABKAsyGy5sdWhhbnhpbi5jb21tdW5pdHkudjEuVXNlciJNChRVcGRhdGVQcm9maWxlUmVxdWVzdBIUCgxkaXNwbGF5X25hbWUYASABKAkSEgoKYXZhdGFyX3VybBgCIAEoCRILCgNiaW8YAyABKAkiQgoVVXBkYXRlUHJvZmlsZVJlc3BvbnNlEikKBHVzZXIYASABKAsyGy5sdWhhbnhpbi5jb21tdW5pdHkudjEuVXNlciLKAQoEVXNlchIKCgJpZBgBIAEoCRIQCgh1c2VybmFtZRgCIAEoCRINCgVlbWFpbBgDIAEoCRIUCgxkaXNwbGF5X25hbWUYBCABKAkSEgoKYXZhdGFyX3VybBgFIAEoCRILCgNiaW8YBiABKAkSLgoKY3JlYXRlZF9hdBgHIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASLgoKdXBkYXRlZF9hdBgIIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXAytQUKC1VzZXJTZXJ2aWNlElgKB0dldFVzZXISJS5sdWhhbnhpbi5jb21tdW5pdHkudjEuR2V0VXNlclJlcXVlc3QaJi5sdWhhbnhpbi5jb21tdW5pdHkudjEuR2V0VXNlclJlc3BvbnNlEmwKEUdldFVzZXJCeVVzZXJuYW1lEi8ubHVoYW54aW4uY29tbXVuaXR5LnYxLkdldFVzZXJCeVVzZXJuYW1lUmVxdWVzdBomLmx1aGFueGluLmNvbW11bml0eS52MS5HZXRVc2VyUmVzcG9uc2USXgoJTGlzdFVzZXJzEicubHVoYW54aW4uY29tbXVuaXR5LnYxLkxpc3RVc2Vyc1JlcXVlc3QaKC5sdWhhbnhpbi5jb21tdW5pdHkudjEuTGlzdFVzZXJzUmVzcG9uc2USZgoOR2V0Q3VycmVudFVzZXISLC5sdWhhbnhpbi5jb21tdW5pdHkudjEuR2V0Q3VycmVudFVzZXJSZXF1ZXN0GiYubHVoYW54aW4uY29tbXVuaXR5LnYxLkdldFVzZXJSZXNwb25zZRJXCghSZWdpc3RlchImLmx1aGFueGluLmNvbW11bml0eS52MS5SZWdpc3RlclJlcXVlc3QaIy5sdWhhbnhpbi5jb21tdW5pdHkudjEuQXV0aFJlc3BvbnNlElEKBUxvZ2luEiMubHVoYW54aW4uY29tbXVuaXR5LnYxLkxvZ2luUmVxdWVzdBojLmx1aGFueGluLmNvbW11bml0eS52MS5BdXRoUmVzcG9uc2USagoNVXBkYXRlUHJvZmlsZRIrLmx1aGFueGluLmNvbW11bml0eS52MS5VcGRhdGVQcm9maWxlUmVxdWVzdBosLmx1aGFueGluLmNvbW11bml0eS52MS5VcGRhdGVQcm9maWxlUmVzcG9uc2ViBnByb3RvMw", [file_google_protobuf_timestamp, file_luhanxin_community_v1_common]);
 
 /**
- * 获取用户请求
- *
  * @generated from message luhanxin.community.v1.GetUserRequest
  */
 export type GetUserRequest = Message<"luhanxin.community.v1.GetUserRequest"> & {
@@ -36,8 +36,25 @@ export const GetUserRequestSchema: GenMessage<GetUserRequest> = /*@__PURE__*/
   messageDesc(file_luhanxin_community_v1_user, 0);
 
 /**
- * 获取用户响应
- *
+ * @generated from message luhanxin.community.v1.GetUserByUsernameRequest
+ */
+export type GetUserByUsernameRequest = Message<"luhanxin.community.v1.GetUserByUsernameRequest"> & {
+  /**
+   * 用户名
+   *
+   * @generated from field: string username = 1;
+   */
+  username: string;
+};
+
+/**
+ * Describes the message luhanxin.community.v1.GetUserByUsernameRequest.
+ * Use `create(GetUserByUsernameRequestSchema)` to create a new message.
+ */
+export const GetUserByUsernameRequestSchema: GenMessage<GetUserByUsernameRequest> = /*@__PURE__*/
+  messageDesc(file_luhanxin_community_v1_user, 1);
+
+/**
  * @generated from message luhanxin.community.v1.GetUserResponse
  */
 export type GetUserResponse = Message<"luhanxin.community.v1.GetUserResponse"> & {
@@ -54,7 +71,211 @@ export type GetUserResponse = Message<"luhanxin.community.v1.GetUserResponse"> &
  * Use `create(GetUserResponseSchema)` to create a new message.
  */
 export const GetUserResponseSchema: GenMessage<GetUserResponse> = /*@__PURE__*/
-  messageDesc(file_luhanxin_community_v1_user, 1);
+  messageDesc(file_luhanxin_community_v1_user, 2);
+
+/**
+ * @generated from message luhanxin.community.v1.ListUsersRequest
+ */
+export type ListUsersRequest = Message<"luhanxin.community.v1.ListUsersRequest"> & {
+  /**
+   * 搜索关键词（匹配 username 或 display_name，为空则返回全部）
+   *
+   * @generated from field: string query = 1;
+   */
+  query: string;
+
+  /**
+   * 分页参数
+   *
+   * @generated from field: luhanxin.community.v1.PaginationRequest pagination = 2;
+   */
+  pagination?: PaginationRequest;
+};
+
+/**
+ * Describes the message luhanxin.community.v1.ListUsersRequest.
+ * Use `create(ListUsersRequestSchema)` to create a new message.
+ */
+export const ListUsersRequestSchema: GenMessage<ListUsersRequest> = /*@__PURE__*/
+  messageDesc(file_luhanxin_community_v1_user, 3);
+
+/**
+ * @generated from message luhanxin.community.v1.ListUsersResponse
+ */
+export type ListUsersResponse = Message<"luhanxin.community.v1.ListUsersResponse"> & {
+  /**
+   * 用户列表
+   *
+   * @generated from field: repeated luhanxin.community.v1.User users = 1;
+   */
+  users: User[];
+
+  /**
+   * 分页信息
+   *
+   * @generated from field: luhanxin.community.v1.PaginationResponse pagination = 2;
+   */
+  pagination?: PaginationResponse;
+};
+
+/**
+ * Describes the message luhanxin.community.v1.ListUsersResponse.
+ * Use `create(ListUsersResponseSchema)` to create a new message.
+ */
+export const ListUsersResponseSchema: GenMessage<ListUsersResponse> = /*@__PURE__*/
+  messageDesc(file_luhanxin_community_v1_user, 4);
+
+/**
+ * 无参数，通过 x-user-id metadata 识别
+ *
+ * @generated from message luhanxin.community.v1.GetCurrentUserRequest
+ */
+export type GetCurrentUserRequest = Message<"luhanxin.community.v1.GetCurrentUserRequest"> & {
+};
+
+/**
+ * Describes the message luhanxin.community.v1.GetCurrentUserRequest.
+ * Use `create(GetCurrentUserRequestSchema)` to create a new message.
+ */
+export const GetCurrentUserRequestSchema: GenMessage<GetCurrentUserRequest> = /*@__PURE__*/
+  messageDesc(file_luhanxin_community_v1_user, 5);
+
+/**
+ * @generated from message luhanxin.community.v1.RegisterRequest
+ */
+export type RegisterRequest = Message<"luhanxin.community.v1.RegisterRequest"> & {
+  /**
+   * 用户名（3-20字符，字母/数字/下划线/连字符，字母或数字开头）
+   *
+   * @generated from field: string username = 1;
+   */
+  username: string;
+
+  /**
+   * 邮箱地址
+   *
+   * @generated from field: string email = 2;
+   */
+  email: string;
+
+  /**
+   * 密码（8-72字符，至少包含字母和数字）
+   *
+   * @generated from field: string password = 3;
+   */
+  password: string;
+};
+
+/**
+ * Describes the message luhanxin.community.v1.RegisterRequest.
+ * Use `create(RegisterRequestSchema)` to create a new message.
+ */
+export const RegisterRequestSchema: GenMessage<RegisterRequest> = /*@__PURE__*/
+  messageDesc(file_luhanxin_community_v1_user, 6);
+
+/**
+ * @generated from message luhanxin.community.v1.LoginRequest
+ */
+export type LoginRequest = Message<"luhanxin.community.v1.LoginRequest"> & {
+  /**
+   * 用户名
+   *
+   * @generated from field: string username = 1;
+   */
+  username: string;
+
+  /**
+   * 密码
+   *
+   * @generated from field: string password = 2;
+   */
+  password: string;
+};
+
+/**
+ * Describes the message luhanxin.community.v1.LoginRequest.
+ * Use `create(LoginRequestSchema)` to create a new message.
+ */
+export const LoginRequestSchema: GenMessage<LoginRequest> = /*@__PURE__*/
+  messageDesc(file_luhanxin_community_v1_user, 7);
+
+/**
+ * @generated from message luhanxin.community.v1.AuthResponse
+ */
+export type AuthResponse = Message<"luhanxin.community.v1.AuthResponse"> & {
+  /**
+   * JWT token
+   *
+   * @generated from field: string token = 1;
+   */
+  token: string;
+
+  /**
+   * 用户信息
+   *
+   * @generated from field: luhanxin.community.v1.User user = 2;
+   */
+  user?: User;
+};
+
+/**
+ * Describes the message luhanxin.community.v1.AuthResponse.
+ * Use `create(AuthResponseSchema)` to create a new message.
+ */
+export const AuthResponseSchema: GenMessage<AuthResponse> = /*@__PURE__*/
+  messageDesc(file_luhanxin_community_v1_user, 8);
+
+/**
+ * @generated from message luhanxin.community.v1.UpdateProfileRequest
+ */
+export type UpdateProfileRequest = Message<"luhanxin.community.v1.UpdateProfileRequest"> & {
+  /**
+   * 显示名称（可选，空字符串表示不更新）
+   *
+   * @generated from field: string display_name = 1;
+   */
+  displayName: string;
+
+  /**
+   * 头像 URL（可选）
+   *
+   * @generated from field: string avatar_url = 2;
+   */
+  avatarUrl: string;
+
+  /**
+   * 个人简介（可选）
+   *
+   * @generated from field: string bio = 3;
+   */
+  bio: string;
+};
+
+/**
+ * Describes the message luhanxin.community.v1.UpdateProfileRequest.
+ * Use `create(UpdateProfileRequestSchema)` to create a new message.
+ */
+export const UpdateProfileRequestSchema: GenMessage<UpdateProfileRequest> = /*@__PURE__*/
+  messageDesc(file_luhanxin_community_v1_user, 9);
+
+/**
+ * @generated from message luhanxin.community.v1.UpdateProfileResponse
+ */
+export type UpdateProfileResponse = Message<"luhanxin.community.v1.UpdateProfileResponse"> & {
+  /**
+   * 更新后的用户信息
+   *
+   * @generated from field: luhanxin.community.v1.User user = 1;
+   */
+  user?: User;
+};
+
+/**
+ * Describes the message luhanxin.community.v1.UpdateProfileResponse.
+ * Use `create(UpdateProfileResponseSchema)` to create a new message.
+ */
+export const UpdateProfileResponseSchema: GenMessage<UpdateProfileResponse> = /*@__PURE__*/
+  messageDesc(file_luhanxin_community_v1_user, 10);
 
 /**
  * 用户信息
@@ -124,7 +345,7 @@ export type User = Message<"luhanxin.community.v1.User"> & {
  * Use `create(UserSchema)` to create a new message.
  */
 export const UserSchema: GenMessage<User> = /*@__PURE__*/
-  messageDesc(file_luhanxin_community_v1_user, 2);
+  messageDesc(file_luhanxin_community_v1_user, 11);
 
 /**
  * 用户服务
@@ -133,7 +354,7 @@ export const UserSchema: GenMessage<User> = /*@__PURE__*/
  */
 export const UserService: GenService<{
   /**
-   * 获取用户信息
+   * 获取用户信息（公开，按 ID）
    *
    * @generated from rpc luhanxin.community.v1.UserService.GetUser
    */
@@ -141,6 +362,66 @@ export const UserService: GenService<{
     methodKind: "unary";
     input: typeof GetUserRequestSchema;
     output: typeof GetUserResponseSchema;
+  },
+  /**
+   * 获取用户信息（公开，按用户名，用于个人主页 /user/:username）
+   *
+   * @generated from rpc luhanxin.community.v1.UserService.GetUserByUsername
+   */
+  getUserByUsername: {
+    methodKind: "unary";
+    input: typeof GetUserByUsernameRequestSchema;
+    output: typeof GetUserResponseSchema;
+  },
+  /**
+   * 用户列表（公开，支持搜索 + 分页）
+   *
+   * @generated from rpc luhanxin.community.v1.UserService.ListUsers
+   */
+  listUsers: {
+    methodKind: "unary";
+    input: typeof ListUsersRequestSchema;
+    output: typeof ListUsersResponseSchema;
+  },
+  /**
+   * 获取当前登录用户（需认证，前端刷新页面时恢复状态）
+   *
+   * @generated from rpc luhanxin.community.v1.UserService.GetCurrentUser
+   */
+  getCurrentUser: {
+    methodKind: "unary";
+    input: typeof GetCurrentUserRequestSchema;
+    output: typeof GetUserResponseSchema;
+  },
+  /**
+   * 用户注册（公开）
+   *
+   * @generated from rpc luhanxin.community.v1.UserService.Register
+   */
+  register: {
+    methodKind: "unary";
+    input: typeof RegisterRequestSchema;
+    output: typeof AuthResponseSchema;
+  },
+  /**
+   * 用户登录（公开）
+   *
+   * @generated from rpc luhanxin.community.v1.UserService.Login
+   */
+  login: {
+    methodKind: "unary";
+    input: typeof LoginRequestSchema;
+    output: typeof AuthResponseSchema;
+  },
+  /**
+   * 更新用户资料（需认证，通过 x-user-id metadata 识别当前用户）
+   *
+   * @generated from rpc luhanxin.community.v1.UserService.UpdateProfile
+   */
+  updateProfile: {
+    methodKind: "unary";
+    input: typeof UpdateProfileRequestSchema;
+    output: typeof UpdateProfileResponseSchema;
   },
 }> = /*@__PURE__*/
   serviceDesc(file_luhanxin_community_v1_user, 0);

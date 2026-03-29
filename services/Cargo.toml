@@ -56,6 +56,10 @@ uuid = { version = "1", features = ["v4"] }
 hostname = "0.4"
 chrono = { version = "0.4", features = ["serde"] }
 
+# Auth
+jsonwebtoken = "9"
+bcrypt = "0.16"
+
 # ORM / Database
 sea-orm = { version = "1", features = ["runtime-tokio-rustls", "sqlx-postgres", "with-uuid", "with-chrono", "postgres-array"] }
 sea-orm-migration = { version = "1", features = ["runtime-tokio-rustls", "sqlx-postgres"] }

@@ -73,4 +73,18 @@ Gateway 的每个 gRPC Service trait 实现 SHALL 通过 InterceptorPipeline 包
 #### Scenario: GetUser 请求经过完整拦截链
 
 - **WHEN** 前端发送 GetUser gRPC-Web 请求
-- **THEN** 请求依次经过 LogInterceptor(pre) → 调用 svc-user → LogInterceptor(post)
+- **THEN** 请求依次经过 LogInterceptor(pre) → AuthInterceptor(pre) → 调用 svc-user → LogInterceptor(post) → RetryInterceptor(post)
+
+### Requirement: 拦截器管道扩展
+
+InterceptorPipeline SHALL 包含以下拦截器，按此顺序执行：
+
+1. `LogInterceptor`（前置）— 记录请求日志
+2. `AuthInterceptor`（前置）— JWT 验证 + 注入 user_id 到 ctx.attrs
+3. `LogInterceptor`（后置）— 记录响应日志
+4. `RetryInterceptor`（后置）— 失败重试入队
+
+#### Scenario: AuthInterceptor 在 LogInterceptor 之后执行
+
+- **WHEN** 一个需认证的请求到达 Gateway
+- **THEN** 先记录日志，再验证 token，验证失败则不调用下游

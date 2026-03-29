@@ -496,6 +496,160 @@ pub mod user_service_client {
                 .insert(GrpcMethod::new("luhanxin.community.v1.UserService", "GetUser"));
             self.inner.unary(req, path, codec).await
         }
+        pub async fn get_user_by_username(
+            &mut self,
+            request: impl tonic::IntoRequest<super::GetUserByUsernameRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::GetUserResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic_prost::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/luhanxin.community.v1.UserService/GetUserByUsername",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "luhanxin.community.v1.UserService",
+                        "GetUserByUsername",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        pub async fn list_users(
+            &mut self,
+            request: impl tonic::IntoRequest<super::ListUsersRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::ListUsersResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic_prost::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/luhanxin.community.v1.UserService/ListUsers",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new("luhanxin.community.v1.UserService", "ListUsers"),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        pub async fn get_current_user(
+            &mut self,
+            request: impl tonic::IntoRequest<super::GetCurrentUserRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::GetUserResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic_prost::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/luhanxin.community.v1.UserService/GetCurrentUser",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "luhanxin.community.v1.UserService",
+                        "GetCurrentUser",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        pub async fn register(
+            &mut self,
+            request: impl tonic::IntoRequest<super::RegisterRequest>,
+        ) -> std::result::Result<tonic::Response<super::AuthResponse>, tonic::Status> {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic_prost::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/luhanxin.community.v1.UserService/Register",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new("luhanxin.community.v1.UserService", "Register"),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        pub async fn login(
+            &mut self,
+            request: impl tonic::IntoRequest<super::LoginRequest>,
+        ) -> std::result::Result<tonic::Response<super::AuthResponse>, tonic::Status> {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic_prost::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/luhanxin.community.v1.UserService/Login",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("luhanxin.community.v1.UserService", "Login"));
+            self.inner.unary(req, path, codec).await
+        }
+        pub async fn update_profile(
+            &mut self,
+            request: impl tonic::IntoRequest<super::UpdateProfileRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::UpdateProfileResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic_prost::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/luhanxin.community.v1.UserService/UpdateProfile",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new("luhanxin.community.v1.UserService", "UpdateProfile"),
+                );
+            self.inner.unary(req, path, codec).await
+        }
     }
 }
 /// Generated server implementations.
@@ -515,6 +669,36 @@ pub mod user_service_server {
             &self,
             request: tonic::Request<super::GetUserRequest>,
         ) -> std::result::Result<tonic::Response<super::GetUserResponse>, tonic::Status>;
+        async fn get_user_by_username(
+            &self,
+            request: tonic::Request<super::GetUserByUsernameRequest>,
+        ) -> std::result::Result<tonic::Response<super::GetUserResponse>, tonic::Status>;
+        async fn list_users(
+            &self,
+            request: tonic::Request<super::ListUsersRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::ListUsersResponse>,
+            tonic::Status,
+        >;
+        async fn get_current_user(
+            &self,
+            request: tonic::Request<super::GetCurrentUserRequest>,
+        ) -> std::result::Result<tonic::Response<super::GetUserResponse>, tonic::Status>;
+        async fn register(
+            &self,
+            request: tonic::Request<super::RegisterRequest>,
+        ) -> std::result::Result<tonic::Response<super::AuthResponse>, tonic::Status>;
+        async fn login(
+            &self,
+            request: tonic::Request<super::LoginRequest>,
+        ) -> std::result::Result<tonic::Response<super::AuthResponse>, tonic::Status>;
+        async fn update_profile(
+            &self,
+            request: tonic::Request<super::UpdateProfileRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::UpdateProfileResponse>,
+            tonic::Status,
+        >;
     }
     #[derive(Debug)]
     pub struct UserServiceServer<T> {
@@ -622,6 +806,275 @@ pub mod user_service_server {
                     let inner = self.inner.clone();
                     let fut = async move {
                         let method = GetUserSvc(inner);
+                        let codec = tonic_prost::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/luhanxin.community.v1.UserService/GetUserByUsername" => {
+                    #[allow(non_camel_case_types)]
+                    struct GetUserByUsernameSvc<T: UserService>(pub Arc<T>);
+                    impl<
+                        T: UserService,
+                    > tonic::server::UnaryService<super::GetUserByUsernameRequest>
+                    for GetUserByUsernameSvc<T> {
+                        type Response = super::GetUserResponse;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::GetUserByUsernameRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                <T as UserService>::get_user_by_username(&inner, request)
+                                    .await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let method = GetUserByUsernameSvc(inner);
+                        let codec = tonic_prost::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/luhanxin.community.v1.UserService/ListUsers" => {
+                    #[allow(non_camel_case_types)]
+                    struct ListUsersSvc<T: UserService>(pub Arc<T>);
+                    impl<
+                        T: UserService,
+                    > tonic::server::UnaryService<super::ListUsersRequest>
+                    for ListUsersSvc<T> {
+                        type Response = super::ListUsersResponse;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::ListUsersRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                <T as UserService>::list_users(&inner, request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let method = ListUsersSvc(inner);
+                        let codec = tonic_prost::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/luhanxin.community.v1.UserService/GetCurrentUser" => {
+                    #[allow(non_camel_case_types)]
+                    struct GetCurrentUserSvc<T: UserService>(pub Arc<T>);
+                    impl<
+                        T: UserService,
+                    > tonic::server::UnaryService<super::GetCurrentUserRequest>
+                    for GetCurrentUserSvc<T> {
+                        type Response = super::GetUserResponse;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::GetCurrentUserRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                <T as UserService>::get_current_user(&inner, request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let method = GetCurrentUserSvc(inner);
+                        let codec = tonic_prost::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/luhanxin.community.v1.UserService/Register" => {
+                    #[allow(non_camel_case_types)]
+                    struct RegisterSvc<T: UserService>(pub Arc<T>);
+                    impl<
+                        T: UserService,
+                    > tonic::server::UnaryService<super::RegisterRequest>
+                    for RegisterSvc<T> {
+                        type Response = super::AuthResponse;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::RegisterRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                <T as UserService>::register(&inner, request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let method = RegisterSvc(inner);
+                        let codec = tonic_prost::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/luhanxin.community.v1.UserService/Login" => {
+                    #[allow(non_camel_case_types)]
+                    struct LoginSvc<T: UserService>(pub Arc<T>);
+                    impl<T: UserService> tonic::server::UnaryService<super::LoginRequest>
+                    for LoginSvc<T> {
+                        type Response = super::AuthResponse;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::LoginRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                <T as UserService>::login(&inner, request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let method = LoginSvc(inner);
+                        let codec = tonic_prost::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/luhanxin.community.v1.UserService/UpdateProfile" => {
+                    #[allow(non_camel_case_types)]
+                    struct UpdateProfileSvc<T: UserService>(pub Arc<T>);
+                    impl<
+                        T: UserService,
+                    > tonic::server::UnaryService<super::UpdateProfileRequest>
+                    for UpdateProfileSvc<T> {
+                        type Response = super::UpdateProfileResponse;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::UpdateProfileRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                <T as UserService>::update_profile(&inner, request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let method = UpdateProfileSvc(inner);
                         let codec = tonic_prost::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(

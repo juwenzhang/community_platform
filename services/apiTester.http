@@ -1,0 +1,127 @@
+### ============================================
+### Luhanxin Community — API 测试文件
+### 使用 VS Code REST Client 插件直接运行
+### 启动后端: make dev-backend
+### ============================================
+
+@baseUrl = http://localhost:8000
+@contentType = application/json
+
+### ──────────── 系统 ────────────
+
+### 健康检查
+GET {{baseUrl}}/health
+
+### ──────────── 认证（公开）────────────
+
+### 用户注册
+POST {{baseUrl}}/api/v1/auth/register
+Content-Type: {{contentType}}
+
+{
+  "username": "alice",
+  "email": "alice@example.com",
+  "password": "Pass1234"
+}
+
+### 用户登录（保存 token 供后续使用）
+# @name login
+POST {{baseUrl}}/api/v1/auth/login
+Content-Type: {{contentType}}
+
+{
+  "username": "alice",
+  "password": "Pass1234"
+}
+
+### ──────────── 认证（需 Token）────────────
+
+### 获取当前用户
+GET {{baseUrl}}/api/v1/auth/me
+Authorization: Bearer {{login.response.body.token}}
+
+### 更新用户资料
+PUT {{baseUrl}}/api/v1/auth/profile
+Content-Type: {{contentType}}
+Authorization: Bearer {{login.response.body.token}}
+
+{
+  "display_name": "Alice Updated",
+  "avatar_url": "",
+  "bio": "Hello from REST Client!"
+}
+
+### ──────────── 用户查询（公开）────────────
+
+### 按 ID 查询用户（替换为实际 UUID）
+GET {{baseUrl}}/api/v1/users/a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11
+
+### 按用户名查询用户
+GET {{baseUrl}}/api/v1/users/by-username/luhanxin
+
+### 用户列表（默认）
+GET {{baseUrl}}/api/v1/users
+
+### 用户列表（搜索 + 分页）
+GET {{baseUrl}}/api/v1/users?query=lu&page_size=5
+
+### ──────────── 错误场景 ────────────
+
+### 登录错误密码 → 401
+POST {{baseUrl}}/api/v1/auth/login
+Content-Type: {{contentType}}
+
+{
+  "username": "alice",
+  "password": "WrongPass1"
+}
+
+### 注册重复用户名 → 409
+POST {{baseUrl}}/api/v1/auth/register
+Content-Type: {{contentType}}
+
+{
+  "username": "alice",
+  "email": "alice2@example.com",
+  "password": "Pass1234"
+}
+
+### 无 token 访问需认证端点 → 401
+GET {{baseUrl}}/api/v1/auth/me
+
+### 更新资料无 token → 401
+PUT {{baseUrl}}/api/v1/auth/profile
+Content-Type: {{contentType}}
+
+{
+  "display_name": "Hacker"
+}
+
+### 查询不存在的用户 → 404
+GET {{baseUrl}}/api/v1/users/00000000-0000-0000-0000-000000000000
+
+### 无效 UUID → 400
+GET {{baseUrl}}/api/v1/users/not-a-uuid
+
+### 按用户名查不存在 → 404
+GET {{baseUrl}}/api/v1/users/by-username/nobody
+
+### 密码太短 → 400
+POST {{baseUrl}}/api/v1/auth/register
+Content-Type: {{contentType}}
+
+{
+  "username": "bob",
+  "email": "bob@example.com",
+  "password": "short"
+}
+
+### 用户名太短 → 400
+POST {{baseUrl}}/api/v1/auth/register
+Content-Type: {{contentType}}
+
+{
+  "username": "ab",
+  "email": "ab@example.com",
+  "password": "Pass1234"
+}

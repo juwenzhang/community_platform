@@ -19,6 +19,7 @@ uuid.workspace = true
 hostname.workspace = true
 sea-orm.workspace = true
 chrono.workspace = true
+jsonwebtoken.workspace = true
 
 [lints]
 workspace = true

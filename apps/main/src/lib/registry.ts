@@ -19,7 +19,7 @@ import { AppRegistry, DevConfigProvider, EnvConfigProvider } from '@luhanxin/app
 const apps: AppManifest[] = [
   {
     name: 'feed',
-    entry: '', // 由 Provider 动态覆盖
+    entry: '',
     activeWhen: '/feed',
     type: 'garfish',
     meta: {
@@ -27,8 +27,23 @@ const apps: AppManifest[] = [
       icon: 'ReadOutlined',
     },
     envEntries: {
-      development: 'http://localhost:5174', // fallback：DevConfigProvider 拿不到时使用
+      development: 'http://localhost:5174',
       production: '/apps/feed/',
+    },
+  },
+  {
+    name: 'user-profile',
+    entry: '',
+    activeWhen: '/user',
+    type: 'garfish',
+    meta: {
+      title: '用户主页',
+      icon: 'UserOutlined',
+      hidden: true, // 不显示在侧边栏菜单
+    },
+    envEntries: {
+      development: 'http://localhost:5175',
+      production: '/apps/user-profile/',
     },
   },
 ];

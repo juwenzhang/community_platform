@@ -1,0 +1,26 @@
+{
+  "name": "@luhanxin/user-profile",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --port 5175",
+    "build": "vue-tsc --noEmit && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@connectrpc/connect": "^2.0.0",
+    "@connectrpc/connect-web": "^2.0.0",
+    "@garfish/bridge-vue-v3": "1.19.8",
+    "@luhanxin/shared-types": "workspace:*",
+    "naive-ui": "^2.40.0",
+    "vue": "^3.5.0"
+  },
+  "devDependencies": {
+    "@luhanxin/dev-kit": "workspace:*",
+    "@vitejs/plugin-vue": "^5.0.0",
+    "typescript": "^5.6.0",
+    "vite": "^6.0.0",
+    "vue-tsc": "^2.0.0"
+  }
+}
