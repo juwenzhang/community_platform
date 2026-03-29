@@ -16,6 +16,7 @@ tracing-subscriber.workspace = true
 sea-orm.workspace = true
 uuid.workspace = true
 chrono.workspace = true
+bcrypt.workspace = true
 
 [lints]
 workspace = true

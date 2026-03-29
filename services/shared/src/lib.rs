@@ -6,3 +6,4 @@ pub mod discovery;
 pub mod messaging;
 pub mod database;
 pub mod entity;
+pub mod auth;
