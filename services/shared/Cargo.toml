@@ -17,6 +17,8 @@ reqwest.workspace = true
 async-nats.workspace = true
 uuid.workspace = true
 hostname.workspace = true
+sea-orm.workspace = true
+chrono.workspace = true
 
 [lints]
 workspace = true
