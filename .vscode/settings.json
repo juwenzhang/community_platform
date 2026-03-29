@@ -1,0 +1,118 @@
+{
+  // ── 编辑器通用 ──
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "biomejs.biome",
+  "editor.tabSize": 2,
+  "editor.rulers": [100],
+  "editor.bracketPairColorization.enabled": true,
+  "editor.guides.bracketPairs": true,
+  "editor.linkedEditing": true,
+  "editor.codeActionsOnSave": {
+    "source.organizeImports.biome": "explicit"
+  },
+  "files.trimTrailingWhitespace": true,
+  "files.insertFinalNewline": true,
+  "files.trimFinalNewlines": true,
+
+  // ── Biome（替代 ESLint + Prettier）──
+  "[javascript]": { "editor.defaultFormatter": "biomejs.biome" },
+  "[javascriptreact]": { "editor.defaultFormatter": "biomejs.biome" },
+  "[typescript]": { "editor.defaultFormatter": "biomejs.biome" },
+  "[typescriptreact]": { "editor.defaultFormatter": "biomejs.biome" },
+  "[json]": { "editor.defaultFormatter": "biomejs.biome" },
+  "[jsonc]": { "editor.defaultFormatter": "biomejs.biome" },
+
+  // ── Rust ──
+  "[rust]": {
+    "editor.defaultFormatter": "rust-lang.rust-analyzer",
+    "editor.tabSize": 4
+  },
+  "rust-analyzer.linkedProjects": ["services/Cargo.toml"],
+  "rust-analyzer.check.command": "clippy",
+  "rust-analyzer.cargo.features": "all",
+  "rust-analyzer.procMacro.enable": true,
+  "rust-analyzer.imports.granularity.group": "module",
+
+  // ── TOML ──
+  "[toml]": {
+    "editor.defaultFormatter": "tamasfe.even-better-toml",
+    "editor.tabSize": 4
+  },
+
+  // ── Protobuf ──
+  "[proto3]": {
+    "editor.tabSize": 2
+  },
+  "protoc": {
+    "options": ["--proto_path=proto"]
+  },
+
+  // ── Tailwind CSS ──
+  "tailwindCSS.experimental.classRegex": [
+    ["className\\s*=\\s*[\"']([^\"']*)[\"']", "([\\w-/:]+)"],
+    ["cn\\(([^)]*)\\)", "[\"'`]([^\"'`]*)[\"'`]"]
+  ],
+
+  // ── REST Client ──
+  "rest-client.environmentVariables": {
+    "$shared": {
+      "baseUrl": "http://localhost:8000",
+      "contentType": "application/json"
+    }
+  },
+
+  // ── 搜索排除 ──
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/target": true,
+    "**/dist": true,
+    "**/pnpm-lock.yaml": true,
+    "**/services/Cargo.lock": true,
+    "**/services/shared/src/proto/**/*.rs": true,
+    "**/packages/shared-types/src/proto/**/*.ts": true
+  },
+
+  // ── 文件关联 ──
+  "files.associations": {
+    "*.http": "http",
+    ".env*": "dotenv",
+    "Makefile": "makefile"
+  },
+
+  // ── 文件嵌套（折叠相关文件）──
+  "explorer.fileNesting.enabled": true,
+  "explorer.fileNesting.patterns": {
+    "package.json": "pnpm-lock.yaml, pnpm-workspace.yaml, .npmrc, tsconfig*.json, biome.json, vitest.config.*, playwright.config.*, commitlint.config.*, lint-staged.config.*",
+    "Cargo.toml": "Cargo.lock, .cargo",
+    "*.ts": "${capture}.test.ts, ${capture}.spec.ts",
+    "*.tsx": "${capture}.test.tsx, ${capture}.module.css"
+  },
+
+  // ── Todo Tree ──
+  "todo-tree.general.tags": ["TODO", "FIXME", "HACK", "BUG", "XXX"],
+  "todo-tree.highlights.defaultHighlight": {
+    "type": "text-and-comment"
+  },
+
+  // ── 拼写检查 ──
+  "cSpell.words": [
+    "luhanxin",
+    "garfish",
+    "tonic",
+    "axum",
+    "prost",
+    "serde",
+    "dotenvy",
+    "utoipa",
+    "grpcurl",
+    "grpcweb",
+    "connectrpc",
+    "protobuf",
+    "meilisearch",
+    "zustand",
+    "biomejs",
+    "tailwindcss",
+    "jsonwebtoken",
+    "bcrypt"
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "recommendations": [
+    // ── Rust ──
+    "rust-lang.rust-analyzer",
+    "tamasfe.even-better-toml",
+    "serayuzgur.crates",
+    "vadimcn.vscode-lldb",
+
+    // ── Protobuf ──
+    "zxh404.vscode-proto3",
+
+    // ── 前端 ──
+    "biomejs.biome",
+    "bradlc.vscode-tailwindcss",
+
+    // ── API 测试 ──
+    "humao.rest-client",
+
+    // ── Docker ──
+    "ms-azuretools.vscode-docker",
+
+    // ── Git ──
+    "eamodio.gitlens",
+
+    // ── 通用 ──
+    "editorconfig.editorconfig",
+    "gruntfuggly.todo-tree",
+    "streetsidesoftware.code-spell-checker"
+  ],
+  "unwantedRecommendations": ["dbaeumer.vscode-eslint", "esbenp.prettier-vscode"]
+}
