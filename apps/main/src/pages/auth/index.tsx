@@ -3,7 +3,7 @@ import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { useAuthStore } from '@/stores/useAuthStore';
-
+import styles from './auth.module.less';
 import LoginForm from './components/LoginForm';
 import RegisterForm from './components/RegisterForm';
 
@@ -18,15 +18,13 @@ export default function AuthPage() {
   }, [isAuthenticated, navigate]);
 
   return (
-    <div className="flex items-center justify-center" style={{ minHeight: 'calc(100vh - 200px)' }}>
-      <div className="w-full max-w-[400px]">
-        <div className="bg-white rounded-lg border border-[#e4e6eb] p-8">
-          <div className="text-center mb-6">
-            <div className="w-10 h-10 rounded-lg bg-[#1e80ff] flex items-center justify-center mx-auto mb-3">
-              <span className="text-white font-bold text-base">L</span>
-            </div>
-            <h1 className="text-lg font-semibold text-[#252933] mb-1">Luhanxin Community</h1>
-            <p className="text-sm text-[#8a919f]">加入社区，和开发者一起成长</p>
+    <div className={styles.page}>
+      <div className={styles.wrapper}>
+        <div className={styles.card}>
+          <div className={styles.header}>
+            <div className={styles.logo}>L</div>
+            <h1 className={styles.title}>Luhanxin Community</h1>
+            <p className={styles.subtitle}>加入社区，和开发者一起成长</p>
           </div>
 
           <Tabs

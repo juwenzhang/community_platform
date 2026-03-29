@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { useAuthStore } from '@/stores/useAuthStore';
+import styles from '../../auth.module.less';
 
 interface LoginFormValues {
   username: string;
@@ -33,7 +34,13 @@ export default function LoginForm() {
   };
 
   return (
-    <Form form={form} onFinish={handleSubmit} size="large" layout="vertical">
+    <Form
+      form={form}
+      onFinish={handleSubmit}
+      size="large"
+      layout="vertical"
+      className={styles.form}
+    >
       {error && (
         <Alert
           message={error}
@@ -47,17 +54,17 @@ export default function LoginForm() {
 
       <Form.Item name="username" rules={[{ required: true, message: '请输入用户名' }]}>
         <Input
-          prefix={<UserOutlined className="text-[#8a919f]" />}
+          prefix={<UserOutlined className={styles.inputIcon} />}
           placeholder="用户名"
-          className="rounded"
+          className={styles.input}
         />
       </Form.Item>
 
       <Form.Item name="password" rules={[{ required: true, message: '请输入密码' }]}>
         <Input.Password
-          prefix={<LockOutlined className="text-[#8a919f]" />}
+          prefix={<LockOutlined className={styles.inputIcon} />}
           placeholder="密码"
-          className="rounded"
+          className={styles.input}
         />
       </Form.Item>
 
@@ -67,7 +74,7 @@ export default function LoginForm() {
           htmlType="submit"
           loading={isLoading}
           block
-          className="rounded bg-[#1e80ff] border-[#1e80ff] h-10"
+          className={styles.submitBtn}
         >
           登录
         </Button>

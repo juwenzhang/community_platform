@@ -2,6 +2,8 @@ import { MailOutlined, UserOutlined } from '@ant-design/icons';
 import type { User } from '@luhanxin/shared-types';
 import { Avatar, Skeleton } from 'antd';
 
+import styles from '../../profile.module.less';
+
 interface ProfileCardProps {
   user: User | null;
   loading?: boolean;
@@ -10,41 +12,33 @@ interface ProfileCardProps {
 export default function ProfileCard({ user, loading }: ProfileCardProps) {
   if (loading || !user) {
     return (
-      <div className="bg-white rounded-lg border border-[#e4e6eb] p-6">
+      <div className={`${styles.profileCard} ${styles.skeleton}`}>
         <Skeleton avatar={{ size: 64 }} active paragraph={{ rows: 2 }} />
       </div>
     );
   }
 
   return (
-    <div className="bg-white rounded-lg border border-[#e4e6eb] overflow-hidden">
-      {/* 顶部色条 */}
-      <div className="h-1.5 bg-[#1e80ff]" />
-
-      <div className="p-6">
-        <div className="flex items-start gap-5">
+    <div className={styles.profileCard}>
+      <div className={styles.topBar} />
+      <div className={styles.content}>
+        <div className={styles.row}>
           <Avatar
             src={user.avatarUrl || undefined}
             icon={!user.avatarUrl ? <UserOutlined /> : undefined}
             size={64}
-            className="flex-shrink-0"
           />
-
-          <div className="flex-1 min-w-0">
-            <h2 className="text-lg font-semibold text-[#252933] mb-1">
-              {user.displayName || user.username}
-            </h2>
-            <div className="flex items-center gap-3 text-sm text-[#8a919f] mb-2">
+          <div className={styles.info}>
+            <h2 className={styles.name}>{user.displayName || user.username}</h2>
+            <div className={styles.meta}>
               <span>@{user.username}</span>
               {user.email && (
-                <span className="flex items-center gap-1">
-                  <MailOutlined className="text-xs" /> {user.email}
+                <span className={styles.email}>
+                  <MailOutlined /> {user.email}
                 </span>
               )}
             </div>
-            <p className="text-sm text-[#515767] mb-0">
-              {user.bio || '这个人很懒，还没有写简介...'}
-            </p>
+            <p className={styles.bio}>{user.bio || '这个人很懒，还没有写简介...'}</p>
           </div>
         </div>
       </div>

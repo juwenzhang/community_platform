@@ -5,6 +5,7 @@ import { Alert, Button, Form, Input, message } from 'antd';
 import { useEffect, useState } from 'react';
 
 import { useAuthStore } from '@/stores/useAuthStore';
+import styles from '../../profile.module.less';
 
 const { TextArea } = Input;
 
@@ -57,8 +58,8 @@ export default function EditProfileForm({ user, onSuccess }: EditProfileFormProp
   };
 
   return (
-    <div className="bg-white rounded-lg border border-[#e4e6eb] p-6">
-      <h3 className="text-base font-semibold text-[#252933] mb-4">编辑资料</h3>
+    <div className={styles.editForm}>
+      <h3 className={styles.editTitle}>编辑资料</h3>
 
       {error && (
         <Alert
@@ -73,11 +74,11 @@ export default function EditProfileForm({ user, onSuccess }: EditProfileFormProp
 
       <Form form={form} layout="vertical" onFinish={handleSubmit}>
         <Form.Item label="显示名称" name="displayName">
-          <Input placeholder="你希望别人怎么称呼你" maxLength={100} className="rounded" />
+          <Input placeholder="你希望别人怎么称呼你" maxLength={100} className={styles.input} />
         </Form.Item>
 
         <Form.Item label="头像 URL" name="avatarUrl">
-          <Input placeholder="https://example.com/avatar.jpg" className="rounded" />
+          <Input placeholder="https://example.com/avatar.jpg" className={styles.input} />
         </Form.Item>
 
         <Form.Item label="个人简介" name="bio">
@@ -86,7 +87,7 @@ export default function EditProfileForm({ user, onSuccess }: EditProfileFormProp
             maxLength={500}
             rows={3}
             showCount
-            className="rounded"
+            className={styles.input}
           />
         </Form.Item>
 
@@ -96,7 +97,7 @@ export default function EditProfileForm({ user, onSuccess }: EditProfileFormProp
             htmlType="submit"
             loading={loading}
             icon={<SaveOutlined />}
-            className="rounded bg-[#1e80ff] border-[#1e80ff]"
+            className={styles.saveBtn}
           >
             保存
           </Button>

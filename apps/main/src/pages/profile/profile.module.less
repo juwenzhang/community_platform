@@ -1,0 +1,128 @@
+// Profile 页面
+
+.page {
+  max-width: 720px;
+  margin: 0 auto;
+
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+
+    .title {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--color-text-1);
+      margin: 0;
+    }
+
+    .editBtn {
+      border-radius: var(--radius-sm);
+
+      &.primary {
+        background: var(--color-primary);
+        border-color: var(--color-primary);
+      }
+    }
+  }
+
+  .body {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .empty {
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    padding: 48px;
+  }
+}
+
+// ProfileCard
+.profileCard {
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+
+  .topBar {
+    height: 6px;
+    background: var(--color-primary);
+  }
+
+  .content {
+    padding: 24px;
+
+    .row {
+      display: flex;
+      align-items: flex-start;
+      gap: 20px;
+
+      .info {
+        flex: 1;
+        min-width: 0;
+
+        .name {
+          font-size: 18px;
+          font-weight: 600;
+          color: var(--color-text-1);
+          margin-bottom: 4px;
+        }
+
+        .meta {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          font-size: 14px;
+          color: var(--color-text-3);
+          margin-bottom: 8px;
+
+          .email {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+          }
+        }
+
+        .bio {
+          font-size: 14px;
+          color: var(--color-text-2);
+          margin: 0;
+        }
+      }
+    }
+  }
+
+  // skeleton 态
+  &.skeleton {
+    padding: 24px;
+  }
+}
+
+// EditProfileForm
+.editForm {
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 24px;
+
+  .editTitle {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--color-text-1);
+    margin-bottom: 16px;
+  }
+
+  .input {
+    border-radius: var(--radius-sm);
+  }
+
+  .saveBtn {
+    border-radius: var(--radius-sm);
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+  }
+}
