@@ -6,17 +6,28 @@
        fmt fmt-check lint typecheck check \
        dev dev-full build test test-e2e test-e2e-ui \
        clean clean-all \
-       db-migrate db-reset
+       db-migrate db-migrate-down db-migrate-status db-migrate-fresh db-entity db-reset
 
 # ============================================================
 # Luhanxin Community Platform — 开发命令
 # ============================================================
 
+# 从 docker/.env 加载配置（唯一真相源），环境变量可覆盖
+-include docker/.env
+export
+
+# 端口默认值（.env 未定义时使用）
+GATEWAY_PORT     ?= 8000
+SVC_USER_PORT    ?= 50051
+CONSUL_HTTP_PORT ?= 8500
+MAIN_PORT        ?= 5173
+FEED_PORT        ?= 5174
+
 help: ## 显示帮助信息
 	@echo ""
 	@echo "\033[1m🏗  Luhanxin Community Platform\033[0m"
 	@echo ""
-	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-22s\033[0m %s\n", $$1, $$2}'
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' Makefile | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-22s\033[0m %s\n", $$1, $$2}'
 	@echo ""
 
 # ------------------------------------------------------------
@@ -64,18 +75,33 @@ dev-infra-logs: ## 查看 Docker 容器日志
 # ------------------------------------------------------------
 
 dev-backend: ## 启动后端服务 (Gateway + svc-user, 有 cargo-watch 则热重载)
-	@echo "🦀 Starting backend services..."
+	@echo ""
+	@echo "\033[1m🦀 Starting backend services...\033[0m"
+	@echo ""
 	@if command -v cargo-watch >/dev/null 2>&1; then \
 		echo "  → Using cargo-watch (hot-reload enabled)"; \
-		cd services && cargo watch -x 'run --bin gateway' & \
-		cd services && cargo watch -x 'run --bin svc-user' & \
+		cd services && RUST_LOG=gateway=info,svc_user=info,shared=info cargo watch -q -x 'run --bin svc-user' 2>&1 | sed 's/^/  [svc-user] /' & \
+		sleep 2; \
+		cd services && RUST_LOG=gateway=info,svc_user=info,shared=info cargo watch -q -x 'run --bin gateway' 2>&1 | sed 's/^/  [gateway]  /' & \
 	else \
 		echo "  ⚠️  cargo-watch not installed, starting without hot-reload"; \
 		echo "  💡 Install: cargo install cargo-watch"; \
-		cd services && cargo run --bin gateway & \
-		cd services && cargo run --bin svc-user & \
+		cd services && RUST_LOG=gateway=info,svc_user=info,shared=info cargo run --bin svc-user 2>&1 | sed 's/^/  [svc-user] /' & \
+		sleep 2; \
+		cd services && RUST_LOG=gateway=info,svc_user=info,shared=info cargo run --bin gateway 2>&1 | sed 's/^/  [gateway]  /' & \
 	fi
-	@echo "✅ Backend services starting..."
+	@sleep 5
+	@echo ""
+	@echo "\033[1m┌──────────────────────────────────────────────────┐\033[0m"
+	@echo "\033[1m│  🦀 Backend Services Ready                       │\033[0m"
+	@echo "\033[1m├──────────────────────────────────────────────────┤\033[0m"
+	@echo "  Gateway:    \033[36mhttp://localhost:$(GATEWAY_PORT)\033[0m"
+	@echo "  Swagger:    \033[36mhttp://localhost:$(GATEWAY_PORT)/swagger-ui/\033[0m"
+	@echo "  Health:     \033[36mhttp://localhost:$(GATEWAY_PORT)/health\033[0m"
+	@echo "  svc-user:   \033[36mlocalhost:$(SVC_USER_PORT)\033[0m (gRPC)"
+	@echo "  Consul UI:  \033[36mhttp://localhost:$(CONSUL_HTTP_PORT)\033[0m"
+	@echo "\033[1m└──────────────────────────────────────────────────┘\033[0m"
+	@echo ""
 
 build-backend: ## 构建后端 (release)
 	cd services && cargo build --release
@@ -88,7 +114,10 @@ test-backend: ## 运行后端测试
 # ------------------------------------------------------------
 
 dev-frontend: ## 启动前端所有子应用 (通过 dev.sh, 推荐)
-	@echo "⚛️  Starting frontend apps..."
+	@echo ""
+	@echo "\033[1m⚛️  Starting frontend apps...\033[0m"
+	@echo ""
+	@echo ""
 	@bash scripts/dev.sh
 
 dev-frontend-main: ## 只启动主应用 (main)
@@ -184,11 +213,40 @@ clean-all: clean ## 深度清理 (含 node_modules + 杀端口进程, 需要重�
 	@echo "✅ Deep clean complete. Run 'make install' to reinstall."
 
 # ------------------------------------------------------------
-# 数据库 (预留)
+# 数据库
 # ------------------------------------------------------------
 
-db-migrate: ## 运行数据库迁移 (TODO)
-	@echo "⚠️  Database migration not yet implemented"
+DATABASE_URL ?= postgres://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@localhost:$(POSTGRES_PORT)/$(POSTGRES_DB)
 
-db-reset: ## 重置数据库 (TODO)
-	@echo "⚠️  Database reset not yet implemented"
+db-migrate: ## 运行数据库迁移 (向上)
+	@echo "🗄  Running database migrations..."
+	cd services && DATABASE_URL=$(DATABASE_URL) cargo run -p migration -- up
+	@echo "✅ Migrations applied"
+
+db-migrate-down: ## 回滚最近一次迁移
+	@echo "🗄  Rolling back last migration..."
+	cd services && DATABASE_URL=$(DATABASE_URL) cargo run -p migration -- down -n 1
+	@echo "✅ Rolled back 1 migration"
+
+db-migrate-status: ## 查看迁移状态
+	cd services && DATABASE_URL=$(DATABASE_URL) cargo run -p migration -- status
+
+db-migrate-fresh: ## 重建数据库 (drop all + re-migrate, 开发用)
+	@echo "⚠️  Dropping all tables and re-running migrations..."
+	cd services && DATABASE_URL=$(DATABASE_URL) cargo run -p migration -- fresh
+	@echo "✅ Database freshly migrated"
+
+db-entity: ## 从数据库生成 SeaORM Entity 代码
+	@echo "🔧 Generating entities from database..."
+	cd services && sea-orm-cli generate entity \
+		-u $(DATABASE_URL) \
+		-o shared/src/entity \
+		--with-serde both
+	@echo "✅ Entities generated"
+
+db-reset: ## 重置数据库 (drop + create + migrate)
+	@echo "⚠️  Resetting database..."
+	@docker exec luhanxin-postgres psql -U luhanxin -c "DROP DATABASE IF EXISTS luhanxin_community;" 2>/dev/null || true
+	@docker exec luhanxin-postgres psql -U luhanxin -c "CREATE DATABASE luhanxin_community;" 2>/dev/null || true
+	@$(MAKE) db-migrate
+	@echo "✅ Database reset complete"
