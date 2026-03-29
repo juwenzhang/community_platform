@@ -1,0 +1,39 @@
+/**
+ * Ant Design 全局覆盖 — 统一掘金风格
+ *
+ * 使用 CSS 变量，后续切换主题自动生效。
+ */
+
+/* 按钮 */
+.ant-btn-primary {
+  background: var(--color-primary) !important;
+  border-color: var(--color-primary) !important;
+}
+.ant-btn-primary:hover {
+  background: var(--color-primary-hover) !important;
+  border-color: var(--color-primary-hover) !important;
+}
+
+/* Tabs */
+.ant-tabs .ant-tabs-tab-active .ant-tabs-tab-btn {
+  color: var(--color-primary) !important;
+}
+.ant-tabs .ant-tabs-ink-bar {
+  background: var(--color-primary) !important;
+}
+
+/* Input focus */
+.ant-input:focus,
+.ant-input-focused,
+.ant-input-affix-wrapper:focus,
+.ant-input-affix-wrapper-focused {
+  border-color: var(--color-primary) !important;
+  box-shadow: 0 0 0 2px rgba(30, 128, 255, 0.1) !important;
+}
+
+/* Layout Header */
+.ant-layout-header {
+  height: var(--header-height) !important;
+  line-height: var(--header-height) !important;
+  padding: 0 !important;
+}

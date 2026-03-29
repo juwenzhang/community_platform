@@ -1,0 +1,16 @@
+/**
+ * 全局样式入口
+ *
+ * 导入顺序：
+ * 1. Tailwind 基础层
+ * 2. 设计 Token（CSS 变量 — 运行时，支持主题切换）
+ * 3. Reset + 基础样式
+ * 4. Tailwind 组件层 + 工具层
+ * 5. 第三方组件覆盖
+ */
+@import "tailwindcss/base";
+@import "./variables.less";
+@import "./reset.less";
+@import "tailwindcss/components";
+@import "tailwindcss/utilities";
+@import "./antd-overrides.less";
