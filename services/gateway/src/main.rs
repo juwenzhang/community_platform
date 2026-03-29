@@ -51,17 +51,30 @@ use crate::worker::retry_worker;
     paths(
         health::health_handler,
         user_routes::get_user,
+        user_routes::get_user_by_username,
+        user_routes::list_users,
+        user_routes::register,
+        user_routes::login,
+        user_routes::get_current_user,
+        user_routes::update_profile,
     ),
     components(schemas(
         health::HealthResponse,
         health::RequestData,
         user_routes::UserDto,
         user_routes::GetUserDto,
+        user_routes::AuthDto,
+        user_routes::RegisterDto,
+        user_routes::LoginDto,
+        user_routes::UpdateProfileDto,
+        user_routes::ListUsersDto,
+        user_routes::ListUsersQuery,
         user_routes::ApiError,
     )),
     tags(
         (name = "系统", description = "系统管理端点（健康检查、监控等）"),
-        (name = "用户", description = "用户服务 — REST proxy for gRPC UserService")
+        (name = "用户", description = "用户查询"),
+        (name = "认证", description = "注册、登录、当前用户、资料更新")
     )
 )]
 struct ApiDoc;
