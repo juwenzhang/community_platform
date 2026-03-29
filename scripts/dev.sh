@@ -41,8 +41,9 @@ echo "🚀 Starting all dev servers..."
 echo ""
 
 # 3. 后台启动所有子应用，将输出写入临时文件以便检测就绪状态
+#    --color 强制 pnpm/Vite 在管道中保持 ANSI 颜色（否则 tee 会丢失高亮）
 LOG_FILE=$(mktemp /tmp/dev-servers.XXXXXX.log)
-pnpm -r --parallel dev > >(tee "$LOG_FILE") 2>&1 &
+FORCE_COLOR=1 pnpm -r --parallel --color dev > >(tee "$LOG_FILE") 2>&1 &
 DEV_PID=$!
 
 # 4. 等待 Vite 就绪（检测 "ready in" 出现 2 次 = main + feed）

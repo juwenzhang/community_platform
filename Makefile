@@ -1,4 +1,4 @@
-.PHONY: help install proto proto-lint proto-breaking \
+.PHONY: help setup install proto proto-lint proto-breaking \
        dev-infra dev-infra-down dev-infra-logs \
        dev-backend build-backend test-backend \
        dev-frontend dev-frontend-main dev-frontend-feed \
@@ -34,7 +34,32 @@ help: ## 显示帮助信息
 # 初始化
 # ------------------------------------------------------------
 
-install: ## 安装所有依赖 (pnpm install)
+setup: ## 首次初始化：安装全局工具 + 项目依赖（新成员必跑）
+	@echo ""
+	@echo "\033[1m🔧 Setting up development environment...\033[0m"
+	@echo ""
+	@echo "── 检查全局工具 ──"
+	@command -v rustc >/dev/null 2>&1 || (echo "❌ Rust not found. Install: https://rustup.rs" && exit 1)
+	@command -v node >/dev/null 2>&1 || (echo "❌ Node.js not found. Install: https://nodejs.org" && exit 1)
+	@command -v pnpm >/dev/null 2>&1 || (echo "❌ pnpm not found. Install: npm install -g pnpm" && exit 1)
+	@command -v docker >/dev/null 2>&1 || (echo "❌ Docker not found. Install: https://docker.com" && exit 1)
+	@command -v buf >/dev/null 2>&1 || (echo "⚠️  buf not found. Install: brew install bufbuild/buf/buf")
+	@echo "── 安装 Rust CLI 工具 ──"
+	@command -v sea-orm-cli >/dev/null 2>&1 && echo "  ✅ sea-orm-cli" || (echo "  📦 Installing sea-orm-cli..." && cargo install sea-orm-cli)
+	@command -v cargo-watch >/dev/null 2>&1 && echo "  ✅ cargo-watch" || (echo "  📦 Installing cargo-watch..." && cargo install cargo-watch)
+	@echo "── 安装项目依赖 ──"
+	pnpm install
+	@echo "── 初始化 Docker 环境 ──"
+	@test -f docker/.env || cp docker/.env.example docker/.env
+	@echo ""
+	@echo "\033[1m✅ Setup complete! Next steps:\033[0m"
+	@echo "  1. make dev-infra     — 启动 Docker 基础设施"
+	@echo "  2. make db-migrate    — 运行数据库迁移"
+	@echo "  3. make dev-backend   — 启动后端服务"
+	@echo "  4. make dev-frontend  — 启动前端"
+	@echo ""
+
+install: ## 安装项目依赖 (pnpm install)
 	pnpm install
 
 # ------------------------------------------------------------
