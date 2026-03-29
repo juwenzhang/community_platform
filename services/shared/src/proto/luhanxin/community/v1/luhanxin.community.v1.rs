@@ -187,20 +187,110 @@ pub struct RetryRequest {
     #[prost(message, optional, tag = "7")]
     pub created_at: ::core::option::Option<::prost_types::Timestamp>,
 }
-/// 获取用户请求
+// ──── 获取用户 ────
+
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct GetUserRequest {
     /// 用户 ID
     #[prost(string, tag = "1")]
     pub user_id: ::prost::alloc::string::String,
 }
-/// 获取用户响应
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct GetUserByUsernameRequest {
+    /// 用户名
+    #[prost(string, tag = "1")]
+    pub username: ::prost::alloc::string::String,
+}
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct GetUserResponse {
     /// 用户信息
     #[prost(message, optional, tag = "1")]
     pub user: ::core::option::Option<User>,
 }
+// ──── 用户列表 ────
+
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct ListUsersRequest {
+    /// 搜索关键词（匹配 username 或 display_name，为空则返回全部）
+    #[prost(string, tag = "1")]
+    pub query: ::prost::alloc::string::String,
+    /// 分页参数
+    #[prost(message, optional, tag = "2")]
+    pub pagination: ::core::option::Option<PaginationRequest>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ListUsersResponse {
+    /// 用户列表
+    #[prost(message, repeated, tag = "1")]
+    pub users: ::prost::alloc::vec::Vec<User>,
+    /// 分页信息
+    #[prost(message, optional, tag = "2")]
+    pub pagination: ::core::option::Option<PaginationResponse>,
+}
+// ──── 获取当前用户 ────
+
+/// 无参数，通过 x-user-id metadata 识别
+#[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct GetCurrentUserRequest {
+}
+// ──── 注册 ────
+
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct RegisterRequest {
+    /// 用户名（3-20字符，字母/数字/下划线/连字符，字母或数字开头）
+    #[prost(string, tag = "1")]
+    pub username: ::prost::alloc::string::String,
+    /// 邮箱地址
+    #[prost(string, tag = "2")]
+    pub email: ::prost::alloc::string::String,
+    /// 密码（8-72字符，至少包含字母和数字）
+    #[prost(string, tag = "3")]
+    pub password: ::prost::alloc::string::String,
+}
+// ──── 登录 ────
+
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct LoginRequest {
+    /// 用户名
+    #[prost(string, tag = "1")]
+    pub username: ::prost::alloc::string::String,
+    /// 密码
+    #[prost(string, tag = "2")]
+    pub password: ::prost::alloc::string::String,
+}
+// ──── 认证响应（注册/登录共用）────
+
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct AuthResponse {
+    /// JWT token
+    #[prost(string, tag = "1")]
+    pub token: ::prost::alloc::string::String,
+    /// 用户信息
+    #[prost(message, optional, tag = "2")]
+    pub user: ::core::option::Option<User>,
+}
+// ──── 更新资料 ────
+
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct UpdateProfileRequest {
+    /// 显示名称（可选，空字符串表示不更新）
+    #[prost(string, tag = "1")]
+    pub display_name: ::prost::alloc::string::String,
+    /// 头像 URL（可选）
+    #[prost(string, tag = "2")]
+    pub avatar_url: ::prost::alloc::string::String,
+    /// 个人简介（可选）
+    #[prost(string, tag = "3")]
+    pub bio: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct UpdateProfileResponse {
+    /// 更新后的用户信息
+    #[prost(message, optional, tag = "1")]
+    pub user: ::core::option::Option<User>,
+}
+// ──── 公共类型 ────
+
 /// 用户信息
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct User {

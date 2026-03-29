@@ -3,24 +3,111 @@ syntax = "proto3";
 package luhanxin.community.v1;
 
 import "google/protobuf/timestamp.proto";
+import "luhanxin/community/v1/common.proto";
 
 // 用户服务
 service UserService {
-  // 获取用户信息
+  // 获取用户信息（公开，按 ID）
   rpc GetUser(GetUserRequest) returns (GetUserResponse);
+  // 获取用户信息（公开，按用户名，用于个人主页 /user/:username）
+  rpc GetUserByUsername(GetUserByUsernameRequest) returns (GetUserResponse);
+  // 用户列表（公开，支持搜索 + 分页）
+  rpc ListUsers(ListUsersRequest) returns (ListUsersResponse);
+  // 获取当前登录用户（需认证，前端刷新页面时恢复状态）
+  rpc GetCurrentUser(GetCurrentUserRequest) returns (GetUserResponse);
+  // 用户注册（公开）
+  rpc Register(RegisterRequest) returns (AuthResponse);
+  // 用户登录（公开）
+  rpc Login(LoginRequest) returns (AuthResponse);
+  // 更新用户资料（需认证，通过 x-user-id metadata 识别当前用户）
+  rpc UpdateProfile(UpdateProfileRequest) returns (UpdateProfileResponse);
 }
 
-// 获取用户请求
+// ──── 获取用户 ────
+
 message GetUserRequest {
   // 用户 ID
   string user_id = 1;
 }
 
-// 获取用户响应
+message GetUserByUsernameRequest {
+  // 用户名
+  string username = 1;
+}
+
 message GetUserResponse {
   // 用户信息
   User user = 1;
 }
+
+// ──── 用户列表 ────
+
+message ListUsersRequest {
+  // 搜索关键词（匹配 username 或 display_name，为空则返回全部）
+  string query = 1;
+  // 分页参数
+  PaginationRequest pagination = 2;
+}
+
+message ListUsersResponse {
+  // 用户列表
+  repeated User users = 1;
+  // 分页信息
+  PaginationResponse pagination = 2;
+}
+
+// ──── 获取当前用户 ────
+
+message GetCurrentUserRequest {
+  // 无参数，通过 x-user-id metadata 识别
+}
+
+// ──── 注册 ────
+
+message RegisterRequest {
+  // 用户名（3-20字符，字母/数字/下划线/连字符，字母或数字开头）
+  string username = 1;
+  // 邮箱地址
+  string email = 2;
+  // 密码（8-72字符，至少包含字母和数字）
+  string password = 3;
+}
+
+// ──── 登录 ────
+
+message LoginRequest {
+  // 用户名
+  string username = 1;
+  // 密码
+  string password = 2;
+}
+
+// ──── 认证响应（注册/登录共用）────
+
+message AuthResponse {
+  // JWT token
+  string token = 1;
+  // 用户信息
+  User user = 2;
+}
+
+// ──── 更新资料 ────
+
+message UpdateProfileRequest {
+  // 显示名称（可选，空字符串表示不更新）
+  string display_name = 1;
+  // 头像 URL（可选）
+  string avatar_url = 2;
+  // 个人简介（可选）
+  string bio = 3;
+}
+
+message UpdateProfileResponse {
+  // 更新后的用户信息
+  User user = 1;
+}
+
+// ──── 公共类型 ────
 
 // 用户信息
 message User {
