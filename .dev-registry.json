@@ -6,17 +6,17 @@
       "url": "http://localhost:5174",
       "preferredPort": 5174,
       "resolvedPort": 5174,
-      "startedAt": 1774807488921,
-      "pid": 54393
+      "startedAt": 1775033418704,
+      "pid": 9947
     },
     "user-profile": {
       "name": "user-profile",
       "url": "http://localhost:5175",
       "preferredPort": 5175,
       "resolvedPort": 5175,
-      "startedAt": 1774807489117,
-      "pid": 54413
+      "startedAt": 1775033418856,
+      "pid": 9967
     }
   },
-  "updatedAt": 1774807489117
+  "updatedAt": 1775033418856
 }

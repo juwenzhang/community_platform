@@ -6,52 +6,31 @@ import {
   TagOutlined,
   UserOutlined,
 } from '@ant-design/icons';
-import { createClient } from '@connectrpc/connect';
-import type { Article } from '@luhanxin/shared-types';
-import { ArticleService } from '@luhanxin/shared-types';
 import { Avatar, Button, Skeleton } from 'antd';
-import { useEffect, useRef, useState } from 'react';
-import Markdown from 'react-markdown';
+import { useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-// import rehypeHighlight from 'rehype-highlight';
-import rehypeSlug from 'rehype-slug';
-import remarkBreaks from 'remark-breaks';
-import remarkGfm from 'remark-gfm';
 import ArticleToc from '@/components/ArticleToc';
-import { transport } from '@/lib/connect';
+import MarkdownRender from '@/components/MarkdownRender';
+import { useArticleStore } from '@/stores/useArticleStore';
 import { useAuthStore } from '@/stores/useAuthStore';
-import CopyableCodeBlock from '../../components/CopyableCodeBlock';
 import styles from './detail.module.less';
-
-// import "highlight.js/styles/atom-one-dark.css";
-
-const articleClient = createClient(ArticleService, transport);
 
 export default function ArticleDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user } = useAuthStore();
-
-  const [article, setArticle] = useState<Article | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const fetchedRef = useRef(false);
+  const {
+    currentArticle: article,
+    detailLoading: loading,
+    detailError: error,
+    fetchArticle,
+    clearCurrentArticle,
+  } = useArticleStore();
 
   useEffect(() => {
-    if (!id) return;
-    if (fetchedRef.current) return;
-    fetchedRef.current = true;
-
-    setLoading(true);
-    articleClient
-      .getArticle({ articleId: id })
-      .then((res) => {
-        if (res.article) setArticle(res.article);
-        else setError('文章不存在');
-      })
-      .catch((err) => setError(err.message || '加载失败'))
-      .finally(() => setLoading(false));
-  }, [id]);
+    if (id) fetchArticle(id);
+    return () => clearCurrentArticle();
+  }, [id, fetchArticle, clearCurrentArticle]);
 
   if (loading) {
     return (
@@ -129,28 +108,7 @@ export default function ArticleDetailPage() {
         </div>
 
         <div className={styles.content}>
-          <Markdown
-            remarkPlugins={[remarkGfm, remarkBreaks]}
-            rehypePlugins={[rehypeSlug]}
-            components={{
-              code(props) {
-                const { className, children, ...rest } = props;
-                const match = /language-(\w+)/.exec(className || '');
-                const language = match ? match[1] : '';
-                const value = String(children).replace(/\n$/, '');
-                if (language) {
-                  return <CopyableCodeBlock language={language} value={value} />;
-                }
-                return (
-                  <code className={className} {...rest}>
-                    {children}
-                  </code>
-                );
-              },
-            }}
-          >
-            {article.content}
-          </Markdown>
+          <MarkdownRender content={article.content} />
         </div>
 
         <div className={styles.actions}>
