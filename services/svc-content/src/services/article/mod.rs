@@ -87,6 +87,7 @@ impl ArticleService for ArticleServiceImpl {
             &req.author_id,
             &req.query,
             &req.tag,
+            req.category,
             caller_id.as_deref(),
             pagination.page_size,
             &pagination.page_token,
@@ -119,6 +120,7 @@ impl ArticleService for ArticleServiceImpl {
             &req.summary,
             &req.tags,
             req.status,
+            req.category,
         )
         .await?;
 
@@ -145,6 +147,7 @@ impl ArticleService for ArticleServiceImpl {
             &req.summary,
             &req.tags,
             req.status,
+            req.category,
         )
         .await?;
 

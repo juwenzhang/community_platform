@@ -11,21 +11,35 @@ interface ArticleEditorProps {
   initialContent?: string;
   initialTags?: string[];
   initialStatus?: number;
+  initialCategory?: number;
   onSave: (data: {
     title: string;
     content: string;
     tags: string[];
     status: number;
+    category: number;
   }) => Promise<void>;
   onCancel?: () => void;
   saving?: boolean;
 }
+
+/** 分类选项（与 proto ArticleCategory 枚举对齐） */
+const CATEGORY_OPTIONS = [
+  { value: 0, label: '选择分类' },
+  { value: 1, label: '后端' },
+  { value: 2, label: '前端' },
+  { value: 3, label: 'AI' },
+  { value: 4, label: '移动端' },
+  { value: 5, label: '开发工具' },
+  { value: 6, label: '阅读' },
+];
 
 export default function ArticleEditor({
   initialTitle = '',
   initialContent = '',
   initialTags = [],
   initialStatus = 1,
+  initialCategory = 0,
   onSave,
   onCancel,
   saving = false,
@@ -35,6 +49,7 @@ export default function ArticleEditor({
   const [tags, setTags] = useState<string[]>(initialTags);
   const [tagInput, setTagInput] = useState('');
   const [status, setStatus] = useState(initialStatus);
+  const [category, setCategory] = useState(initialCategory);
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -196,7 +211,7 @@ export default function ArticleEditor({
   };
 
   const handleSubmit = async () => {
-    await onSave({ title, content, tags, status });
+    await onSave({ title, content, tags, status, category });
   };
 
   // 使用 Portal 渲染到 body，实现真正的全屏编辑器
@@ -213,6 +228,14 @@ export default function ArticleEditor({
           variant="borderless"
         />
         <div className={styles.toolbarRight}>
+          <Select
+            value={category}
+            onChange={setCategory}
+            options={CATEGORY_OPTIONS}
+            size="small"
+            style={{ width: 110 }}
+            placeholder="选择分类"
+          />
           <Select
             value={status}
             onChange={setStatus}

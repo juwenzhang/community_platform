@@ -11,7 +11,7 @@ use uuid::Uuid;
 
 use shared::entity::articles;
 use shared::entity::prelude::Articles;
-use shared::proto::{Article, ArticleStatus};
+use shared::proto::{Article, ArticleCategory, ArticleStatus};
 
 // ────────────────────── 查询 ──────────────────────
 
@@ -43,6 +43,7 @@ pub async fn list_articles(
     author_id: &str,
     query: &str,
     tag: &str,
+    category: i32,
     caller_id: Option<&str>,
     page_size: i32,
     page_token: &str,
@@ -68,10 +69,20 @@ pub async fn list_articles(
             base_query.filter(articles::Column::Status.eq(ArticleStatus::Published as i16));
     }
 
-    // 标题模糊搜索
-    if !query.is_empty() {
+    // pg_trgm 相似度搜索（title + content）
+    let has_query = !query.is_empty();
+    if has_query {
         let pattern = format!("%{query}%");
-        base_query = base_query.filter(articles::Column::Title.like(&pattern));
+        // ILIKE 匹配 title 或 content，OR similarity(title, query) > 0.1
+        base_query = base_query.filter(
+            sea_orm::Condition::any()
+                .add(articles::Column::Title.like(&pattern))
+                .add(articles::Column::Content.like(&pattern))
+                .add(sea_orm::prelude::Expr::cust_with_values(
+                    "similarity(title, $1) > 0.1",
+                    [query.to_string()],
+                )),
+        );
     }
 
     // 标签筛选（PostgreSQL array contains: tags @> ARRAY['tag']）
@@ -81,8 +92,19 @@ pub async fn list_articles(
         );
     }
 
-    // 排序：有 author_id 时按 created_at DESC，否则按 published_at DESC
-    if !author_id.is_empty() {
+    // 分类筛选
+    let article_category = ArticleCategory::try_from(category).unwrap_or(ArticleCategory::Unspecified);
+    if article_category != ArticleCategory::Unspecified {
+        base_query = base_query.filter(articles::Column::Category.eq(category as i16));
+    }
+
+    // 排序：有 query 时按相似度排序，否则按时间排序
+    if has_query {
+        base_query = base_query.order_by_desc(sea_orm::prelude::Expr::cust_with_values(
+            "similarity(title, $1)",
+            [query.to_string()],
+        ));
+    } else if !author_id.is_empty() {
         base_query = base_query.order_by_desc(articles::Column::CreatedAt);
     } else {
         base_query = base_query.order_by_desc(articles::Column::PublishedAt);
@@ -150,6 +172,7 @@ pub async fn create_article(
     summary: &str,
     tags: &[String],
     status: i32,
+    category: i32,
 ) -> Result<Article, Status> {
     if title.is_empty() {
         return Err(Status::invalid_argument("Title is required"));
@@ -170,6 +193,7 @@ pub async fn create_article(
     };
 
     let article_status = ArticleStatus::try_from(status).unwrap_or(ArticleStatus::Draft);
+    let article_category = ArticleCategory::try_from(category).unwrap_or(ArticleCategory::Unspecified);
     let now = chrono::Utc::now().fixed_offset();
 
     let published_at = if article_status == ArticleStatus::Published {
@@ -192,6 +216,7 @@ pub async fn create_article(
         created_at: ActiveValue::Set(now),
         updated_at: ActiveValue::Set(now),
         published_at,
+        category: ActiveValue::Set(article_category as i16),
     };
 
     let model = active_model.insert(db).await.map_err(|e| {
@@ -213,6 +238,7 @@ pub async fn update_article(
     summary: &str,
     tags: &[String],
     status: i32,
+    category: i32,
 ) -> Result<Article, Status> {
     let uuid = parse_uuid(article_id)?;
 
@@ -254,6 +280,11 @@ pub async fn update_article(
         if article_status == ArticleStatus::Published {
             active.published_at = ActiveValue::Set(Some(now));
         }
+    }
+
+    let article_category = ArticleCategory::try_from(category).unwrap_or(ArticleCategory::Unspecified);
+    if article_category != ArticleCategory::Unspecified {
+        active.category = ActiveValue::Set(article_category as i16);
     }
 
     active.updated_at = ActiveValue::Set(now);
@@ -350,6 +381,7 @@ fn article_model_to_proto(model: articles::Model) -> Article {
         updated_at: Some(datetime_to_timestamp(model.updated_at)),
         published_at: model.published_at.map(datetime_to_timestamp),
         author: None, // Gateway BFF 层填充
+        category: model.category as i32,
     }
 }
 

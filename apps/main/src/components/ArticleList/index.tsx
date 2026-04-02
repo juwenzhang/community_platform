@@ -10,20 +10,19 @@ interface ArticleListProps {
   authorId?: string;
   query?: string;
   tag?: string;
+  category?: number;
   onLoad?: (totalCount: number) => void;
 }
 
-export default function ArticleList({ authorId, query, tag, onLoad }: ArticleListProps) {
+export default function ArticleList({ authorId, query, tag, category, onLoad }: ArticleListProps) {
   const { articles, listLoading, totalCount, fetchArticles } = useArticleStore();
   const onLoadRef = useRef(onLoad);
   onLoadRef.current = onLoad;
 
-  // 响应 tag/authorId/query 变更时重新 fetch
   useEffect(() => {
-    fetchArticles({ tag, authorId, query, pageSize: 20 });
-  }, [authorId, query, tag, fetchArticles]);
+    fetchArticles({ tag, authorId, query, category, pageSize: 20 });
+  }, [authorId, query, tag, category, fetchArticles]);
 
-  // 加载完成时回调 totalCount
   useEffect(() => {
     if (!listLoading && totalCount > 0) {
       onLoadRef.current?.(totalCount);
