@@ -11,21 +11,20 @@ interface ArticleEditorProps {
   initialContent?: string;
   initialTags?: string[];
   initialStatus?: number;
-  initialCategory?: number;
+  initialCategories?: number[];
   onSave: (data: {
     title: string;
     content: string;
     tags: string[];
     status: number;
-    category: number;
+    categories: number[];
   }) => Promise<void>;
   onCancel?: () => void;
   saving?: boolean;
 }
 
-/** 分类选项（与 proto ArticleCategory 枚举对齐） */
+/** 分类选项（与 proto ArticleCategory 枚举对齐，不含 UNSPECIFIED） */
 const CATEGORY_OPTIONS = [
-  { value: 0, label: '选择分类' },
   { value: 1, label: '后端' },
   { value: 2, label: '前端' },
   { value: 3, label: 'AI' },
@@ -39,7 +38,7 @@ export default function ArticleEditor({
   initialContent = '',
   initialTags = [],
   initialStatus = 1,
-  initialCategory = 0,
+  initialCategories = [],
   onSave,
   onCancel,
   saving = false,
@@ -49,7 +48,7 @@ export default function ArticleEditor({
   const [tags, setTags] = useState<string[]>(initialTags);
   const [tagInput, setTagInput] = useState('');
   const [status, setStatus] = useState(initialStatus);
-  const [category, setCategory] = useState(initialCategory);
+  const [categories, setCategories] = useState<number[]>(initialCategories);
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -211,7 +210,7 @@ export default function ArticleEditor({
   };
 
   const handleSubmit = async () => {
-    await onSave({ title, content, tags, status, category });
+    await onSave({ title, content, tags, status, categories });
   };
 
   // 使用 Portal 渲染到 body，实现真正的全屏编辑器
@@ -229,12 +228,14 @@ export default function ArticleEditor({
         />
         <div className={styles.toolbarRight}>
           <Select
-            value={category}
-            onChange={setCategory}
+            mode="multiple"
+            value={categories}
+            onChange={setCategories}
             options={CATEGORY_OPTIONS}
             size="small"
-            style={{ width: 110 }}
+            style={{ minWidth: 140 }}
             placeholder="选择分类"
+            maxTagCount={2}
           />
           <Select
             value={status}

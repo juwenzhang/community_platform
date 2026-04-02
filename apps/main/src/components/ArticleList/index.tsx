@@ -10,18 +10,24 @@ interface ArticleListProps {
   authorId?: string;
   query?: string;
   tag?: string;
-  category?: number;
+  categories?: number[];
   onLoad?: (totalCount: number) => void;
 }
 
-export default function ArticleList({ authorId, query, tag, category, onLoad }: ArticleListProps) {
+export default function ArticleList({
+  authorId,
+  query,
+  tag,
+  categories,
+  onLoad,
+}: ArticleListProps) {
   const { articles, listLoading, totalCount, fetchArticles } = useArticleStore();
   const onLoadRef = useRef(onLoad);
   onLoadRef.current = onLoad;
 
   useEffect(() => {
-    fetchArticles({ tag, authorId, query, category, pageSize: 20 });
-  }, [authorId, query, tag, category, fetchArticles]);
+    fetchArticles({ tag, authorId, query, categories, pageSize: 20 });
+  }, [authorId, query, tag, categories, fetchArticles]);
 
   useEffect(() => {
     if (!listLoading && totalCount > 0) {

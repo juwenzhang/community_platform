@@ -1,14 +1,8 @@
-import {
-  ArrowLeftOutlined,
-  ClockCircleOutlined,
-  EditOutlined,
-  EyeOutlined,
-  TagOutlined,
-  UserOutlined,
-} from '@ant-design/icons';
+import { ClockCircleOutlined, EyeOutlined, TagOutlined, UserOutlined } from '@ant-design/icons';
 import { Avatar, Button, Skeleton } from 'antd';
 import { useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import ArticleActions from '@/components/ArticleActions';
 import ArticleToc from '@/components/ArticleToc';
 import MarkdownRender from '@/components/MarkdownRender';
 import { useArticleStore } from '@/stores/useArticleStore';
@@ -74,6 +68,9 @@ export default function ArticleDetailPage() {
 
   return (
     <div className={styles.detailLayout}>
+      {/* 左侧悬浮操作栏 */}
+      <ArticleActions articleId={article.id} likeCount={article.likeCount} isAuthor={isAuthor} />
+
       {/* 文章正文 */}
       <div className={styles.detail}>
         <div className={styles.header}>
@@ -116,21 +113,6 @@ export default function ArticleDetailPage() {
 
         <div className={styles.content}>
           <MarkdownRender content={article.content} />
-        </div>
-
-        <div className={styles.actions}>
-          <Button icon={<ArrowLeftOutlined />} onClick={() => navigate('/')}>
-            返回首页
-          </Button>
-          {isAuthor && (
-            <Button
-              type="primary"
-              icon={<EditOutlined />}
-              onClick={() => navigate(`/post/${article.id}/edit`)}
-            >
-              编辑文章
-            </Button>
-          )}
         </div>
       </div>
 

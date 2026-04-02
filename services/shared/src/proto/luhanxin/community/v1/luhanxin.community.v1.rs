@@ -219,9 +219,9 @@ pub struct ListArticlesRequest {
     /// 可选：按标签筛选（PostgreSQL array contains）
     #[prost(string, tag = "4")]
     pub tag: ::prost::alloc::string::String,
-    /// 可选：按分类筛选
-    #[prost(enumeration = "ArticleCategory", tag = "5")]
-    pub category: i32,
+    /// 可选：按分类筛选（支持多选，匹配任一分类）
+    #[prost(enumeration = "ArticleCategory", repeated, tag = "5")]
+    pub categories: ::prost::alloc::vec::Vec<i32>,
 }
 /// 获取文章列表响应
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -252,9 +252,9 @@ pub struct CreateArticleRequest {
     /// 文章状态（DRAFT 或 PUBLISHED）
     #[prost(enumeration = "ArticleStatus", tag = "5")]
     pub status: i32,
-    /// 文章分类（必选）
-    #[prost(enumeration = "ArticleCategory", tag = "6")]
-    pub category: i32,
+    /// 文章分类（可多选）
+    #[prost(enumeration = "ArticleCategory", repeated, tag = "6")]
+    pub categories: ::prost::alloc::vec::Vec<i32>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct CreateArticleResponse {
@@ -284,9 +284,9 @@ pub struct UpdateArticleRequest {
     /// 文章状态（可选，UNSPECIFIED 不更新）
     #[prost(enumeration = "ArticleStatus", tag = "6")]
     pub status: i32,
-    /// 文章分类（可选，UNSPECIFIED 不更新）
-    #[prost(enumeration = "ArticleCategory", tag = "7")]
-    pub category: i32,
+    /// 文章分类（可选，空数组不更新）
+    #[prost(enumeration = "ArticleCategory", repeated, tag = "7")]
+    pub categories: ::prost::alloc::vec::Vec<i32>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct UpdateArticleResponse {
@@ -353,9 +353,9 @@ pub struct Article {
     /// 作者信息（可选，由 Gateway BFF 层填充，svc-content 不填）
     #[prost(message, optional, tag = "14")]
     pub author: ::core::option::Option<User>,
-    /// 文章分类
-    #[prost(enumeration = "ArticleCategory", tag = "15")]
-    pub category: i32,
+    /// 文章分类（可多选）
+    #[prost(enumeration = "ArticleCategory", repeated, tag = "15")]
+    pub categories: ::prost::alloc::vec::Vec<i32>,
 }
 /// 文章状态枚举
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]

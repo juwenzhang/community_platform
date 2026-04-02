@@ -11,7 +11,7 @@ use uuid::Uuid;
 
 use shared::entity::articles;
 use shared::entity::prelude::Articles;
-use shared::proto::{Article, ArticleCategory, ArticleStatus};
+use shared::proto::{Article, ArticleStatus};
 
 // ────────────────────── 查询 ──────────────────────
 
@@ -43,7 +43,7 @@ pub async fn list_articles(
     author_id: &str,
     query: &str,
     tag: &str,
-    category: i32,
+    categories: &[i32],
     caller_id: Option<&str>,
     page_size: i32,
     page_token: &str,
@@ -92,10 +92,20 @@ pub async fn list_articles(
         );
     }
 
-    // 分类筛选
-    let article_category = ArticleCategory::try_from(category).unwrap_or(ArticleCategory::Unspecified);
-    if article_category != ArticleCategory::Unspecified {
-        base_query = base_query.filter(articles::Column::Category.eq(category as i16));
+    // 分类筛选（数组 overlap：文章的 categories 与请求的 categories 有交集）
+    let valid_categories: Vec<i16> = categories
+        .iter()
+        .filter(|&&c| c != 0)
+        .map(|&c| c as i16)
+        .collect();
+    if !valid_categories.is_empty() {
+        let cat_str = valid_categories.iter().map(|c| c.to_string()).collect::<Vec<_>>().join(",");
+        base_query = base_query.filter(
+            sea_orm::prelude::Expr::cust_with_values(
+                "categories && $1::smallint[]",
+                [format!("{{{cat_str}}}")],
+            ),
+        );
     }
 
     // 排序：有 query 时按相似度排序，否则按时间排序
@@ -172,7 +182,7 @@ pub async fn create_article(
     summary: &str,
     tags: &[String],
     status: i32,
-    category: i32,
+    categories: &[i32],
 ) -> Result<Article, Status> {
     if title.is_empty() {
         return Err(Status::invalid_argument("Title is required"));
@@ -193,7 +203,7 @@ pub async fn create_article(
     };
 
     let article_status = ArticleStatus::try_from(status).unwrap_or(ArticleStatus::Draft);
-    let article_category = ArticleCategory::try_from(category).unwrap_or(ArticleCategory::Unspecified);
+    let cat_values: Vec<i16> = categories.iter().filter(|&&c| c != 0).map(|&c| c as i16).collect();
     let now = chrono::Utc::now().fixed_offset();
 
     let published_at = if article_status == ArticleStatus::Published {
@@ -216,7 +226,7 @@ pub async fn create_article(
         created_at: ActiveValue::Set(now),
         updated_at: ActiveValue::Set(now),
         published_at,
-        category: ActiveValue::Set(article_category as i16),
+        categories: ActiveValue::Set(cat_values),
     };
 
     let model = active_model.insert(db).await.map_err(|e| {
@@ -238,7 +248,7 @@ pub async fn update_article(
     summary: &str,
     tags: &[String],
     status: i32,
-    category: i32,
+    categories: &[i32],
 ) -> Result<Article, Status> {
     let uuid = parse_uuid(article_id)?;
 
@@ -282,9 +292,9 @@ pub async fn update_article(
         }
     }
 
-    let article_category = ArticleCategory::try_from(category).unwrap_or(ArticleCategory::Unspecified);
-    if article_category != ArticleCategory::Unspecified {
-        active.category = ActiveValue::Set(article_category as i16);
+    if !categories.is_empty() {
+        let cat_values: Vec<i16> = categories.iter().filter(|&&c| c != 0).map(|&c| c as i16).collect();
+        active.categories = ActiveValue::Set(cat_values);
     }
 
     active.updated_at = ActiveValue::Set(now);
@@ -381,7 +391,7 @@ fn article_model_to_proto(model: articles::Model) -> Article {
         updated_at: Some(datetime_to_timestamp(model.updated_at)),
         published_at: model.published_at.map(datetime_to_timestamp),
         author: None, // Gateway BFF 层填充
-        category: model.category as i32,
+        categories: model.categories.iter().map(|&c| c as i32).collect(),
     }
 }
 
