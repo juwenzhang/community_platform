@@ -6,62 +6,50 @@ import {
   SendOutlined,
   UndoOutlined,
 } from '@ant-design/icons';
-import { createClient } from '@connectrpc/connect';
-import type { Article } from '@luhanxin/shared-types';
-import { ArticleService, ArticleStatus } from '@luhanxin/shared-types';
+import { ArticleStatus } from '@luhanxin/shared-types';
 import { Button, message, Popconfirm } from 'antd';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ArticleEditor from '@/components/ArticleEditor';
-import { transport } from '@/lib/connect';
+import { useArticleStore } from '@/stores/useArticleStore';
 import { useAuthStore } from '@/stores/useAuthStore';
 import styles from './manage.module.less';
-
-const articleClient = createClient(ArticleService, transport);
 
 type FilterTab = 'all' | 'draft' | 'published' | 'archived';
 
 export default function ArticleManagePage() {
   const navigate = useNavigate();
   const { user, isAuthenticated } = useAuthStore();
+  const {
+    articles,
+    listLoading: loading,
+    fetchArticles,
+    createArticle,
+    updateArticle,
+    deleteArticle,
+  } = useArticleStore();
 
-  const [articles, setArticles] = useState<Article[]>([]);
-  const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<FilterTab>('all');
-  const fetchedRef = useRef(false);
-
-  // 编辑器状态
   const [editorOpen, setEditorOpen] = useState(false);
-  const [editingArticle, setEditingArticle] = useState<Article | null>(null);
+  const [editingArticleId, setEditingArticleId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
-  const fetchArticles = useCallback(async () => {
-    if (!user) return;
-    try {
-      setLoading(true);
-      const res = await articleClient.listArticles({
-        authorId: user.id,
-        query: '',
-        tag: '',
-        pagination: { pageSize: 50, pageToken: '' },
-      });
-      setArticles(res.articles);
-    } catch (err) {
-      console.error('ListArticles failed:', err);
-    } finally {
-      setLoading(false);
-    }
-  }, [user]);
+  const loadMyArticles = useCallback(() => {
+    if (user) fetchArticles({ authorId: user.id });
+  }, [user, fetchArticles]);
 
   useEffect(() => {
-    if (fetchedRef.current) return;
-    fetchedRef.current = true;
-    fetchArticles();
-  }, [fetchArticles]);
+    loadMyArticles();
+  }, [loadMyArticles]);
 
   if (!isAuthenticated || !user) {
     return <div className={styles.empty}>请先登录后再管理文章</div>;
   }
+
+  // 从 store 的 articles 找到正在编辑的文章
+  const editingArticle = editingArticleId
+    ? (articles.find((a) => a.id === editingArticleId) ?? null)
+    : null;
 
   // 筛选
   const filteredArticles = articles.filter((a) => {
@@ -77,13 +65,13 @@ export default function ArticleManagePage() {
 
   // 新建文章
   const handleNew = () => {
-    setEditingArticle(null);
+    setEditingArticleId(null);
     setEditorOpen(true);
   };
 
   // 编辑文章
-  const handleEdit = (article: Article) => {
-    setEditingArticle(article);
+  const handleEdit = (articleId: string) => {
+    setEditingArticleId(articleId);
     setEditorOpen(true);
   };
 
@@ -96,31 +84,26 @@ export default function ArticleManagePage() {
   }) => {
     setSaving(true);
     try {
-      if (editingArticle) {
-        await articleClient.updateArticle({
-          articleId: editingArticle.id,
+      if (editingArticleId) {
+        await updateArticle(editingArticleId, {
           title: data.title,
           content: data.content,
-          summary: '',
           tags: data.tags,
           status: data.status,
         });
         message.success('文章更新成功');
       } else {
-        await articleClient.createArticle({
+        await createArticle({
           title: data.title,
           content: data.content,
-          summary: '',
           tags: data.tags,
           status: data.status,
         });
         message.success(data.status === 2 ? '文章发布成功' : '草稿保存成功');
       }
       setEditorOpen(false);
-      setEditingArticle(null);
-      // 重新加载列表
-      fetchedRef.current = false;
-      await fetchArticles();
+      setEditingArticleId(null);
+      loadMyArticles();
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : '操作失败';
       message.error(msg);
@@ -130,50 +113,32 @@ export default function ArticleManagePage() {
   };
 
   // 快捷发布（草稿 → 已发布）
-  const handlePublish = async (article: Article) => {
+  const handlePublish = async (articleId: string) => {
     try {
-      await articleClient.updateArticle({
-        articleId: article.id,
-        title: '',
-        content: '',
-        summary: '',
-        tags: [],
-        status: ArticleStatus.PUBLISHED,
-      });
+      await updateArticle(articleId, { status: ArticleStatus.PUBLISHED });
       message.success('发布成功');
-      fetchedRef.current = false;
-      await fetchArticles();
+      loadMyArticles();
     } catch (err: unknown) {
       message.error(err instanceof Error ? err.message : '发布失败');
     }
   };
 
   // 撤回（已发布 → 草稿）
-  const handleUnpublish = async (article: Article) => {
+  const handleUnpublish = async (articleId: string) => {
     try {
-      await articleClient.updateArticle({
-        articleId: article.id,
-        title: '',
-        content: '',
-        summary: '',
-        tags: [],
-        status: ArticleStatus.DRAFT,
-      });
+      await updateArticle(articleId, { status: ArticleStatus.DRAFT });
       message.success('已撤回为草稿');
-      fetchedRef.current = false;
-      await fetchArticles();
+      loadMyArticles();
     } catch (err: unknown) {
       message.error(err instanceof Error ? err.message : '撤回失败');
     }
   };
 
-  // 删除（软删除）
-  const handleDelete = async (article: Article) => {
+  // 删除
+  const handleDelete = async (articleId: string) => {
     try {
-      await articleClient.deleteArticle({ articleId: article.id });
+      await deleteArticle(articleId);
       message.success('已删除');
-      fetchedRef.current = false;
-      await fetchArticles();
     } catch (err: unknown) {
       message.error(err instanceof Error ? err.message : '删除失败');
     }
@@ -290,14 +255,14 @@ export default function ArticleManagePage() {
                         <Button
                           size="small"
                           icon={<UndoOutlined />}
-                          onClick={() => handleUnpublish(article)}
+                          onClick={() => handleUnpublish(article.id)}
                         >
                           恢复为草稿
                         </Button>
                         <Popconfirm
                           title="永久删除这篇文章？"
                           description="此操作不可恢复！"
-                          onConfirm={() => handleDelete(article)}
+                          onConfirm={() => handleDelete(article.id)}
                           okText="永久删除"
                           okButtonProps={{ danger: true }}
                           cancelText="取消"
@@ -312,7 +277,7 @@ export default function ArticleManagePage() {
                         <Button
                           size="small"
                           icon={<EditOutlined />}
-                          onClick={() => handleEdit(article)}
+                          onClick={() => handleEdit(article.id)}
                         >
                           编辑
                         </Button>
@@ -321,7 +286,7 @@ export default function ArticleManagePage() {
                             size="small"
                             type="primary"
                             icon={<SendOutlined />}
-                            onClick={() => handlePublish(article)}
+                            onClick={() => handlePublish(article.id)}
                           >
                             发布
                           </Button>
@@ -330,7 +295,7 @@ export default function ArticleManagePage() {
                           <Button
                             size="small"
                             icon={<UndoOutlined />}
-                            onClick={() => handleUnpublish(article)}
+                            onClick={() => handleUnpublish(article.id)}
                           >
                             撤回
                           </Button>
@@ -338,7 +303,7 @@ export default function ArticleManagePage() {
                         <Popconfirm
                           title="确定删除这篇文章？"
                           description="删除后可在归档 Tab 中找回"
-                          onConfirm={() => handleDelete(article)}
+                          onConfirm={() => handleDelete(article.id)}
                           okText="删除"
                           cancelText="取消"
                         >
@@ -366,7 +331,7 @@ export default function ArticleManagePage() {
           onSave={handleSave}
           onCancel={() => {
             setEditorOpen(false);
-            setEditingArticle(null);
+            setEditingArticleId(null);
           }}
           saving={saving}
         />

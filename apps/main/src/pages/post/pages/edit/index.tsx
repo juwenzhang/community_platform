@@ -1,37 +1,28 @@
-import { createClient } from '@connectrpc/connect';
-import type { Article } from '@luhanxin/shared-types';
-import { ArticleService } from '@luhanxin/shared-types';
 import { message, Skeleton } from 'antd';
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import ArticleEditor from '@/components/ArticleEditor';
-import { transport } from '@/lib/connect';
+import { useArticleStore } from '@/stores/useArticleStore';
 import { useAuthStore } from '@/stores/useAuthStore';
-
-const articleClient = createClient(ArticleService, transport);
 
 export default function EditArticlePage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user, isAuthenticated } = useAuthStore();
+  const {
+    currentArticle: article,
+    detailLoading: loading,
+    fetchArticle,
+    updateArticle,
+    clearCurrentArticle,
+  } = useArticleStore();
 
-  const [article, setArticle] = useState<Article | null>(null);
-  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    if (!id) return;
-    articleClient
-      .getArticle({ articleId: id })
-      .then((res) => {
-        if (res.article) setArticle(res.article);
-      })
-      .catch((err) => {
-        message.error(err.message || '加载文章失败');
-        navigate('/');
-      })
-      .finally(() => setLoading(false));
-  }, [id, navigate]);
+    if (id) fetchArticle(id);
+    return () => clearCurrentArticle();
+  }, [id, fetchArticle, clearCurrentArticle]);
 
   if (!isAuthenticated) {
     return (
@@ -70,11 +61,9 @@ export default function EditArticlePage() {
     if (!id) return;
     setSaving(true);
     try {
-      await articleClient.updateArticle({
-        articleId: id,
+      await updateArticle(id, {
         title: data.title,
         content: data.content,
-        summary: '',
         tags: data.tags,
         status: data.status,
       });

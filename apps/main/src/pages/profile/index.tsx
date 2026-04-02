@@ -12,6 +12,7 @@ export default function ProfileModule() {
     <Suspense fallback={<Loading />}>
       <Routes>
         <Route index element={<ProfileSettings />} />
+        <Route path="settings" element={<ProfileSettings />} />
         <Route path="manage" element={<ManagePage />} />
       </Routes>
     </Suspense>

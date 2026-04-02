@@ -2,11 +2,7 @@ import { CloseOutlined } from '@ant-design/icons';
 import { Input, Select, Tag } from 'antd';
 import { useCallback, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import Markdown from 'react-markdown';
-import rehypeHighlight from 'rehype-highlight';
-import rehypeSlug from 'rehype-slug';
-import remarkBreaks from 'remark-breaks';
-import remarkGfm from 'remark-gfm';
+import MarkdownRender from '@/components/MarkdownRender';
 
 import styles from './articleEditor.module.less';
 
@@ -278,12 +274,7 @@ export default function ArticleEditor({
           <div className={styles.previewHeader}>预览</div>
           <div className={styles.previewContent}>
             {content ? (
-              <Markdown
-                remarkPlugins={[remarkGfm, remarkBreaks]}
-                rehypePlugins={[rehypeSlug, rehypeHighlight]}
-              >
-                {content}
-              </Markdown>
+              <MarkdownRender content={content} />
             ) : (
               <p className={styles.previewPlaceholder}>Markdown 预览区域</p>
             )}
