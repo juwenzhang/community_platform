@@ -25,16 +25,20 @@
           font-size: 14px;
           line-height: 38px;
           cursor: pointer;
+          background: none;
+          border: none;
+          padding: 0;
+          color: var(--color-text-2);
+          transition: color 0.2s;
+
+          &:hover {
+            color: var(--color-primary);
+          }
 
           &.active {
             color: var(--color-primary);
             font-weight: 600;
             border-bottom: 2px solid var(--color-primary);
-          }
-
-          &.disabled {
-            color: var(--color-text-3);
-            cursor: not-allowed;
           }
         }
       }

@@ -68,6 +68,7 @@ pub struct ListArticlesQuery {
     pub author_id: Option<String>,
     pub query: Option<String>,
     pub tag: Option<String>,
+    pub category: Option<i32>,
 }
 
 /// 创建文章请求
@@ -78,6 +79,7 @@ pub struct CreateArticleDto {
     pub summary: Option<String>,
     pub tags: Option<Vec<String>>,
     pub status: Option<i32>,
+    pub category: Option<i32>,
 }
 
 /// 更新文章请求
@@ -88,6 +90,7 @@ pub struct UpdateArticleDto {
     pub summary: Option<String>,
     pub tags: Option<Vec<String>>,
     pub status: Option<i32>,
+    pub category: Option<i32>,
 }
 
 /// API 错误
@@ -266,6 +269,7 @@ pub async fn list_articles(
                 author_id: params.author_id.unwrap_or_default(),
                 query: params.query.unwrap_or_default(),
                 tag: params.tag.unwrap_or_default(),
+                category: params.category.unwrap_or(0),
             };
 
             // 如果认证成功，将 user_id 传给下游（可选，用于草稿可见性）
@@ -337,6 +341,7 @@ pub async fn create_article(
                 summary: body.summary.unwrap_or_default(),
                 tags: body.tags.unwrap_or_default(),
                 status: body.status.unwrap_or(1),
+                category: body.category.unwrap_or(0),
             });
             if let Ok(val) = user_id.parse() {
                 req.metadata_mut().insert("x-user-id", val);
@@ -401,6 +406,7 @@ pub async fn update_article(
                 summary: body.summary.unwrap_or_default(),
                 tags: body.tags.unwrap_or_default(),
                 status: body.status.unwrap_or(0),
+                category: body.category.unwrap_or(0),
             });
             if let Ok(val) = user_id.parse() {
                 req.metadata_mut().insert("x-user-id", val);

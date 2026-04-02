@@ -81,6 +81,7 @@ export default function ArticleManagePage() {
     content: string;
     tags: string[];
     status: number;
+    category: number;
   }) => {
     setSaving(true);
     try {
@@ -90,6 +91,7 @@ export default function ArticleManagePage() {
           content: data.content,
           tags: data.tags,
           status: data.status,
+          category: data.category,
         });
         message.success('文章更新成功');
       } else {
@@ -98,6 +100,7 @@ export default function ArticleManagePage() {
           content: data.content,
           tags: data.tags,
           status: data.status,
+          category: data.category,
         });
         message.success(data.status === 2 ? '文章发布成功' : '草稿保存成功');
       }
@@ -328,6 +331,7 @@ export default function ArticleManagePage() {
           initialContent={editingArticle?.content}
           initialTags={editingArticle?.tags}
           initialStatus={editingArticle?.status}
+          initialCategory={editingArticle?.category}
           onSave={handleSave}
           onCancel={() => {
             setEditorOpen(false);

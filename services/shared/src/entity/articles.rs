@@ -23,6 +23,8 @@ pub struct Model {
     pub created_at: DateTimeWithTimeZone,
     pub updated_at: DateTimeWithTimeZone,
     pub published_at: Option<DateTimeWithTimeZone>,
+    #[sea_orm(default_value = 0)]
+    pub category: i16,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]

@@ -7,7 +7,7 @@ import {
   UserOutlined,
 } from '@ant-design/icons';
 import { Avatar, Button, Skeleton } from 'antd';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import ArticleToc from '@/components/ArticleToc';
 import MarkdownRender from '@/components/MarkdownRender';
@@ -27,9 +27,16 @@ export default function ArticleDetailPage() {
     clearCurrentArticle,
   } = useArticleStore();
 
+  const fetchLock = useRef(false);
+
   useEffect(() => {
     if (id) fetchArticle(id);
-    return () => clearCurrentArticle();
+    if (fetchLock.current) return;
+    fetchLock.current = true;
+    return () => {
+      clearCurrentArticle();
+      fetchLock.current = false;
+    };
   }, [id, fetchArticle, clearCurrentArticle]);
 
   if (loading) {

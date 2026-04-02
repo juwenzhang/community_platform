@@ -9,7 +9,8 @@ import styles from './home.module.less';
 export default function HomePage() {
   const [articleCount, setArticleCount] = useState<number | null>(null);
   const [userCount, setUserCount] = useState<number | null>(null);
-  const [activeTag, setActiveTag] = useState('');
+  const [activeCategory, setActiveCategory] = useState(0);
+  const [activeSort, setActiveSort] = useState<'recommend' | 'latest'>('recommend');
 
   const handleArticleLoad = useCallback((totalCount: number) => {
     setArticleCount(totalCount);
@@ -22,17 +23,29 @@ export default function HomePage() {
   return (
     <div className={styles.page}>
       {/* 左侧导航 */}
-      <NavSidebar activeTag={activeTag} onTagChange={setActiveTag} />
+      <NavSidebar activeCategory={activeCategory} onCategoryChange={setActiveCategory} />
 
       {/* 主内容：文章列表 */}
       <div className={styles.content}>
         <div className={styles.tabs}>
           <div className={styles.tabList}>
-            <span className={`${styles.tab} ${styles.active}`}>推荐</span>
-            <span className={`${styles.tab} ${styles.disabled}`}>最新</span>
+            <button
+              type="button"
+              className={`${styles.tab} ${activeSort === 'recommend' ? styles.active : ''}`}
+              onClick={() => setActiveSort('recommend')}
+            >
+              推荐
+            </button>
+            <button
+              type="button"
+              className={`${styles.tab} ${activeSort === 'latest' ? styles.active : ''}`}
+              onClick={() => setActiveSort('latest')}
+            >
+              最新
+            </button>
           </div>
         </div>
-        <ArticleList tag={activeTag || undefined} onLoad={handleArticleLoad} />
+        <ArticleList category={activeCategory || undefined} onLoad={handleArticleLoad} />
       </div>
 
       {/* 右侧栏 */}

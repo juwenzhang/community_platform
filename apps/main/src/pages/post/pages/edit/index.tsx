@@ -57,6 +57,7 @@ export default function EditArticlePage() {
     content: string;
     tags: string[];
     status: number;
+    category: number;
   }) => {
     if (!id) return;
     setSaving(true);
@@ -66,6 +67,7 @@ export default function EditArticlePage() {
         content: data.content,
         tags: data.tags,
         status: data.status,
+        category: data.category,
       });
       message.success('文章更新成功');
       navigate(`/post/${id}`);
@@ -83,6 +85,7 @@ export default function EditArticlePage() {
       initialContent={article.content}
       initialTags={article.tags}
       initialStatus={article.status}
+      initialCategory={article.category}
       onSave={handleSave}
       onCancel={() => navigate(`/post/${id}`)}
       saving={saving}

@@ -213,12 +213,15 @@ pub struct ListArticlesRequest {
     /// 可选：按作者筛选
     #[prost(string, tag = "2")]
     pub author_id: ::prost::alloc::string::String,
-    /// 可选：标题模糊搜索（SQL LIKE，预留后续替换为 Meilisearch）
+    /// 可选：模糊搜索（pg_trgm 相似度 + ILIKE）
     #[prost(string, tag = "3")]
     pub query: ::prost::alloc::string::String,
     /// 可选：按标签筛选（PostgreSQL array contains）
     #[prost(string, tag = "4")]
     pub tag: ::prost::alloc::string::String,
+    /// 可选：按分类筛选
+    #[prost(enumeration = "ArticleCategory", tag = "5")]
+    pub category: i32,
 }
 /// 获取文章列表响应
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -249,6 +252,9 @@ pub struct CreateArticleRequest {
     /// 文章状态（DRAFT 或 PUBLISHED）
     #[prost(enumeration = "ArticleStatus", tag = "5")]
     pub status: i32,
+    /// 文章分类（必选）
+    #[prost(enumeration = "ArticleCategory", tag = "6")]
+    pub category: i32,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct CreateArticleResponse {
@@ -278,6 +284,9 @@ pub struct UpdateArticleRequest {
     /// 文章状态（可选，UNSPECIFIED 不更新）
     #[prost(enumeration = "ArticleStatus", tag = "6")]
     pub status: i32,
+    /// 文章分类（可选，UNSPECIFIED 不更新）
+    #[prost(enumeration = "ArticleCategory", tag = "7")]
+    pub category: i32,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct UpdateArticleResponse {
@@ -344,6 +353,9 @@ pub struct Article {
     /// 作者信息（可选，由 Gateway BFF 层填充，svc-content 不填）
     #[prost(message, optional, tag = "14")]
     pub author: ::core::option::Option<User>,
+    /// 文章分类
+    #[prost(enumeration = "ArticleCategory", tag = "15")]
+    pub category: i32,
 }
 /// 文章状态枚举
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
@@ -374,6 +386,48 @@ impl ArticleStatus {
             "ARTICLE_STATUS_DRAFT" => Some(Self::Draft),
             "ARTICLE_STATUS_PUBLISHED" => Some(Self::Published),
             "ARTICLE_STATUS_ARCHIVED" => Some(Self::Archived),
+            _ => None,
+        }
+    }
+}
+/// 文章分类枚举
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
+#[repr(i32)]
+pub enum ArticleCategory {
+    Unspecified = 0,
+    Backend = 1,
+    Frontend = 2,
+    Ai = 3,
+    Mobile = 4,
+    Devtools = 5,
+    Reading = 6,
+}
+impl ArticleCategory {
+    /// String value of the enum field names used in the ProtoBuf definition.
+    ///
+    /// The values are not transformed in any way and thus are considered stable
+    /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+    pub fn as_str_name(&self) -> &'static str {
+        match self {
+            Self::Unspecified => "ARTICLE_CATEGORY_UNSPECIFIED",
+            Self::Backend => "ARTICLE_CATEGORY_BACKEND",
+            Self::Frontend => "ARTICLE_CATEGORY_FRONTEND",
+            Self::Ai => "ARTICLE_CATEGORY_AI",
+            Self::Mobile => "ARTICLE_CATEGORY_MOBILE",
+            Self::Devtools => "ARTICLE_CATEGORY_DEVTOOLS",
+            Self::Reading => "ARTICLE_CATEGORY_READING",
+        }
+    }
+    /// Creates an enum from field names used in the ProtoBuf definition.
+    pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+        match value {
+            "ARTICLE_CATEGORY_UNSPECIFIED" => Some(Self::Unspecified),
+            "ARTICLE_CATEGORY_BACKEND" => Some(Self::Backend),
+            "ARTICLE_CATEGORY_FRONTEND" => Some(Self::Frontend),
+            "ARTICLE_CATEGORY_AI" => Some(Self::Ai),
+            "ARTICLE_CATEGORY_MOBILE" => Some(Self::Mobile),
+            "ARTICLE_CATEGORY_DEVTOOLS" => Some(Self::Devtools),
+            "ARTICLE_CATEGORY_READING" => Some(Self::Reading),
             _ => None,
         }
     }

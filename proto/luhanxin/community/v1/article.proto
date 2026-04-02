@@ -42,10 +42,12 @@ message ListArticlesRequest {
   PaginationRequest pagination = 1;
   // 可选：按作者筛选
   string author_id = 2;
-  // 可选：标题模糊搜索（SQL LIKE，预留后续替换为 Meilisearch）
+  // 可选：模糊搜索（pg_trgm 相似度 + ILIKE）
   string query = 3;
   // 可选：按标签筛选（PostgreSQL array contains）
   string tag = 4;
+  // 可选：按分类筛选
+  ArticleCategory category = 5;
 }
 
 // 获取文章列表响应
@@ -69,6 +71,8 @@ message CreateArticleRequest {
   repeated string tags = 4;
   // 文章状态（DRAFT 或 PUBLISHED）
   ArticleStatus status = 5;
+  // 文章分类（必选）
+  ArticleCategory category = 6;
 }
 
 message CreateArticleResponse {
@@ -91,6 +95,8 @@ message UpdateArticleRequest {
   repeated string tags = 5;
   // 文章状态（可选，UNSPECIFIED 不更新）
   ArticleStatus status = 6;
+  // 文章分类（可选，UNSPECIFIED 不更新）
+  ArticleCategory category = 7;
 }
 
 message UpdateArticleResponse {
@@ -141,6 +147,8 @@ message Article {
   google.protobuf.Timestamp published_at = 13;
   // 作者信息（可选，由 Gateway BFF 层填充，svc-content 不填）
   User author = 14;
+  // 文章分类
+  ArticleCategory category = 15;
 }
 
 // 文章状态枚举
@@ -149,4 +157,15 @@ enum ArticleStatus {
   ARTICLE_STATUS_DRAFT = 1;
   ARTICLE_STATUS_PUBLISHED = 2;
   ARTICLE_STATUS_ARCHIVED = 3;
+}
+
+// 文章分类枚举
+enum ArticleCategory {
+  ARTICLE_CATEGORY_UNSPECIFIED = 0;
+  ARTICLE_CATEGORY_BACKEND = 1;
+  ARTICLE_CATEGORY_FRONTEND = 2;
+  ARTICLE_CATEGORY_AI = 3;
+  ARTICLE_CATEGORY_MOBILE = 4;
+  ARTICLE_CATEGORY_DEVTOOLS = 5;
+  ARTICLE_CATEGORY_READING = 6;
 }

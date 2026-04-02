@@ -11,6 +11,7 @@ interface FetchArticlesParams {
   tag?: string;
   authorId?: string;
   query?: string;
+  category?: number;
   pageSize?: number;
   pageToken?: string;
 }
@@ -21,6 +22,7 @@ interface CreateArticleData {
   summary?: string;
   tags: string[];
   status: number;
+  category?: number;
 }
 
 interface UpdateArticleData {
@@ -29,6 +31,7 @@ interface UpdateArticleData {
   summary?: string;
   tags?: string[];
   status?: number;
+  category?: number;
 }
 
 interface ArticleState {
@@ -50,6 +53,8 @@ interface ArticleState {
   updateArticle: (id: string, data: UpdateArticleData) => Promise<void>;
   deleteArticle: (id: string) => Promise<void>;
   clearCurrentArticle: () => void;
+  /** 搜索文章（不影响列表 state，专供联想搜索） */
+  searchArticles: (params: FetchArticlesParams) => Promise<Article[]>;
 }
 
 export const useArticleStore = create<ArticleState>((set, get) => ({
@@ -73,6 +78,7 @@ export const useArticleStore = create<ArticleState>((set, get) => ({
         authorId: params?.authorId ?? '',
         query: params?.query ?? '',
         tag: params?.tag ?? '',
+        category: params?.category ?? 0,
       });
       set({
         articles: res.articles,
@@ -111,6 +117,7 @@ export const useArticleStore = create<ArticleState>((set, get) => ({
       summary: data.summary ?? '',
       tags: data.tags,
       status: data.status,
+      category: data.category ?? 0,
     });
     const article = res.article;
     if (!article) throw new Error('创建文章失败：服务端未返回文章');
@@ -125,6 +132,7 @@ export const useArticleStore = create<ArticleState>((set, get) => ({
       summary: data.summary ?? '',
       tags: data.tags ?? [],
       status: data.status ?? 0,
+      category: data.category ?? 0,
     });
     const { articles, currentArticle } = get();
     if (data.title || data.content || data.tags || data.status) {
@@ -153,6 +161,20 @@ export const useArticleStore = create<ArticleState>((set, get) => ({
 
   clearCurrentArticle: () => {
     set({ currentArticle: null, detailError: null });
+  },
+
+  searchArticles: async (params) => {
+    const res = await articleClient.listArticles({
+      pagination: {
+        pageSize: params.pageSize ?? 5,
+        pageToken: params.pageToken ?? '',
+      },
+      authorId: params.authorId ?? '',
+      query: params.query ?? '',
+      tag: params.tag ?? '',
+      category: params.category ?? 0,
+    });
+    return res.articles;
   },
 }));
 
