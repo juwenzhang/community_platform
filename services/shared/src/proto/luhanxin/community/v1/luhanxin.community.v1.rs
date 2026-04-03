@@ -222,6 +222,9 @@ pub struct ListArticlesRequest {
     /// 可选：按分类筛选（支持多选，匹配任一分类）
     #[prost(enumeration = "ArticleCategory", repeated, tag = "5")]
     pub categories: ::prost::alloc::vec::Vec<i32>,
+    /// 可选：排序方式
+    #[prost(enumeration = "ArticleSort", tag = "6")]
+    pub sort: i32,
 }
 /// 获取文章列表响应
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -432,6 +435,133 @@ impl ArticleCategory {
         }
     }
 }
+/// 文章排序枚举
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
+#[repr(i32)]
+pub enum ArticleSort {
+    Unspecified = 0,
+    Recommended = 1,
+    Latest = 2,
+}
+impl ArticleSort {
+    /// String value of the enum field names used in the ProtoBuf definition.
+    ///
+    /// The values are not transformed in any way and thus are considered stable
+    /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+    pub fn as_str_name(&self) -> &'static str {
+        match self {
+            Self::Unspecified => "ARTICLE_SORT_UNSPECIFIED",
+            Self::Recommended => "ARTICLE_SORT_RECOMMENDED",
+            Self::Latest => "ARTICLE_SORT_LATEST",
+        }
+    }
+    /// Creates an enum from field names used in the ProtoBuf definition.
+    pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+        match value {
+            "ARTICLE_SORT_UNSPECIFIED" => Some(Self::Unspecified),
+            "ARTICLE_SORT_RECOMMENDED" => Some(Self::Recommended),
+            "ARTICLE_SORT_LATEST" => Some(Self::Latest),
+            _ => None,
+        }
+    }
+}
+// ──── 创建评论 ────
+
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct CreateCommentRequest {
+    /// 文章 ID
+    #[prost(string, tag = "1")]
+    pub article_id: ::prost::alloc::string::String,
+    /// 评论内容（支持 emoji unicode + @username 文本）
+    #[prost(string, tag = "2")]
+    pub content: ::prost::alloc::string::String,
+    /// 顶级评论 ID（为空表示发表顶级评论，非空表示二级回复）
+    #[prost(string, tag = "3")]
+    pub parent_id: ::prost::alloc::string::String,
+    /// 被回复的评论 ID（为空表示直接回复顶级评论，非空表示回复某条二级评论）
+    #[prost(string, tag = "4")]
+    pub reply_to_id: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct CreateCommentResponse {
+    /// 创建后的评论
+    #[prost(message, optional, tag = "1")]
+    pub comment: ::core::option::Option<Comment>,
+}
+// ──── 评论列表 ────
+
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct ListCommentsRequest {
+    /// 文章 ID
+    #[prost(string, tag = "1")]
+    pub article_id: ::prost::alloc::string::String,
+    /// 分页参数
+    #[prost(message, optional, tag = "2")]
+    pub pagination: ::core::option::Option<PaginationRequest>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ListCommentsResponse {
+    /// 顶级评论列表（每条包含 replies 子回复）
+    #[prost(message, repeated, tag = "1")]
+    pub comments: ::prost::alloc::vec::Vec<Comment>,
+    /// 分页元数据
+    #[prost(message, optional, tag = "2")]
+    pub pagination: ::core::option::Option<PaginationResponse>,
+}
+// ──── 删除评论 ────
+
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct DeleteCommentRequest {
+    /// 评论 ID
+    #[prost(string, tag = "1")]
+    pub comment_id: ::prost::alloc::string::String,
+}
+/// 空响应，删除成功
+#[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct DeleteCommentResponse {
+}
+// ──── 公共类型 ────
+
+/// 评论信息
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Comment {
+    /// 评论唯一标识
+    #[prost(string, tag = "1")]
+    pub id: ::prost::alloc::string::String,
+    /// 文章 ID
+    #[prost(string, tag = "2")]
+    pub article_id: ::prost::alloc::string::String,
+    /// 作者 ID
+    #[prost(string, tag = "3")]
+    pub author_id: ::prost::alloc::string::String,
+    /// 评论内容
+    #[prost(string, tag = "4")]
+    pub content: ::prost::alloc::string::String,
+    /// 顶级评论 ID（空 = 顶级评论）
+    #[prost(string, tag = "5")]
+    pub parent_id: ::prost::alloc::string::String,
+    /// 被回复评论 ID（空 = 直接回复顶级评论）
+    #[prost(string, tag = "6")]
+    pub reply_to_id: ::prost::alloc::string::String,
+    /// 被 @ 的用户名列表（后端从 content 解析）
+    #[prost(string, repeated, tag = "7")]
+    pub mentions: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+    /// 创建时间
+    #[prost(message, optional, tag = "8")]
+    pub created_at: ::core::option::Option<::prost_types::Timestamp>,
+    /// 更新时间
+    #[prost(message, optional, tag = "9")]
+    pub updated_at: ::core::option::Option<::prost_types::Timestamp>,
+    /// 作者信息（由服务端填充）
+    #[prost(message, optional, tag = "10")]
+    pub author: ::core::option::Option<User>,
+    /// 被回复者信息（二级回复时填充，方便显示「回复 @xxx」）
+    #[prost(message, optional, tag = "11")]
+    pub reply_to_author: ::core::option::Option<User>,
+    /// 子回复列表（仅顶级评论填充）
+    #[prost(message, repeated, tag = "12")]
+    pub replies: ::prost::alloc::vec::Vec<Comment>,
+}
 /// 事件信封 — 所有异步事件的标准包装
 ///
 /// 通过 NATS 发布/订阅，消息体为此消息的 Protobuf 二进制编码。
@@ -488,6 +618,102 @@ pub struct RetryRequest {
     /// 首次入队时间
     #[prost(message, optional, tag = "7")]
     pub created_at: ::core::option::Option<::prost_types::Timestamp>,
+}
+// ──── 点赞 ────
+
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct LikeArticleRequest {
+    /// 文章 ID
+    #[prost(string, tag = "1")]
+    pub article_id: ::prost::alloc::string::String,
+}
+#[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct LikeArticleResponse {
+    /// 点赞后的 like_count
+    #[prost(int32, tag = "1")]
+    pub like_count: i32,
+}
+// ──── 取消点赞 ────
+
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct UnlikeArticleRequest {
+    /// 文章 ID
+    #[prost(string, tag = "1")]
+    pub article_id: ::prost::alloc::string::String,
+}
+#[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct UnlikeArticleResponse {
+    /// 取消后的 like_count
+    #[prost(int32, tag = "1")]
+    pub like_count: i32,
+}
+// ──── 收藏 ────
+
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct FavoriteArticleRequest {
+    /// 文章 ID
+    #[prost(string, tag = "1")]
+    pub article_id: ::prost::alloc::string::String,
+}
+#[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct FavoriteArticleResponse {
+    /// 收藏后的 favorite_count
+    #[prost(int32, tag = "1")]
+    pub favorite_count: i32,
+}
+// ──── 取消收藏 ────
+
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct UnfavoriteArticleRequest {
+    /// 文章 ID
+    #[prost(string, tag = "1")]
+    pub article_id: ::prost::alloc::string::String,
+}
+#[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct UnfavoriteArticleResponse {
+    /// 取消后的 favorite_count
+    #[prost(int32, tag = "1")]
+    pub favorite_count: i32,
+}
+// ──── 互动状态 ────
+
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct GetArticleInteractionRequest {
+    /// 文章 ID
+    #[prost(string, tag = "1")]
+    pub article_id: ::prost::alloc::string::String,
+}
+#[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct GetArticleInteractionResponse {
+    /// 当前用户是否已点赞
+    #[prost(bool, tag = "1")]
+    pub liked: bool,
+    /// 当前用户是否已收藏
+    #[prost(bool, tag = "2")]
+    pub favorited: bool,
+    /// 文章点赞总数
+    #[prost(int32, tag = "3")]
+    pub like_count: i32,
+    /// 文章收藏总数
+    #[prost(int32, tag = "4")]
+    pub favorite_count: i32,
+}
+// ──── 收藏列表 ────
+
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct ListFavoritesRequest {
+    /// 分页参数
+    #[prost(message, optional, tag = "1")]
+    pub pagination: ::core::option::Option<PaginationRequest>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ListFavoritesResponse {
+    /// 收藏的文章列表
+    #[prost(message, repeated, tag = "1")]
+    pub articles: ::prost::alloc::vec::Vec<Article>,
+    /// 分页元数据
+    #[prost(message, optional, tag = "2")]
+    pub pagination: ::core::option::Option<PaginationResponse>,
 }
 include!("luhanxin.community.v1.tonic.rs");
 // @@protoc_insertion_point(module)
