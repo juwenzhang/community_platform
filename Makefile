@@ -23,6 +23,7 @@ SVC_CONTENT_PORT ?= 50052
 CONSUL_HTTP_PORT ?= 8500
 MAIN_PORT        ?= 5173
 FEED_PORT        ?= 5174
+USER_PROFILE_PORT ?= 5175
 
 help: ## 显示帮助信息
 	@echo ""
