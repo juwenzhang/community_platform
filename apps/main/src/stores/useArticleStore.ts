@@ -12,6 +12,7 @@ interface FetchArticlesParams {
   authorId?: string;
   query?: string;
   categories?: number[];
+  sort?: number;
   pageSize?: number;
   pageToken?: string;
 }
@@ -35,7 +36,7 @@ interface UpdateArticleData {
 }
 
 interface ArticleState {
-  // 列表
+  // 列表（ManagePage 专用）
   articles: Article[];
   totalCount: number;
   listLoading: boolean;
@@ -79,6 +80,7 @@ export const useArticleStore = create<ArticleState>((set, get) => ({
         query: params?.query ?? '',
         tag: params?.tag ?? '',
         categories: params?.categories ?? [],
+        sort: params?.sort ?? 0,
       });
       set({
         articles: res.articles,
@@ -173,6 +175,7 @@ export const useArticleStore = create<ArticleState>((set, get) => ({
       query: params.query ?? '',
       tag: params.tag ?? '',
       categories: params.categories ?? [],
+      sort: params.sort ?? 0,
     });
     return res.articles;
   },

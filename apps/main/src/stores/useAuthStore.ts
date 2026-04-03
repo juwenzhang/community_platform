@@ -25,6 +25,11 @@ interface AuthState {
   restore: () => Promise<void>;
   /** 编辑资料后同步更新本地 user 状态 */
   updateUser: (user: User) => void;
+  /** 获取得到用户列表 */
+  getUsers: (
+    atMatch: string,
+    pagination?: { pageSize: number; pageToken: string },
+  ) => Promise<User[]>;
 }
 
 /** 保存认证响应到 state + localStorage */
@@ -106,5 +111,13 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   updateUser: (user: User) => {
     set({ user });
+  },
+
+  getUsers: async (atMatch, pagination) => {
+    const resp = await userClient.listUsers({
+      query: atMatch,
+      pagination,
+    });
+    return resp.users || [];
   },
 }));
