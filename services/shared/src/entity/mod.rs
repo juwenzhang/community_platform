@@ -3,4 +3,7 @@
 pub mod prelude;
 
 pub mod articles;
+pub mod comments;
+pub mod favorites;
+pub mod likes;
 pub mod users;

@@ -6,6 +6,9 @@ mod m20260330_000001_add_user_social_fields;
 mod m20260402_000001_enable_pg_trgm;
 mod m20260402_000002_add_article_category;
 mod m20260402_000003_category_to_categories;
+mod m20260403_000001_create_comments;
+mod m20260403_000002_create_likes;
+mod m20260403_000003_create_favorites;
 
 pub struct Migrator;
 
@@ -19,6 +22,9 @@ impl MigratorTrait for Migrator {
             Box::new(m20260402_000001_enable_pg_trgm::Migration),
             Box::new(m20260402_000002_add_article_category::Migration),
             Box::new(m20260402_000003_category_to_categories::Migration),
+            Box::new(m20260403_000001_create_comments::Migration),
+            Box::new(m20260403_000002_create_likes::Migration),
+            Box::new(m20260403_000003_create_favorites::Migration),
         ]
     }
 }
