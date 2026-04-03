@@ -13,9 +13,13 @@ use tracing::{info, warn};
 use shared::database::{self, DatabaseConfig};
 use shared::discovery::{ConsulClient, ServiceRegistration};
 use shared::proto::article_service_server::ArticleServiceServer;
+use shared::proto::comment_service_server::CommentServiceServer;
+use shared::proto::social_service_server::SocialServiceServer;
 
 use crate::config::SvcContentConfig;
 use crate::services::article::ArticleServiceImpl;
+use crate::services::comment::CommentServiceImpl;
+use crate::services::social::SocialServiceImpl;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -49,6 +53,19 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             }
         };
 
+    // ── NATS 连接（graceful degradation：失败不阻止启动）──
+    let nats_url = std::env::var("NATS_URL").unwrap_or_else(|_| "nats://localhost:4222".to_string());
+    let nats: Option<async_nats::Client> = match async_nats::connect(&nats_url).await {
+        Ok(client) => {
+            info!(url = %nats_url, "Connected to NATS");
+            Some(client)
+        }
+        Err(e) => {
+            warn!(error = %e, "NATS connection failed, running without event publishing");
+            None
+        }
+    };
+
     // ── Consul 注册（graceful degradation：失败不阻止启动）──
     let consul = ConsulClient::new(&config.consul_url);
     let registration = ServiceRegistration::grpc(
@@ -70,7 +87,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // ── gRPC 服务 ──
     let addr = format!("0.0.0.0:{}", config.port).parse()?;
-    let article_service = ArticleServiceImpl::new(db);
+    let article_service = ArticleServiceImpl::new(db.clone());
+    let comment_service = CommentServiceImpl::new(db.clone(), nats);
+    let social_service = SocialServiceImpl::new(db);
 
     // ── gRPC Health Checking Protocol（Consul 健康检查需要）──
     let (health_reporter, health_service) = tonic_health::server::health_reporter();
@@ -87,6 +106,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     Server::builder()
         .add_service(health_service)
         .add_service(ArticleServiceServer::new(article_service))
+        .add_service(CommentServiceServer::new(comment_service))
+        .add_service(SocialServiceServer::new(social_service))
         .serve_with_shutdown(addr, async move {
             shutdown_signal().await;
             info!("Shutdown signal received, deregistering from Consul...");
