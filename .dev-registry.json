@@ -1,5 +1,22 @@
 {
   "version": 1,
-  "apps": {},
-  "updatedAt": 1775211267291
+  "apps": {
+    "feed": {
+      "name": "feed",
+      "url": "http://localhost:5174",
+      "preferredPort": 5174,
+      "resolvedPort": 5174,
+      "startedAt": 1775239815525,
+      "pid": 70813
+    },
+    "user-profile": {
+      "name": "user-profile",
+      "url": "http://localhost:5175",
+      "preferredPort": 5175,
+      "resolvedPort": 5175,
+      "startedAt": 1775239815809,
+      "pid": 70835
+    }
+  },
+  "updatedAt": 1775239815809
 }
