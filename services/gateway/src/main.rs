@@ -12,6 +12,8 @@ use shared::discovery::ConsulClient;
 use shared::messaging::NatsClient;
 use shared::proto::user_service_server::UserServiceServer;
 use shared::proto::article_service_server::ArticleServiceServer;
+use shared::proto::comment_service_server::CommentServiceServer;
+use shared::proto::social_service_server::SocialServiceServer;
 use tonic::service::LayerExt;
 use tonic::service::Routes;
 use tonic_web::GrpcWebLayer;
@@ -31,8 +33,12 @@ use crate::routes::health;
 use crate::routes::health::rest_router;
 use crate::routes::user as user_routes;
 use crate::routes::article as article_routes;
+use crate::routes::comment as comment_routes;
+use crate::routes::social as social_routes;
 use crate::services::user::GatewayUserService;
 use crate::services::article::GatewayArticleService;
+use crate::services::comment::GatewayCommentService;
+use crate::services::social::GatewaySocialService;
 use crate::worker::retry_worker;
 
 /// Gateway OpenAPI 文档
@@ -65,6 +71,15 @@ use crate::worker::retry_worker;
         article_routes::create_article,
         article_routes::update_article,
         article_routes::delete_article,
+        comment_routes::list_comments,
+        comment_routes::create_comment,
+        comment_routes::delete_comment,
+        social_routes::like_article,
+        social_routes::unlike_article,
+        social_routes::favorite_article,
+        social_routes::unfavorite_article,
+        social_routes::get_interaction,
+        social_routes::list_favorites,
     ),
     components(schemas(
         health::HealthResponse,
@@ -84,12 +99,21 @@ use crate::worker::retry_worker;
         article_routes::ListArticlesQuery,
         article_routes::CreateArticleDto,
         article_routes::UpdateArticleDto,
+        comment_routes::CommentDto,
+        comment_routes::CommentAuthorDto,
+        comment_routes::ListCommentsDto,
+        comment_routes::CreateCommentBody,
+        social_routes::InteractionDto,
+        social_routes::LikeResponseDto,
+        social_routes::FavoriteResponseDto,
     )),
     tags(
         (name = "系统", description = "系统管理端点（健康检查、监控等）"),
         (name = "用户", description = "用户查询"),
         (name = "认证", description = "注册、登录、当前用户、资料更新"),
-        (name = "文章", description = "文章 CRUD")
+        (name = "文章", description = "文章 CRUD"),
+        (name = "评论", description = "评论 CRUD（二级嵌套）"),
+        (name = "社交", description = "点赞、收藏、互动状态")
     )
 )]
 struct ApiDoc;
@@ -148,9 +172,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // ── gRPC 服务（带 gRPC-Web 支持）──
     let user_service = GatewayUserService::new(Arc::clone(&resolver), Arc::clone(&pipeline));
     let article_service = GatewayArticleService::new(Arc::clone(&resolver), Arc::clone(&pipeline));
+    let comment_service = GatewayCommentService::new(Arc::clone(&resolver), Arc::clone(&pipeline));
+    let social_service = GatewaySocialService::new(Arc::clone(&resolver), Arc::clone(&pipeline));
 
     let grpc_router = Routes::new(GrpcWebLayer::new().named_layer(UserServiceServer::new(user_service)))
         .add_service(GrpcWebLayer::new().named_layer(ArticleServiceServer::new(article_service)))
+        .add_service(GrpcWebLayer::new().named_layer(CommentServiceServer::new(comment_service)))
+        .add_service(GrpcWebLayer::new().named_layer(SocialServiceServer::new(social_service)))
         .into_axum_router();
 
     // ── Swagger UI（内嵌，类似 FastAPI 的 /docs）──
@@ -160,11 +188,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // ── REST Proxy（gRPC → JSON，集成 Swagger + 拦截器）──
     let user_rest = user_routes::user_rest_router(Arc::clone(&resolver), Arc::clone(&pipeline));
     let article_rest = article_routes::article_rest_router(Arc::clone(&resolver), Arc::clone(&pipeline));
+    let comment_rest = comment_routes::comment_rest_router(Arc::clone(&resolver), Arc::clone(&pipeline));
+    let social_rest = social_routes::social_rest_router(Arc::clone(&resolver), Arc::clone(&pipeline));
 
     // ── 合并路由：gRPC-Web + REST proxy + REST health + Swagger UI ──
     let rest_and_swagger = rest_router()
         .merge(user_rest)
         .merge(article_rest)
+        .merge(comment_rest)
+        .merge(social_rest)
         .merge(swagger_ui);
 
     let app = grpc_router
