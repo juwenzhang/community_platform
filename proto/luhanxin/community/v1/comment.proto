@@ -1,0 +1,92 @@
+syntax = "proto3";
+
+package luhanxin.community.v1;
+
+import "google/protobuf/timestamp.proto";
+import "luhanxin/community/v1/common.proto";
+import "luhanxin/community/v1/user.proto";
+
+// 评论服务
+service CommentService {
+  // 创建评论（需认证）
+  rpc CreateComment(CreateCommentRequest) returns (CreateCommentResponse);
+  // 获取文章评论列表（公开，返回二级嵌套结构）
+  rpc ListComments(ListCommentsRequest) returns (ListCommentsResponse);
+  // 删除评论（需认证，仅作者）
+  rpc DeleteComment(DeleteCommentRequest) returns (DeleteCommentResponse);
+}
+
+// ──── 创建评论 ────
+
+message CreateCommentRequest {
+  // 文章 ID
+  string article_id = 1;
+  // 评论内容（支持 emoji unicode + @username 文本）
+  string content = 2;
+  // 顶级评论 ID（为空表示发表顶级评论，非空表示二级回复）
+  string parent_id = 3;
+  // 被回复的评论 ID（为空表示直接回复顶级评论，非空表示回复某条二级评论）
+  string reply_to_id = 4;
+}
+
+message CreateCommentResponse {
+  // 创建后的评论
+  Comment comment = 1;
+}
+
+// ──── 评论列表 ────
+
+message ListCommentsRequest {
+  // 文章 ID
+  string article_id = 1;
+  // 分页参数
+  PaginationRequest pagination = 2;
+}
+
+message ListCommentsResponse {
+  // 顶级评论列表（每条包含 replies 子回复）
+  repeated Comment comments = 1;
+  // 分页元数据
+  PaginationResponse pagination = 2;
+}
+
+// ──── 删除评论 ────
+
+message DeleteCommentRequest {
+  // 评论 ID
+  string comment_id = 1;
+}
+
+message DeleteCommentResponse {
+  // 空响应，删除成功
+}
+
+// ──── 公共类型 ────
+
+// 评论信息
+message Comment {
+  // 评论唯一标识
+  string id = 1;
+  // 文章 ID
+  string article_id = 2;
+  // 作者 ID
+  string author_id = 3;
+  // 评论内容
+  string content = 4;
+  // 顶级评论 ID（空 = 顶级评论）
+  string parent_id = 5;
+  // 被回复评论 ID（空 = 直接回复顶级评论）
+  string reply_to_id = 6;
+  // 被 @ 的用户名列表（后端从 content 解析）
+  repeated string mentions = 7;
+  // 创建时间
+  google.protobuf.Timestamp created_at = 8;
+  // 更新时间
+  google.protobuf.Timestamp updated_at = 9;
+  // 作者信息（由服务端填充）
+  User author = 10;
+  // 被回复者信息（二级回复时填充，方便显示「回复 @xxx」）
+  User reply_to_author = 11;
+  // 子回复列表（仅顶级评论填充）
+  repeated Comment replies = 12;
+}
