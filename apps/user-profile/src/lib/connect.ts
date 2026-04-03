@@ -12,11 +12,33 @@ const authInterceptor: Interceptor = (next) => async (req) => {
   return next(req);
 };
 
+/** Dedup interceptor — 读请求去重（解决 StrictMode 双重请求） */
+const dedupInterceptor: Interceptor = (next) => {
+  const inflight = new Map<string, Promise<any>>();
+
+  return async (req) => {
+    const method = req.method.name;
+    if (!method.startsWith('Get') && !method.startsWith('List')) {
+      return next(req);
+    }
+
+    const key = `${req.method.parent.typeName}/${method}:${JSON.stringify(req.message)}`;
+    const existing = inflight.get(key);
+    if (existing) return existing;
+
+    const promise = next(req).finally(() => {
+      setTimeout(() => inflight.delete(key), 100);
+    });
+    inflight.set(key, promise);
+    return promise;
+  };
+};
+
 /**
  * Vue 子应用的 Connect transport
- * 与主应用共享同一个 localStorage token
+ * 与主应用共享同一个 localStorage token + dedup 策略
  */
 export const transport = createGrpcWebTransport({
   baseUrl: '/',
-  interceptors: [authInterceptor],
+  interceptors: [authInterceptor, dedupInterceptor],
 });

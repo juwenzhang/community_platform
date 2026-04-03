@@ -1,14 +1,11 @@
-import { createClient } from '@connectrpc/connect';
 import type { Article } from '@luhanxin/shared-types';
-import { ArticleService, ArticleStatus } from '@luhanxin/shared-types';
+import { ArticleStatus } from '@luhanxin/shared-types';
 import { Skeleton, Spin } from 'antd';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-import { transport } from '@/lib/connect';
+import { articleClient } from '@/lib/grpc-clients';
 import ArticleCard from '../ArticleCard';
 import styles from './articleList.module.less';
-
-const articleClient = createClient(ArticleService, transport);
 
 interface ArticleListProps {
   authorId?: string;

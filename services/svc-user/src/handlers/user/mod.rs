@@ -1,33 +1,29 @@
 //! 用户 handler 模块
 //!
 //! 纯业务逻辑，不依赖 tonic Request/Response 类型。
+//! 使用 `shared::convert` 和 `shared::extract` 替代本地重复函数。
 
 pub mod auth;
 pub mod profile;
 
-use sea_orm::{ColumnTrait, DatabaseConnection, EntityTrait, PaginatorTrait, QueryFilter, QueryOrder, QuerySelect};
 use tonic::Status;
-use uuid::Uuid;
 
+pub use shared::convert::user_model_to_proto;
+use shared::extract::{db_error, parse_uuid};
 use shared::entity::prelude::Users;
 use shared::entity::users;
 use shared::proto::User;
 
+use sea_orm::{ColumnTrait, DatabaseConnection, EntityTrait, PaginatorTrait, QueryFilter, QueryOrder, QuerySelect};
+
 /// 根据 ID 获取用户
 pub async fn get_user_by_id(db: &DatabaseConnection, user_id: &str) -> Result<User, Status> {
-    let uuid = Uuid::parse_str(user_id).map_err(|_| {
-        Status::invalid_argument(format!(
-            "Invalid user ID format: '{user_id}' is not a valid UUID"
-        ))
-    })?;
+    let uuid = parse_uuid(user_id)?;
 
     let user_model = Users::find_by_id(uuid)
         .one(db)
         .await
-        .map_err(|e| {
-            tracing::error!(error = %e, "Database query failed");
-            Status::internal("Database query failed")
-        })?
+        .map_err(db_error)?
         .ok_or_else(|| Status::not_found(format!("User '{user_id}' not found")))?;
 
     Ok(user_model_to_proto(user_model))
@@ -46,10 +42,7 @@ pub async fn get_user_by_username(
         .filter(users::Column::Username.eq(username))
         .one(db)
         .await
-        .map_err(|e| {
-            tracing::error!(error = %e, "Database query failed");
-            Status::internal("Database query failed")
-        })?
+        .map_err(db_error)?
         .ok_or_else(|| Status::not_found(format!("User '{username}' not found")))?;
 
     Ok(user_model_to_proto(user_model))
@@ -65,7 +58,7 @@ pub async fn list_users(
     page_size: i32,
     page_token: &str,
 ) -> Result<(Vec<User>, String, i32), Status> {
-    let limit = page_size.clamp(1, 100) as u64;
+    let limit = page_size.clamp(shared::constants::MIN_PAGE_SIZE, shared::constants::MAX_PAGE_SIZE) as u64;
 
     let mut base_filter = Users::find().order_by_desc(users::Column::CreatedAt);
 
@@ -84,10 +77,7 @@ pub async fn list_users(
         .clone()
         .count(db)
         .await
-        .map_err(|e| {
-            tracing::error!(error = %e, "Count query failed");
-            Status::internal("Count query failed")
-        })? as i32;
+        .map_err(db_error)? as i32;
 
     // 游标分页（page_token = 上一页最后一条的 created_at timestamp）
     let mut paginated = base_filter;
@@ -105,10 +95,7 @@ pub async fn list_users(
         .limit(limit + 1)
         .all(db)
         .await
-        .map_err(|e| {
-            tracing::error!(error = %e, "Database query failed");
-            Status::internal("Database query failed")
-        })?;
+        .map_err(db_error)?;
 
     let has_more = models.len() as u64 > limit;
     let results: Vec<_> = models
@@ -128,45 +115,4 @@ pub async fn list_users(
     let users: Vec<User> = results.into_iter().map(user_model_to_proto).collect();
 
     Ok((users, next_page_token, total_count))
-}
-
-/// Entity Model → Proto User 转换
-pub fn user_model_to_proto(model: users::Model) -> User {
-    // social_links: JSONB → Vec<SocialLink>
-    let social_links = model
-        .social_links
-        .as_array()
-        .map(|arr| {
-            arr.iter()
-                .filter_map(|v| {
-                    let platform = v.get("platform")?.as_str()?.to_string();
-                    let url = v.get("url")?.as_str()?.to_string();
-                    Some(shared::proto::SocialLink { platform, url })
-                })
-                .collect()
-        })
-        .unwrap_or_default();
-
-    User {
-        id: model.id.to_string(),
-        username: model.username,
-        email: model.email,
-        display_name: model.display_name,
-        avatar_url: model.avatar_url,
-        bio: model.bio,
-        created_at: Some(datetime_to_timestamp(model.created_at)),
-        updated_at: Some(datetime_to_timestamp(model.updated_at)),
-        company: model.company,
-        location: model.location,
-        website: model.website,
-        social_links,
-    }
-}
-
-/// chrono DateTime → prost Timestamp 转换
-fn datetime_to_timestamp(dt: chrono::DateTime<chrono::FixedOffset>) -> prost_types::Timestamp {
-    prost_types::Timestamp {
-        seconds: dt.timestamp(),
-        nanos: dt.timestamp_subsec_nanos() as i32,
-    }
 }

@@ -12,10 +12,7 @@ use axum::Json;
 use axum::extract::{Path, Query, State};
 use axum::http::StatusCode;
 use axum::response::IntoResponse;
-use serde::{Deserialize, Serialize};
-use tonic::metadata::MetadataMap;
 use tracing::{error, info};
-use utoipa::ToSchema;
 
 use shared::proto::user_service_client::UserServiceClient;
 use shared::proto::{
@@ -23,147 +20,30 @@ use shared::proto::{
     LoginRequest, RegisterRequest, UpdateProfileRequest,
 };
 
+use crate::dto::common::status_to_response;
+use crate::dto::user::{
+    AuthDto, GetUserDto, ListUsersDto, ListUsersQuery, RegisterDto, LoginDto,
+    UpdateProfileDto, user_to_dto,
+};
 use crate::interceptors::{InterceptorPipeline, RpcContext};
 use crate::resolver::ServiceResolver;
 
-// ────────────────────────────────────────────
-// Swagger DTO（映射 Proto 消息）
-// ────────────────────────────────────────────
-
-/// 社交链接
-#[derive(Serialize, Deserialize, ToSchema)]
-pub struct SocialLinkDto {
-    /// 平台标识
-    pub platform: String,
-    /// 链接 URL
-    pub url: String,
-}
-
-/// 用户信息
-#[derive(Serialize, Deserialize, ToSchema)]
-pub struct UserDto {
-    /// 用户唯一标识
-    pub id: String,
-    /// 用户名
-    pub username: String,
-    /// 邮箱地址
-    pub email: String,
-    /// 显示名称
-    pub display_name: String,
-    /// 头像 URL
-    pub avatar_url: String,
-    /// 个人简介
-    pub bio: String,
-    /// 创建时间
-    pub created_at: Option<String>,
-    /// 更新时间
-    pub updated_at: Option<String>,
-    /// 公司/组织
-    pub company: String,
-    /// 所在地
-    pub location: String,
-    /// 个人网站
-    pub website: String,
-    /// 社交链接
-    pub social_links: Vec<SocialLinkDto>,
-}
-
-/// 获取用户响应
-#[derive(Serialize, Deserialize, ToSchema)]
-pub struct GetUserDto {
-    pub user: Option<UserDto>,
-}
-
-/// 认证响应（登录/注册）
-#[derive(Serialize, Deserialize, ToSchema)]
-pub struct AuthDto {
-    /// JWT token
-    pub token: String,
-    /// 用户信息
-    pub user: Option<UserDto>,
-}
-
-/// 注册请求
-#[derive(Serialize, Deserialize, ToSchema)]
-pub struct RegisterDto {
-    /// 用户名（3-20字符，字母/数字/下划线/连字符）
-    pub username: String,
-    /// 邮箱地址
-    pub email: String,
-    /// 密码（8-72字符，至少包含字母和数字）
-    pub password: String,
-}
-
-/// 登录请求
-#[derive(Serialize, Deserialize, ToSchema)]
-pub struct LoginDto {
-    /// 用户名
-    pub username: String,
-    /// 密码
-    pub password: String,
-}
-
-/// 更新资料请求（全量覆盖）
-#[derive(Serialize, Deserialize, ToSchema)]
-pub struct UpdateProfileDto {
-    /// 显示名称
-    #[serde(default)]
-    pub display_name: String,
-    /// 头像 URL
-    #[serde(default)]
-    pub avatar_url: String,
-    /// 个人简介
-    #[serde(default)]
-    pub bio: String,
-    /// 公司/组织
-    #[serde(default)]
-    pub company: String,
-    /// 所在地
-    #[serde(default)]
-    pub location: String,
-    /// 个人网站
-    #[serde(default)]
-    pub website: String,
-    /// 社交链接
-    #[serde(default)]
-    pub social_links: Vec<SocialLinkDto>,
-}
-
-/// 用户列表响应
-#[derive(Serialize, Deserialize, ToSchema)]
-pub struct ListUsersDto {
-    pub users: Vec<UserDto>,
-    pub next_page_token: String,
-    pub total_count: i32,
-}
-
-/// 用户列表查询参数
-#[derive(Deserialize, ToSchema)]
-pub struct ListUsersQuery {
-    /// 搜索关键词
-    #[serde(default)]
-    pub query: String,
-    /// 每页大小（默认 20，最大 100）
-    #[serde(default = "default_page_size")]
-    pub page_size: i32,
-    /// 分页游标
-    #[serde(default)]
-    pub page_token: String,
-}
-
-fn default_page_size() -> i32 {
-    20
-}
-
-/// API 错误响应
-#[derive(Serialize, Deserialize, ToSchema)]
-pub struct ApiError {
-    pub code: u32,
-    pub message: String,
-}
+use super::helpers;
 
 // ────────────────────────────────────────────
-// 共享状态 + 工具函数
+// Re-export DTO types for Swagger schema registration
+// ────────────────────────────────────────────
+
+pub use crate::dto::common::ApiError;
+pub use crate::dto::user::{
+    UserDto, SocialLinkDto, GetUserDto as GetUserDtoSchema,
+    AuthDto as AuthDtoSchema, RegisterDto as RegisterDtoSchema,
+    LoginDto as LoginDtoSchema, UpdateProfileDto as UpdateProfileDtoSchema,
+    ListUsersDto as ListUsersDtoSchema, ListUsersQuery as ListUsersQuerySchema,
+};
+
+// ────────────────────────────────────────────
+// 共享状态
 // ────────────────────────────────────────────
 
 #[derive(Clone)]
@@ -172,62 +52,13 @@ pub struct RestProxyState {
     pub pipeline: Arc<InterceptorPipeline>,
 }
 
-fn timestamp_to_string(ts: &prost_types::Timestamp) -> String {
-    let secs = ts.seconds;
-    let nanos = ts.nanos;
-    format!("{secs}.{nanos:09}")
-}
-
-fn user_to_dto(user: shared::proto::User) -> UserDto {
-    UserDto {
-        id: user.id,
-        username: user.username,
-        email: user.email,
-        display_name: user.display_name,
-        avatar_url: user.avatar_url,
-        bio: user.bio,
-        created_at: user.created_at.as_ref().map(timestamp_to_string),
-        updated_at: user.updated_at.as_ref().map(timestamp_to_string),
-        company: user.company,
-        location: user.location,
-        website: user.website,
-        social_links: user.social_links.into_iter().map(|l| SocialLinkDto { platform: l.platform, url: l.url }).collect(),
-    }
-}
-
-fn headers_to_metadata(headers: &axum::http::HeaderMap) -> MetadataMap {
-    MetadataMap::from_headers(headers.clone())
-}
-
-fn status_to_response(status: tonic::Status) -> axum::response::Response {
-    let http_status = match status.code() {
-        tonic::Code::NotFound => StatusCode::NOT_FOUND,
-        tonic::Code::Unavailable => StatusCode::SERVICE_UNAVAILABLE,
-        tonic::Code::InvalidArgument => StatusCode::BAD_REQUEST,
-        tonic::Code::Unauthenticated => StatusCode::UNAUTHORIZED,
-        tonic::Code::PermissionDenied => StatusCode::FORBIDDEN,
-        tonic::Code::AlreadyExists => StatusCode::CONFLICT,
-        tonic::Code::DeadlineExceeded => StatusCode::GATEWAY_TIMEOUT,
-        tonic::Code::ResourceExhausted => StatusCode::TOO_MANY_REQUESTS,
-        _ => StatusCode::INTERNAL_SERVER_ERROR,
-    };
-    (
-        http_status,
-        Json(serde_json::json!({
-            "code": http_status.as_u16(),
-            "message": status.message()
-        })),
-    )
-        .into_response()
-}
-
 /// 获取 gRPC client
 async fn get_client(
     state: &RestProxyState,
 ) -> Result<UserServiceClient<tonic::transport::Channel>, axum::response::Response> {
     state
         .resolver
-        .get_channel("svc-user")
+        .get_channel(shared::constants::SVC_USER)
         .await
         .map(UserServiceClient::new)
         .map_err(|e| {
@@ -258,7 +89,9 @@ pub async fn get_user(
 ) -> impl IntoResponse {
     info!(user_id = %user_id, "REST: GetUser");
     let mut ctx = RpcContext::new("user", "get_user");
-    if let Err(e) = state.pipeline.run_pre(&mut ctx, &headers_to_metadata(&headers)).await {
+    let auth = helpers::extract_bearer(&headers);
+    let metadata = helpers::build_metadata(auth.as_deref());
+    if let Err(e) = state.pipeline.run_pre(&mut ctx, &metadata).await {
         return status_to_response(e);
     }
     let mut client = match get_client(&state).await {
@@ -292,7 +125,9 @@ pub async fn get_user_by_username(
 ) -> impl IntoResponse {
     info!(username = %username, "REST: GetUserByUsername");
     let mut ctx = RpcContext::new("user", "get_user_by_username");
-    if let Err(e) = state.pipeline.run_pre(&mut ctx, &headers_to_metadata(&headers)).await {
+    let auth = helpers::extract_bearer(&headers);
+    let metadata = helpers::build_metadata(auth.as_deref());
+    if let Err(e) = state.pipeline.run_pre(&mut ctx, &metadata).await {
         return status_to_response(e);
     }
     let mut client = match get_client(&state).await {
@@ -329,7 +164,9 @@ pub async fn list_users(
 ) -> impl IntoResponse {
     info!(query = %params.query, "REST: ListUsers");
     let mut ctx = RpcContext::new("user", "list_users");
-    if let Err(e) = state.pipeline.run_pre(&mut ctx, &headers_to_metadata(&headers)).await {
+    let auth = helpers::extract_bearer(&headers);
+    let metadata = helpers::build_metadata(auth.as_deref());
+    if let Err(e) = state.pipeline.run_pre(&mut ctx, &metadata).await {
         return status_to_response(e);
     }
     let mut client = match get_client(&state).await {
@@ -381,7 +218,9 @@ pub async fn register(
 ) -> impl IntoResponse {
     info!(username = %body.username, "REST: Register");
     let mut ctx = RpcContext::new("user", "register");
-    if let Err(e) = state.pipeline.run_pre(&mut ctx, &headers_to_metadata(&headers)).await {
+    let auth = helpers::extract_bearer(&headers);
+    let metadata = helpers::build_metadata(auth.as_deref());
+    if let Err(e) = state.pipeline.run_pre(&mut ctx, &metadata).await {
         return status_to_response(e);
     }
     let mut client = match get_client(&state).await {
@@ -428,7 +267,9 @@ pub async fn login(
 ) -> impl IntoResponse {
     info!(username = %body.username, "REST: Login");
     let mut ctx = RpcContext::new("user", "login");
-    if let Err(e) = state.pipeline.run_pre(&mut ctx, &headers_to_metadata(&headers)).await {
+    let auth = helpers::extract_bearer(&headers);
+    let metadata = helpers::build_metadata(auth.as_deref());
+    if let Err(e) = state.pipeline.run_pre(&mut ctx, &metadata).await {
         return status_to_response(e);
     }
     let mut client = match get_client(&state).await {
@@ -473,19 +314,18 @@ pub async fn get_current_user(
 ) -> impl IntoResponse {
     info!("REST: GetCurrentUser");
     let mut ctx = RpcContext::new("user", "get_current_user");
-    if let Err(e) = state.pipeline.run_pre(&mut ctx, &headers_to_metadata(&headers)).await {
+    let auth = helpers::extract_bearer(&headers);
+    let metadata = helpers::build_metadata(auth.as_deref());
+    if let Err(e) = state.pipeline.run_pre(&mut ctx, &metadata).await {
         return status_to_response(e);
     }
     let mut client = match get_client(&state).await {
         Ok(c) => c,
         Err(r) => return r,
     };
-    // 透传 x-user-id
     let mut req = tonic::Request::new(GetCurrentUserRequest {});
     if let Some(uid) = ctx.attrs.get("user_id") {
-        if let Ok(val) = uid.parse() {
-            req.metadata_mut().insert("x-user-id", val);
-        }
+        helpers::inject_user_id_metadata(&mut req, uid);
     }
     let result = client.get_current_user(req).await;
     let post_result = result.as_ref().map(|_| ()).map_err(|e| e.clone());
@@ -515,14 +355,15 @@ pub async fn update_profile(
 ) -> impl IntoResponse {
     info!("REST: UpdateProfile");
     let mut ctx = RpcContext::new("user", "update_profile");
-    if let Err(e) = state.pipeline.run_pre(&mut ctx, &headers_to_metadata(&headers)).await {
+    let auth = helpers::extract_bearer(&headers);
+    let metadata = helpers::build_metadata(auth.as_deref());
+    if let Err(e) = state.pipeline.run_pre(&mut ctx, &metadata).await {
         return status_to_response(e);
     }
     let mut client = match get_client(&state).await {
         Ok(c) => c,
         Err(r) => return r,
     };
-    // 透传 x-user-id
     let mut req = tonic::Request::new(UpdateProfileRequest {
         display_name: body.display_name,
         avatar_url: body.avatar_url,
@@ -533,9 +374,7 @@ pub async fn update_profile(
         social_links: body.social_links.into_iter().map(|l| shared::proto::SocialLink { platform: l.platform, url: l.url }).collect(),
     });
     if let Some(uid) = ctx.attrs.get("user_id") {
-        if let Ok(val) = uid.parse() {
-            req.metadata_mut().insert("x-user-id", val);
-        }
+        helpers::inject_user_id_metadata(&mut req, uid);
     }
     let result = client.update_profile(req).await;
     let post_result = result.as_ref().map(|_| ()).map_err(|e| e.clone());
@@ -556,14 +395,11 @@ pub fn user_rest_router(
 ) -> axum::Router {
     let state = RestProxyState { resolver, pipeline };
     axum::Router::new()
-        // 用户查询（公开）
         .route("/api/v1/users", axum::routing::get(list_users))
         .route("/api/v1/users/{user_id}", axum::routing::get(get_user))
         .route("/api/v1/users/by-username/{username}", axum::routing::get(get_user_by_username))
-        // 认证（公开）
         .route("/api/v1/auth/register", axum::routing::post(register))
         .route("/api/v1/auth/login", axum::routing::post(login))
-        // 认证用户操作（需 token）
         .route("/api/v1/auth/me", axum::routing::get(get_current_user))
         .route("/api/v1/auth/profile", axum::routing::put(update_profile))
         .with_state(state)

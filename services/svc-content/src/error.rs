@@ -1,25 +1,7 @@
-use thiserror::Error;
-use tonic::Status;
+//! svc-content 服务级错误
+//!
+//! 当前直接使用 tonic::Status 作为错误类型。
+//! 保留此文件作为未来扩展点（如需要更细粒度的错误枚举）。
 
-/// svc-content 服务级错误
-#[derive(Error, Debug)]
-pub enum SvcContentError {
-    #[error("文章未找到: {0}")]
-    NotFound(String),
-
-    #[error("无权限: {0}")]
-    PermissionDenied(String),
-
-    #[error("内部错误: {0}")]
-    Internal(String),
-}
-
-impl From<SvcContentError> for Status {
-    fn from(err: SvcContentError) -> Self {
-        match err {
-            SvcContentError::NotFound(msg) => Status::not_found(msg),
-            SvcContentError::PermissionDenied(msg) => Status::permission_denied(msg),
-            SvcContentError::Internal(msg) => Status::internal(msg),
-        }
-    }
-}
+// 目前所有 handler 和 service 直接返回 tonic::Status，
+// 此文件暂无内容。后续如需自定义错误枚举，在此扩展。

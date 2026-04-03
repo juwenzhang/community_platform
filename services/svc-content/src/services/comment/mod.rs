@@ -6,6 +6,7 @@ use sea_orm::DatabaseConnection;
 use tonic::{Request, Response, Status};
 use tracing::info;
 
+use shared::messaging::NatsClient;
 use shared::proto::comment_service_server::CommentService;
 use shared::proto::{
     CreateCommentRequest, CreateCommentResponse, DeleteCommentRequest, DeleteCommentResponse,
@@ -14,31 +15,21 @@ use shared::proto::{
 
 use crate::handlers::comment;
 
-fn db_unavailable() -> Status {
-    Status::unavailable("Database not available, service running in degraded mode")
-}
-
-fn extract_user_id(metadata: &tonic::metadata::MetadataMap) -> Result<String, Status> {
-    metadata
-        .get("x-user-id")
-        .and_then(|v| v.to_str().ok())
-        .map(|s| s.to_string())
-        .ok_or_else(|| Status::unauthenticated("Missing x-user-id metadata"))
-}
-
 #[derive(Clone)]
 pub struct CommentServiceImpl {
     db: Option<Arc<DatabaseConnection>>,
-    nats: Option<async_nats::Client>,
+    nats: Option<Arc<NatsClient>>,
 }
 
 impl CommentServiceImpl {
-    pub fn new(db: Option<Arc<DatabaseConnection>>, nats: Option<async_nats::Client>) -> Self {
+    pub fn new(db: Option<Arc<DatabaseConnection>>, nats: Option<Arc<NatsClient>>) -> Self {
         Self { db, nats }
     }
 
     fn db(&self) -> Result<&DatabaseConnection, Status> {
-        self.db.as_deref().ok_or_else(db_unavailable)
+        self.db
+            .as_deref()
+            .ok_or_else(shared::extract::db_unavailable)
     }
 }
 
@@ -48,7 +39,7 @@ impl CommentService for CommentServiceImpl {
         &self,
         request: Request<CreateCommentRequest>,
     ) -> Result<Response<CreateCommentResponse>, Status> {
-        let author_id = extract_user_id(request.metadata())?;
+        let author_id = shared::extract::extract_user_id(&request)?;
         let req = request.into_inner();
         info!(author_id = %author_id, article_id = %req.article_id, "CreateComment");
 
@@ -73,10 +64,8 @@ impl CommentService for CommentServiceImpl {
                     "mentions": mentions,
                 });
                 let payload_bytes = serde_json::to_vec(&event_payload).unwrap_or_default();
-                if let Err(e) = nats
-                    .publish("luhanxin.events.comment.mentioned", payload_bytes.into())
-                    .await
-                {
+                let subject = format!("{}.comment.mentioned", shared::constants::NATS_EVENTS_PREFIX);
+                if let Err(e) = nats.publish_bytes(&subject, payload_bytes).await {
                     tracing::warn!(error = %e, "Failed to publish comment.mentioned event");
                 }
             }
@@ -116,7 +105,7 @@ impl CommentService for CommentServiceImpl {
         &self,
         request: Request<DeleteCommentRequest>,
     ) -> Result<Response<DeleteCommentResponse>, Status> {
-        let caller_id = extract_user_id(request.metadata())?;
+        let caller_id = shared::extract::extract_user_id(&request)?;
         let req = request.into_inner();
         info!(caller_id = %caller_id, comment_id = %req.comment_id, "DeleteComment");
 

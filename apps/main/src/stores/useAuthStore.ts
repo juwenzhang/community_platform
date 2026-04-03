@@ -1,13 +1,9 @@
-import { createClient } from '@connectrpc/connect';
 import type { AuthResponse, User } from '@luhanxin/shared-types';
-import { UserService } from '@luhanxin/shared-types';
 import { create } from 'zustand';
 
-import { transport } from '@/lib/connect';
+import { userClient } from '@/lib/grpc-clients';
 
 const TOKEN_KEY = 'luhanxin_auth_token';
-
-const userClient = createClient(UserService, transport);
 
 interface AuthState {
   token: string | null;

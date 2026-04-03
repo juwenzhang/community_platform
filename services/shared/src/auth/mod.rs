@@ -27,11 +27,11 @@ pub struct AuthConfig {
 impl AuthConfig {
     /// 从环境变量加载配置
     ///
-    /// - `JWT_SECRET`：签名密钥（默认值仅用于开发环境）
+    /// - `JWT_SECRET`：签名密钥（必须设置，无默认值）
     /// - `JWT_EXPIRY_HOURS`：过期时间，默认 168 小时（7 天）
     pub fn from_env() -> Self {
         let secret = std::env::var("JWT_SECRET")
-            .unwrap_or_else(|_| "dev_jwt_secret_luhanxin_2024_change_in_production".to_string());
+            .expect("JWT_SECRET must be set — refusing to start with default secret");
 
         let expiry_hours = std::env::var("JWT_EXPIRY_HOURS")
             .ok()

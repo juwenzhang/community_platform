@@ -1,12 +1,8 @@
-import { createClient } from '@connectrpc/connect';
 import type { Comment } from '@luhanxin/shared-types';
-import { CommentService } from '@luhanxin/shared-types';
 import { create } from 'zustand';
 
 import { antdMessage } from '@/lib/antdStatic';
-import { transport } from '@/lib/connect';
-
-const commentClient = createClient(CommentService, transport);
+import { commentClient } from '@/lib/grpc-clients';
 
 interface CommentState {
   // 数据

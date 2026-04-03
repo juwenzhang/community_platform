@@ -13,6 +13,8 @@ use uuid::Uuid;
 use shared::entity::comments;
 use shared::entity::prelude::Comments;
 use shared::proto::Comment;
+use shared::convert::{datetime_to_timestamp, user_model_to_proto};
+use shared::extract::{parse_uuid, db_error};
 
 // ────────────────────── 创建评论 ──────────────────────
 
@@ -120,7 +122,7 @@ pub async fn list_comments(
     _page_token: &str,
 ) -> Result<(Vec<Comment>, String, i32), Status> {
     let article_uuid = parse_uuid(article_id)?;
-    let limit = page_size.clamp(1, 100) as u64;
+    let limit = page_size.clamp(shared::constants::MIN_PAGE_SIZE, shared::constants::MAX_PAGE_SIZE) as u64;
 
     // 查询顶级评论（parent_id IS NULL）
     let top_comments = Comments::find()
@@ -309,52 +311,4 @@ fn comment_model_to_proto(
         reply_to_author,
         replies,
     }
-}
-
-fn user_model_to_proto(model: shared::entity::users::Model) -> shared::proto::User {
-    let social_links = model
-        .social_links
-        .as_array()
-        .map(|arr| {
-            arr.iter()
-                .filter_map(|v| {
-                    let platform = v.get("platform")?.as_str()?.to_string();
-                    let url = v.get("url")?.as_str()?.to_string();
-                    Some(shared::proto::SocialLink { platform, url })
-                })
-                .collect()
-        })
-        .unwrap_or_default();
-
-    shared::proto::User {
-        id: model.id.to_string(),
-        username: model.username,
-        email: model.email,
-        display_name: model.display_name,
-        avatar_url: model.avatar_url,
-        bio: model.bio,
-        created_at: Some(datetime_to_timestamp(model.created_at)),
-        updated_at: Some(datetime_to_timestamp(model.updated_at)),
-        company: model.company,
-        location: model.location,
-        website: model.website,
-        social_links,
-    }
-}
-
-fn datetime_to_timestamp(dt: chrono::DateTime<chrono::FixedOffset>) -> prost_types::Timestamp {
-    prost_types::Timestamp {
-        seconds: dt.timestamp(),
-        nanos: dt.timestamp_subsec_nanos() as i32,
-    }
-}
-
-fn parse_uuid(id: &str) -> Result<Uuid, Status> {
-    Uuid::parse_str(id)
-        .map_err(|_| Status::invalid_argument(format!("Invalid UUID format: '{id}'")))
-}
-
-fn db_error(e: sea_orm::DbErr) -> Status {
-    tracing::error!(error = %e, "Database query failed");
-    Status::internal("Database query failed")
 }

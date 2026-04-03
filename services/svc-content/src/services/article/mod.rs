@@ -26,7 +26,7 @@ fn db_unavailable() -> Status {
 /// 从 request metadata 中提取 x-user-id（Gateway 透传的认证用户 ID）
 fn extract_user_id(metadata: &tonic::metadata::MetadataMap) -> Result<String, Status> {
     metadata
-        .get("x-user-id")
+        .get(shared::constants::METADATA_USER_ID)
         .and_then(|v| v.to_str().ok())
         .map(|s| s.to_string())
         .ok_or_else(|| Status::unauthenticated("Missing x-user-id metadata"))
@@ -35,7 +35,7 @@ fn extract_user_id(metadata: &tonic::metadata::MetadataMap) -> Result<String, St
 /// 从 metadata 尝试获取 x-user-id（可选，公开接口不要求）
 fn try_extract_user_id(metadata: &tonic::metadata::MetadataMap) -> Option<String> {
     metadata
-        .get("x-user-id")
+        .get(shared::constants::METADATA_USER_ID)
         .and_then(|v| v.to_str().ok())
         .map(|s| s.to_string())
 }
@@ -77,7 +77,7 @@ impl ArticleService for ArticleServiceImpl {
         &self,
         request: Request<ListArticlesRequest>,
     ) -> Result<Response<ListArticlesResponse>, Status> {
-        let caller_id = try_extract_user_id(request.metadata());
+        let caller_id = shared::extract::try_extract_user_id(&request);
         let req = request.into_inner();
         let pagination = req.pagination.unwrap_or_default();
         info!(author_id = %req.author_id, query = %req.query, tag = %req.tag, "ListArticles");
@@ -109,7 +109,7 @@ impl ArticleService for ArticleServiceImpl {
         &self,
         request: Request<CreateArticleRequest>,
     ) -> Result<Response<CreateArticleResponse>, Status> {
-        let author_id = extract_user_id(request.metadata())?;
+        let author_id = shared::extract::extract_user_id(&request)?;
         let req = request.into_inner();
         info!(author_id = %author_id, title = %req.title, "CreateArticle");
 

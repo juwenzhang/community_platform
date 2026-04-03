@@ -28,10 +28,10 @@ impl GatewayConfig {
         // Fallback URLs（环境变量格式：SVC_USER_URL, SVC_CONTENT_URL 等）
         let mut fallback_urls = HashMap::new();
         if let Ok(url) = std::env::var("SVC_USER_URL") {
-            fallback_urls.insert("svc-user".to_string(), url);
+            fallback_urls.insert(shared::constants::SVC_USER.to_string(), url);
         } else {
             fallback_urls.insert(
-                "svc-user".to_string(),
+                shared::constants::SVC_USER.to_string(),
                 "http://127.0.0.1:50051".to_string(),
             );
         }

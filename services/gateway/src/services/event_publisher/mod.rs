@@ -63,7 +63,7 @@ impl EventPublisher {
             retry_count: 0,
         };
 
-        let subject = format!("luhanxin.events.{event_type}");
+        let subject = format!("{}.{event_type}", shared::constants::NATS_EVENTS_PREFIX);
 
         nats.publish(&subject, &envelope).await.map_err(|e| {
             warn!(error = %e, event_type = %event_type, "Failed to publish event");

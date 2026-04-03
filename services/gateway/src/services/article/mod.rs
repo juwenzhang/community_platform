@@ -36,13 +36,13 @@ impl GatewayArticleService {
     async fn article_client(
         &self,
     ) -> Result<ArticleServiceClient<tonic::transport::Channel>, Status> {
-        let channel = self.resolver.get_channel("svc-content").await?;
+        let channel = self.resolver.get_channel(shared::constants::SVC_CONTENT).await?;
         Ok(ArticleServiceClient::new(channel))
     }
 
     /// 获取 svc-user gRPC client
     async fn user_client(&self) -> Result<UserServiceClient<tonic::transport::Channel>, Status> {
-        let channel = self.resolver.get_channel("svc-user").await?;
+        let channel = self.resolver.get_channel(shared::constants::SVC_USER).await?;
         Ok(UserServiceClient::new(channel))
     }
 
@@ -55,7 +55,7 @@ impl GatewayArticleService {
 
         let mut req = Request::new(inner);
         req.metadata_mut().insert(
-            "x-user-id",
+            shared::constants::METADATA_USER_ID,
             user_id
                 .parse()
                 .map_err(|_| Status::internal("Invalid user_id format"))?,
@@ -68,7 +68,7 @@ impl GatewayArticleService {
         let mut req = Request::new(inner);
         if let Some(user_id) = ctx.attrs.get("user_id") {
             if let Ok(val) = user_id.parse() {
-                req.metadata_mut().insert("x-user-id", val);
+                req.metadata_mut().insert(shared::constants::METADATA_USER_ID, val);
             }
         }
         req

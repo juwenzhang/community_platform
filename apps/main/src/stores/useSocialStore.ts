@@ -1,11 +1,7 @@
-import { createClient } from '@connectrpc/connect';
-import { SocialService } from '@luhanxin/shared-types';
 import { create } from 'zustand';
 
 import { antdMessage } from '@/lib/antdStatic';
-import { transport } from '@/lib/connect';
-
-const socialClient = createClient(SocialService, transport);
+import { socialClient } from '@/lib/grpc-clients';
 
 interface SocialState {
   liked: boolean;

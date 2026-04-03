@@ -33,7 +33,7 @@ impl GatewayUserService {
 
     /// 获取 svc-user gRPC client
     async fn client(&self) -> Result<UserServiceClient<tonic::transport::Channel>, Status> {
-        let channel = self.resolver.get_channel("svc-user").await?;
+        let channel = self.resolver.get_channel(shared::constants::SVC_USER).await?;
         Ok(UserServiceClient::new(channel))
     }
 
@@ -46,7 +46,7 @@ impl GatewayUserService {
 
         let mut req = Request::new(inner);
         req.metadata_mut().insert(
-            "x-user-id",
+            shared::constants::METADATA_USER_ID,
             user_id
                 .parse()
                 .map_err(|_| Status::internal("Invalid user_id format"))?,
