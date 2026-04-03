@@ -7,10 +7,11 @@ import {
   UndoOutlined,
 } from '@ant-design/icons';
 import { ArticleStatus } from '@luhanxin/shared-types';
-import { Button, message, Popconfirm } from 'antd';
+import { Button, Popconfirm } from 'antd';
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ArticleEditor from '@/components/ArticleEditor';
+import { antdMessage } from '@/lib/antdStatic';
 import { useArticleStore } from '@/stores/useArticleStore';
 import { useAuthStore } from '@/stores/useAuthStore';
 import styles from './manage.module.less';
@@ -93,7 +94,7 @@ export default function ArticleManagePage() {
           status: data.status,
           categories: data.categories,
         });
-        message.success('文章更新成功');
+        antdMessage.success('文章更新成功');
       } else {
         await createArticle({
           title: data.title,
@@ -102,14 +103,14 @@ export default function ArticleManagePage() {
           status: data.status,
           categories: data.categories,
         });
-        message.success(data.status === 2 ? '文章发布成功' : '草稿保存成功');
+        antdMessage.success(data.status === 2 ? '文章发布成功' : '草稿保存成功');
       }
       setEditorOpen(false);
       setEditingArticleId(null);
       loadMyArticles();
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : '操作失败';
-      message.error(msg);
+      antdMessage.error(msg);
     } finally {
       setSaving(false);
     }
@@ -119,10 +120,10 @@ export default function ArticleManagePage() {
   const handlePublish = async (articleId: string) => {
     try {
       await updateArticle(articleId, { status: ArticleStatus.PUBLISHED });
-      message.success('发布成功');
+      antdMessage.success('发布成功');
       loadMyArticles();
     } catch (err: unknown) {
-      message.error(err instanceof Error ? err.message : '发布失败');
+      antdMessage.error(err instanceof Error ? err.message : '发布失败');
     }
   };
 
@@ -130,10 +131,10 @@ export default function ArticleManagePage() {
   const handleUnpublish = async (articleId: string) => {
     try {
       await updateArticle(articleId, { status: ArticleStatus.DRAFT });
-      message.success('已撤回为草稿');
+      antdMessage.success('已撤回为草稿');
       loadMyArticles();
     } catch (err: unknown) {
-      message.error(err instanceof Error ? err.message : '撤回失败');
+      antdMessage.error(err instanceof Error ? err.message : '撤回失败');
     }
   };
 
@@ -141,9 +142,9 @@ export default function ArticleManagePage() {
   const handleDelete = async (articleId: string) => {
     try {
       await deleteArticle(articleId);
-      message.success('已删除');
+      antdMessage.success('已删除');
     } catch (err: unknown) {
-      message.error(err instanceof Error ? err.message : '删除失败');
+      antdMessage.error(err instanceof Error ? err.message : '删除失败');
     }
   };
 

@@ -1,7 +1,8 @@
-import { message, Skeleton } from 'antd';
+import { Skeleton } from 'antd';
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import ArticleEditor from '@/components/ArticleEditor';
+import { antdMessage } from '@/lib/antdStatic';
 import { useArticleStore } from '@/stores/useArticleStore';
 import { useAuthStore } from '@/stores/useAuthStore';
 
@@ -69,11 +70,11 @@ export default function EditArticlePage() {
         status: data.status,
         categories: data.categories,
       });
-      message.success('文章更新成功');
+      antdMessage.success('文章更新成功');
       navigate(`/post/${id}`);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : '更新失败';
-      message.error(msg);
+      antdMessage.error(msg);
     } finally {
       setSaving(false);
     }

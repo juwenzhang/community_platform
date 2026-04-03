@@ -1,9 +1,10 @@
 import { LockOutlined, MailOutlined, UserOutlined } from '@ant-design/icons';
 import { ConnectError } from '@connectrpc/connect';
-import { Alert, Button, Form, Input, message } from 'antd';
+import { Alert, Button, Form, Input } from 'antd';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+import { antdMessage } from '@/lib/antdStatic';
 import { useAuthStore } from '@/stores/useAuthStore';
 import styles from '../../auth.module.less';
 
@@ -24,7 +25,7 @@ export default function RegisterForm() {
     setError(null);
     try {
       await register(values.username, values.email, values.password);
-      message.success('注册成功');
+      antdMessage.success('注册成功');
       navigate('/');
     } catch (e) {
       if (e instanceof ConnectError) {

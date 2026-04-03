@@ -1,9 +1,10 @@
 import { LockOutlined, UserOutlined } from '@ant-design/icons';
 import { ConnectError } from '@connectrpc/connect';
-import { Alert, Button, Form, Input, message } from 'antd';
+import { Alert, Button, Form, Input } from 'antd';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+import { antdMessage } from '@/lib/antdStatic';
 import { useAuthStore } from '@/stores/useAuthStore';
 import styles from '../../auth.module.less';
 
@@ -22,7 +23,7 @@ export default function LoginForm() {
     setError(null);
     try {
       await login(values.username, values.password);
-      message.success('登录成功');
+      antdMessage.success('登录成功');
       navigate('/');
     } catch (e) {
       if (e instanceof ConnectError) {

@@ -1,9 +1,10 @@
 import { DeleteOutlined, PlusOutlined, SaveOutlined } from '@ant-design/icons';
 import { ConnectError } from '@connectrpc/connect';
 import type { User } from '@luhanxin/shared-types';
-import { Alert, Button, Form, Input, message, Select } from 'antd';
+import { Alert, Button, Form, Input, Select } from 'antd';
 import { useEffect, useState } from 'react';
 
+import { antdMessage } from '@/lib/antdStatic';
 import { useAuthStore } from '@/stores/useAuthStore';
 import styles from '../../profile.module.less';
 
@@ -67,7 +68,7 @@ export default function EditProfileForm({ user, onSuccess }: EditProfileFormProp
 
   const handleAddLink = () => {
     if (socialLinks.length >= MAX_SOCIAL_LINKS) {
-      message.warning(`最多添加 ${MAX_SOCIAL_LINKS} 条社交链接`);
+      antdMessage.warning(`最多添加 ${MAX_SOCIAL_LINKS} 条社交链接`);
       return;
     }
     setSocialLinks([...socialLinks, { _key: nextSocialKey(), platform: 'github', url: '' }]);
@@ -125,7 +126,7 @@ export default function EditProfileForm({ user, onSuccess }: EditProfileFormProp
         socialLinks: socialLinks.filter((l) => l.url.trim()),
       });
 
-      message.success('资料已更新');
+      antdMessage.success('资料已更新');
       if (resp.user) {
         updateUser(resp.user);
       }
