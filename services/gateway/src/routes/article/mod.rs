@@ -1,7 +1,4 @@
 //! 文章 REST Proxy
-//!
-//! 将 gRPC ArticleService 方法暴露为 REST + JSON 端点，
-//! 自动集成到 Swagger UI 文档中。
 
 use std::sync::Arc;
 
@@ -9,10 +6,7 @@ use axum::Json;
 use axum::extract::{Path, Query, State};
 use axum::http::StatusCode;
 use axum::response::IntoResponse;
-use serde::{Deserialize, Serialize};
-use tonic::metadata::MetadataMap;
 use tracing::{error, info};
-use utoipa::ToSchema;
 
 use shared::proto::article_service_client::ArticleServiceClient;
 use shared::proto::{
@@ -20,89 +14,26 @@ use shared::proto::{
     UpdateArticleRequest,
 };
 
+use crate::dto::common::status_to_response;
+use crate::dto::article::{
+    ArticleDto, CreateArticleDto, GetArticleDto, ListArticlesDto, ListArticlesQuery,
+    UpdateArticleDto, proto_to_article_dto,
+};
 use crate::interceptors::{InterceptorPipeline, RpcContext};
 use crate::resolver::ServiceResolver;
 
-// ────────────────────────────────────────────
-// Swagger DTO
-// ────────────────────────────────────────────
+use super::helpers;
 
-/// 文章信息
-#[derive(Serialize, Deserialize, ToSchema)]
-pub struct ArticleDto {
-    pub id: String,
-    pub title: String,
-    pub slug: String,
-    pub summary: String,
-    pub content: String,
-    pub author_id: String,
-    pub tags: Vec<String>,
-    pub view_count: i32,
-    pub like_count: i32,
-    pub status: i32,
-    pub created_at: Option<String>,
-    pub updated_at: Option<String>,
-    pub published_at: Option<String>,
-    pub author: Option<super::super::routes::user::UserDto>,
-}
-
-/// 获取文章响应
-#[derive(Serialize, Deserialize, ToSchema)]
-pub struct GetArticleDto {
-    pub article: Option<ArticleDto>,
-}
-
-/// 文章列表响应
-#[derive(Serialize, Deserialize, ToSchema)]
-pub struct ListArticlesDto {
-    pub articles: Vec<ArticleDto>,
-    pub next_page_token: String,
-    pub total_count: i32,
-}
-
-/// 文章列表查询参数
-#[derive(Deserialize, ToSchema)]
-pub struct ListArticlesQuery {
-    pub page_size: Option<i32>,
-    pub page_token: Option<String>,
-    pub author_id: Option<String>,
-    pub query: Option<String>,
-    pub tag: Option<String>,
-    pub categories: Option<Vec<i32>>,
-    /// 排序方式：0=推荐(默认), 1=推荐, 2=最新
-    pub sort: Option<i32>,
-}
-
-/// 创建文章请求
-#[derive(Deserialize, ToSchema)]
-pub struct CreateArticleDto {
-    pub title: String,
-    pub content: String,
-    pub summary: Option<String>,
-    pub tags: Option<Vec<String>>,
-    pub status: Option<i32>,
-    pub categories: Option<Vec<i32>>,
-}
-
-/// 更新文章请求
-#[derive(Deserialize, ToSchema)]
-pub struct UpdateArticleDto {
-    pub title: Option<String>,
-    pub content: Option<String>,
-    pub summary: Option<String>,
-    pub tags: Option<Vec<String>>,
-    pub status: Option<i32>,
-    pub categories: Option<Vec<i32>>,
-}
-
-/// API 错误
-#[derive(Serialize, ToSchema)]
-pub struct ApiError {
-    pub error: String,
-}
+// Re-export for Swagger
+pub use crate::dto::article::{
+    ArticleDto as ArticleDtoSchema, GetArticleDto as GetArticleDtoSchema,
+    ListArticlesDto as ListArticlesDtoSchema, ListArticlesQuery as ListArticlesQuerySchema,
+    CreateArticleDto as CreateArticleDtoSchema, UpdateArticleDto as UpdateArticleDtoSchema,
+};
+pub use crate::dto::common::ApiError;
 
 // ────────────────────────────────────────────
-// 路由构建
+// 共享状态 + 辅助函数
 // ────────────────────────────────────────────
 
 #[derive(Clone)]
@@ -111,79 +42,14 @@ pub struct ArticleRouterState {
     pipeline: Arc<InterceptorPipeline>,
 }
 
-pub fn article_rest_router(
-    resolver: Arc<ServiceResolver>,
-    pipeline: Arc<InterceptorPipeline>,
-) -> axum::Router {
-    let state = ArticleRouterState { resolver, pipeline };
-
-    axum::Router::new()
-        .route("/api/v1/articles", axum::routing::get(list_articles).post(create_article))
-        .route("/api/v1/articles/{id}", axum::routing::get(get_article).put(update_article).delete(delete_article))
-        .with_state(state)
-}
-
-// ────────────────────────────────────────────
-// 辅助函数
-// ────────────────────────────────────────────
-
 async fn get_client(
     resolver: &ServiceResolver,
 ) -> Result<ArticleServiceClient<tonic::transport::Channel>, StatusCode> {
     let channel = resolver
-        .get_channel("svc-content")
+        .get_channel(shared::constants::SVC_CONTENT)
         .await
         .map_err(|_| StatusCode::SERVICE_UNAVAILABLE)?;
     Ok(ArticleServiceClient::new(channel))
-}
-
-fn extract_bearer(headers: &axum::http::HeaderMap) -> Option<String> {
-    headers
-        .get("authorization")
-        .and_then(|v| v.to_str().ok())
-        .map(|s| s.to_string())
-}
-
-fn build_metadata(auth_header: Option<&str>) -> MetadataMap {
-    let mut metadata = MetadataMap::new();
-    if let Some(auth) = auth_header {
-        if let Ok(val) = auth.parse() {
-            metadata.insert("authorization", val);
-        }
-    }
-    metadata
-}
-
-fn proto_to_article_dto(a: shared::proto::Article) -> ArticleDto {
-    ArticleDto {
-        id: a.id,
-        title: a.title,
-        slug: a.slug,
-        summary: a.summary,
-        content: a.content,
-        author_id: a.author_id,
-        tags: a.tags,
-        view_count: a.view_count,
-        like_count: a.like_count,
-        status: a.status,
-        created_at: a.created_at.map(|t| format!("{}",  t.seconds)),
-        updated_at: a.updated_at.map(|t| format!("{}", t.seconds)),
-        published_at: a.published_at.map(|t| format!("{}", t.seconds)),
-        author: a.author.map(|u| super::super::routes::user::UserDto {
-            id: u.id,
-            username: u.username,
-            email: u.email,
-            display_name: u.display_name,
-            avatar_url: u.avatar_url,
-            bio: u.bio,
-            created_at: u.created_at.map(|t| format!("{}", t.seconds)),
-            updated_at: u.updated_at.map(|t| format!("{}", t.seconds)),
-            company: u.company,
-            location: u.location,
-            website: u.website,
-            social_links: u.social_links.into_iter().map(|l| super::super::routes::user::SocialLinkDto { platform: l.platform, url: l.url }).collect(),
-        }),
-    }
 }
 
 // ────────────────────────────────────────────
@@ -208,9 +74,9 @@ pub async fn get_article(
     info!(article_id = %id, "REST: GetArticle");
 
     let mut ctx = RpcContext::new("article", "get_article");
-    let metadata = MetadataMap::new();
+    let metadata = tonic::metadata::MetadataMap::new();
     if let Err(e) = state.pipeline.run_pre(&mut ctx, &metadata).await {
-        return (StatusCode::INTERNAL_SERVER_ERROR, Json(serde_json::json!({"error": e.message()}))).into_response();
+        return status_to_response(e);
     }
 
     match get_client(&state.resolver).await {
@@ -218,15 +84,16 @@ pub async fn get_article(
             match client.get_article(GetArticleRequest { article_id: id }).await {
                 Ok(resp) => {
                     let article = resp.into_inner().article.map(proto_to_article_dto);
-                    Json(serde_json::json!({"article": article})).into_response()
+                    let dto = GetArticleDto { article };
+                    Json(serde_json::to_value(&dto).unwrap_or_default()).into_response()
                 }
                 Err(e) => {
                     error!(error = %e, "GetArticle failed");
-                    (StatusCode::NOT_FOUND, Json(serde_json::json!({"error": e.message()}))).into_response()
+                    status_to_response(e)
                 }
             }
         }
-        Err(code) => (code, Json(serde_json::json!({"error": "Service unavailable"}))).into_response(),
+        Err(code) => (code, Json(serde_json::json!({"code": "UNAVAILABLE", "message": "Service unavailable"}))).into_response(),
     }
 }
 
@@ -253,19 +120,18 @@ pub async fn list_articles(
 ) -> impl IntoResponse {
     info!("REST: ListArticles");
 
-    // 公开方法也过拦截器管道（日志 + 可选认证解析 user_id）
-    let auth = extract_bearer(&headers);
-    let metadata = build_metadata(auth.as_deref());
+    let auth = helpers::extract_bearer(&headers);
+    let metadata = helpers::build_metadata(auth.as_deref());
     let mut ctx = RpcContext::new("article", "list_articles");
     if let Err(e) = state.pipeline.run_pre(&mut ctx, &metadata).await {
-        return (StatusCode::INTERNAL_SERVER_ERROR, Json(serde_json::json!({"error": e.message()}))).into_response();
+        return status_to_response(e);
     }
 
     match get_client(&state.resolver).await {
         Ok(mut client) => {
             let req = ListArticlesRequest {
                 pagination: Some(shared::proto::PaginationRequest {
-                    page_size: params.page_size.unwrap_or(20),
+                    page_size: params.page_size.unwrap_or(shared::constants::DEFAULT_PAGE_SIZE),
                     page_token: params.page_token.unwrap_or_default(),
                 }),
                 author_id: params.author_id.unwrap_or_default(),
@@ -275,32 +141,29 @@ pub async fn list_articles(
                 sort: params.sort.unwrap_or(0),
             };
 
-            // 如果认证成功，将 user_id 传给下游（可选，用于草稿可见性）
             let mut grpc_req = tonic::Request::new(req);
             if let Some(user_id) = ctx.attrs.get("user_id") {
-                if let Ok(val) = user_id.parse() {
-                    grpc_req.metadata_mut().insert("x-user-id", val);
-                }
+                helpers::inject_user_id_metadata(&mut grpc_req, user_id);
             }
 
             match client.list_articles(grpc_req).await {
                 Ok(resp) => {
                     let inner = resp.into_inner();
                     let pagination = inner.pagination.unwrap_or_default();
-                    let articles: Vec<_> = inner.articles.into_iter().map(proto_to_article_dto).collect();
-                    Json(serde_json::json!({
-                        "articles": articles,
-                        "next_page_token": pagination.next_page_token,
-                        "total_count": pagination.total_count,
-                    })).into_response()
+                    let dto = ListArticlesDto {
+                        articles: inner.articles.into_iter().map(proto_to_article_dto).collect(),
+                        next_page_token: pagination.next_page_token,
+                        total_count: pagination.total_count,
+                    };
+                    Json(serde_json::to_value(&dto).unwrap_or_default()).into_response()
                 }
                 Err(e) => {
                     error!(error = %e, "ListArticles failed");
-                    (StatusCode::INTERNAL_SERVER_ERROR, Json(serde_json::json!({"error": e.message()}))).into_response()
+                    status_to_response(e)
                 }
             }
         }
-        Err(code) => (code, Json(serde_json::json!({"error": "Service unavailable"}))).into_response(),
+        Err(code) => (code, Json(serde_json::json!({"code": "UNAVAILABLE", "message": "Service unavailable"}))).into_response(),
     }
 }
 
@@ -323,17 +186,17 @@ pub async fn create_article(
 ) -> impl IntoResponse {
     info!("REST: CreateArticle");
 
-    let auth = extract_bearer(&headers);
-    let metadata = build_metadata(auth.as_deref());
+    let auth = helpers::extract_bearer(&headers);
+    let metadata = helpers::build_metadata(auth.as_deref());
 
     let mut ctx = RpcContext::new("article", "create_article");
     if let Err(e) = state.pipeline.run_pre(&mut ctx, &metadata).await {
-        return (StatusCode::UNAUTHORIZED, Json(serde_json::json!({"error": e.message()}))).into_response();
+        return status_to_response(e);
     }
 
     let user_id = match ctx.attrs.get("user_id") {
         Some(id) => id.clone(),
-        None => return (StatusCode::UNAUTHORIZED, Json(serde_json::json!({"error": "Unauthorized"}))).into_response(),
+        None => return status_to_response(tonic::Status::unauthenticated("Unauthorized")),
     };
 
     match get_client(&state.resolver).await {
@@ -346,22 +209,21 @@ pub async fn create_article(
                 status: body.status.unwrap_or(1),
                 categories: body.categories.unwrap_or_default(),
             });
-            if let Ok(val) = user_id.parse() {
-                req.metadata_mut().insert("x-user-id", val);
-            }
+            helpers::inject_user_id_metadata(&mut req, &user_id);
 
             match client.create_article(req).await {
                 Ok(resp) => {
                     let article = resp.into_inner().article.map(proto_to_article_dto);
-                    (StatusCode::CREATED, Json(serde_json::json!({"article": article}))).into_response()
+                    let dto = GetArticleDto { article };
+                    (StatusCode::CREATED, Json(serde_json::to_value(&dto).unwrap_or_default())).into_response()
                 }
                 Err(e) => {
                     error!(error = %e, "CreateArticle failed");
-                    (StatusCode::BAD_REQUEST, Json(serde_json::json!({"error": e.message()}))).into_response()
+                    status_to_response(e)
                 }
             }
         }
-        Err(code) => (code, Json(serde_json::json!({"error": "Service unavailable"}))).into_response(),
+        Err(code) => (code, Json(serde_json::json!({"code": "UNAVAILABLE", "message": "Service unavailable"}))).into_response(),
     }
 }
 
@@ -387,17 +249,17 @@ pub async fn update_article(
 ) -> impl IntoResponse {
     info!(article_id = %id, "REST: UpdateArticle");
 
-    let auth = extract_bearer(&headers);
-    let metadata = build_metadata(auth.as_deref());
+    let auth = helpers::extract_bearer(&headers);
+    let metadata = helpers::build_metadata(auth.as_deref());
 
     let mut ctx = RpcContext::new("article", "update_article");
     if let Err(e) = state.pipeline.run_pre(&mut ctx, &metadata).await {
-        return (StatusCode::UNAUTHORIZED, Json(serde_json::json!({"error": e.message()}))).into_response();
+        return status_to_response(e);
     }
 
     let user_id = match ctx.attrs.get("user_id") {
         Some(id) => id.clone(),
-        None => return (StatusCode::UNAUTHORIZED, Json(serde_json::json!({"error": "Unauthorized"}))).into_response(),
+        None => return status_to_response(tonic::Status::unauthenticated("Unauthorized")),
     };
 
     match get_client(&state.resolver).await {
@@ -411,26 +273,18 @@ pub async fn update_article(
                 status: body.status.unwrap_or(0),
                 categories: body.categories.unwrap_or_default(),
             });
-            if let Ok(val) = user_id.parse() {
-                req.metadata_mut().insert("x-user-id", val);
-            }
+            helpers::inject_user_id_metadata(&mut req, &user_id);
 
             match client.update_article(req).await {
                 Ok(resp) => {
                     let article = resp.into_inner().article.map(proto_to_article_dto);
-                    Json(serde_json::json!({"article": article})).into_response()
+                    let dto = GetArticleDto { article };
+                    Json(serde_json::to_value(&dto).unwrap_or_default()).into_response()
                 }
-                Err(e) => {
-                    let code = match e.code() {
-                        tonic::Code::PermissionDenied => StatusCode::FORBIDDEN,
-                        tonic::Code::NotFound => StatusCode::NOT_FOUND,
-                        _ => StatusCode::BAD_REQUEST,
-                    };
-                    (code, Json(serde_json::json!({"error": e.message()}))).into_response()
-                }
+                Err(e) => status_to_response(e),
             }
         }
-        Err(code) => (code, Json(serde_json::json!({"error": "Service unavailable"}))).into_response(),
+        Err(code) => (code, Json(serde_json::json!({"code": "UNAVAILABLE", "message": "Service unavailable"}))).into_response(),
     }
 }
 
@@ -454,38 +308,45 @@ pub async fn delete_article(
 ) -> impl IntoResponse {
     info!(article_id = %id, "REST: DeleteArticle");
 
-    let auth = extract_bearer(&headers);
-    let metadata = build_metadata(auth.as_deref());
+    let auth = helpers::extract_bearer(&headers);
+    let metadata = helpers::build_metadata(auth.as_deref());
 
     let mut ctx = RpcContext::new("article", "delete_article");
     if let Err(e) = state.pipeline.run_pre(&mut ctx, &metadata).await {
-        return (StatusCode::UNAUTHORIZED, Json(serde_json::json!({"error": e.message()}))).into_response();
+        return status_to_response(e);
     }
 
     let user_id = match ctx.attrs.get("user_id") {
         Some(id) => id.clone(),
-        None => return (StatusCode::UNAUTHORIZED, Json(serde_json::json!({"error": "Unauthorized"}))).into_response(),
+        None => return status_to_response(tonic::Status::unauthenticated("Unauthorized")),
     };
 
     match get_client(&state.resolver).await {
         Ok(mut client) => {
             let mut req = tonic::Request::new(DeleteArticleRequest { article_id: id });
-            if let Ok(val) = user_id.parse() {
-                req.metadata_mut().insert("x-user-id", val);
-            }
+            helpers::inject_user_id_metadata(&mut req, &user_id);
 
             match client.delete_article(req).await {
                 Ok(_) => StatusCode::NO_CONTENT.into_response(),
-                Err(e) => {
-                    let code = match e.code() {
-                        tonic::Code::PermissionDenied => StatusCode::FORBIDDEN,
-                        tonic::Code::NotFound => StatusCode::NOT_FOUND,
-                        _ => StatusCode::BAD_REQUEST,
-                    };
-                    (code, Json(serde_json::json!({"error": e.message()}))).into_response()
-                }
+                Err(e) => status_to_response(e),
             }
         }
-        Err(code) => (code, Json(serde_json::json!({"error": "Service unavailable"}))).into_response(),
+        Err(code) => (code, Json(serde_json::json!({"code": "UNAVAILABLE", "message": "Service unavailable"}))).into_response(),
     }
+}
+
+// ────────────────────────────────────────────
+// Router 构建
+// ────────────────────────────────────────────
+
+pub fn article_rest_router(
+    resolver: Arc<ServiceResolver>,
+    pipeline: Arc<InterceptorPipeline>,
+) -> axum::Router {
+    let state = ArticleRouterState { resolver, pipeline };
+
+    axum::Router::new()
+        .route("/api/v1/articles", axum::routing::get(list_articles).post(create_article))
+        .route("/api/v1/articles/{id}", axum::routing::get(get_article).put(update_article).delete(delete_article))
+        .with_state(state)
 }

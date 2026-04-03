@@ -3,12 +3,9 @@
 use std::sync::Arc;
 
 use axum::Json;
-use axum::extract::{Path, Query, State};
+use axum::extract::{Path, State};
 use axum::http::StatusCode;
 use axum::response::IntoResponse;
-use serde::Serialize;
-use tonic::metadata::MetadataMap;
-use utoipa::ToSchema;
 
 use shared::proto::social_service_client::SocialServiceClient;
 use shared::proto::{
@@ -16,35 +13,24 @@ use shared::proto::{
     ListFavoritesRequest, UnfavoriteArticleRequest, UnlikeArticleRequest,
 };
 
+use crate::dto::common::status_to_response;
+use crate::dto::article::proto_to_article_dto;
+use crate::dto::social::{
+    FavoriteResponseDto, InteractionDto, LikeResponseDto,
+};
 use crate::interceptors::{InterceptorPipeline, RpcContext};
 use crate::resolver::ServiceResolver;
 
-// ──── DTO ────
+use super::helpers;
 
-#[derive(Serialize, ToSchema)]
-pub struct InteractionDto {
-    pub liked: bool,
-    pub favorited: bool,
-    pub like_count: i32,
-    pub favorite_count: i32,
-}
+// Re-export for Swagger
+pub use crate::dto::social::{
+    InteractionDto as InteractionDtoSchema, LikeResponseDto as LikeResponseDtoSchema,
+    FavoriteResponseDto as FavoriteResponseDtoSchema,
+};
+pub use crate::dto::common::ApiError;
 
-#[derive(Serialize, ToSchema)]
-pub struct LikeResponseDto {
-    pub like_count: i32,
-}
-
-#[derive(Serialize, ToSchema)]
-pub struct FavoriteResponseDto {
-    pub favorite_count: i32,
-}
-
-#[derive(Serialize, ToSchema)]
-pub struct ApiError {
-    pub error: String,
-}
-
-// ──── Router ────
+// ──── 共享状态 + Helpers ────
 
 #[derive(Clone)]
 pub struct SocialRouterState {
@@ -52,43 +38,14 @@ pub struct SocialRouterState {
     pipeline: Arc<InterceptorPipeline>,
 }
 
-pub fn social_rest_router(
-    resolver: Arc<ServiceResolver>,
-    pipeline: Arc<InterceptorPipeline>,
-) -> axum::Router {
-    let state = SocialRouterState { resolver, pipeline };
-    axum::Router::new()
-        .route("/api/v1/articles/{id}/like", axum::routing::post(like_article).delete(unlike_article))
-        .route("/api/v1/articles/{id}/favorite", axum::routing::post(favorite_article).delete(unfavorite_article))
-        .route("/api/v1/articles/{id}/interaction", axum::routing::get(get_interaction))
-        .route("/api/v1/user/favorites", axum::routing::get(list_favorites))
-        .with_state(state)
-}
-
-// ──── Helpers ────
-
 async fn get_client(
     resolver: &ServiceResolver,
 ) -> Result<SocialServiceClient<tonic::transport::Channel>, StatusCode> {
     let channel = resolver
-        .get_channel("svc-content")
+        .get_channel(shared::constants::SVC_CONTENT)
         .await
         .map_err(|_| StatusCode::SERVICE_UNAVAILABLE)?;
     Ok(SocialServiceClient::new(channel))
-}
-
-fn extract_bearer(headers: &axum::http::HeaderMap) -> Option<String> {
-    headers.get("authorization").and_then(|v| v.to_str().ok()).map(|s| s.to_string())
-}
-
-fn build_metadata(auth_header: Option<&str>) -> MetadataMap {
-    let mut metadata = MetadataMap::new();
-    if let Some(auth) = auth_header {
-        if let Ok(val) = auth.parse() {
-            metadata.insert("authorization", val);
-        }
-    }
-    metadata
 }
 
 // ──── Handlers ────
@@ -110,27 +67,30 @@ pub async fn like_article(
     Path(id): Path<String>,
     headers: axum::http::HeaderMap,
 ) -> impl IntoResponse {
-    let auth = extract_bearer(&headers);
-    let metadata = build_metadata(auth.as_deref());
+    let auth = helpers::extract_bearer(&headers);
+    let metadata = helpers::build_metadata(auth.as_deref());
     let mut ctx = RpcContext::new("social", "like_article");
     if let Err(e) = state.pipeline.run_pre(&mut ctx, &metadata).await {
-        return (StatusCode::UNAUTHORIZED, Json(serde_json::json!({"error": e.message()}))).into_response();
+        return status_to_response(e);
     }
     let user_id = match ctx.attrs.get("user_id") {
         Some(id) => id.clone(),
-        None => return (StatusCode::UNAUTHORIZED, Json(serde_json::json!({"error": "Unauthorized"}))).into_response(),
+        None => return status_to_response(tonic::Status::unauthenticated("Unauthorized")),
     };
 
     match get_client(&state.resolver).await {
         Ok(mut client) => {
             let mut req = tonic::Request::new(LikeArticleRequest { article_id: id });
-            if let Ok(val) = user_id.parse() { req.metadata_mut().insert("x-user-id", val); }
+            helpers::inject_user_id_metadata(&mut req, &user_id);
             match client.like_article(req).await {
-                Ok(resp) => Json(serde_json::json!({"like_count": resp.into_inner().like_count})).into_response(),
-                Err(e) => (StatusCode::BAD_REQUEST, Json(serde_json::json!({"error": e.message()}))).into_response(),
+                Ok(resp) => {
+                    let dto = LikeResponseDto { like_count: resp.into_inner().like_count };
+                    Json(serde_json::to_value(&dto).unwrap_or_default()).into_response()
+                }
+                Err(e) => status_to_response(e),
             }
         }
-        Err(code) => (code, Json(serde_json::json!({"error": "Service unavailable"}))).into_response(),
+        Err(code) => (code, Json(serde_json::json!({"code": "UNAVAILABLE", "message": "Service unavailable"}))).into_response(),
     }
 }
 
@@ -151,27 +111,30 @@ pub async fn unlike_article(
     Path(id): Path<String>,
     headers: axum::http::HeaderMap,
 ) -> impl IntoResponse {
-    let auth = extract_bearer(&headers);
-    let metadata = build_metadata(auth.as_deref());
+    let auth = helpers::extract_bearer(&headers);
+    let metadata = helpers::build_metadata(auth.as_deref());
     let mut ctx = RpcContext::new("social", "unlike_article");
     if let Err(e) = state.pipeline.run_pre(&mut ctx, &metadata).await {
-        return (StatusCode::UNAUTHORIZED, Json(serde_json::json!({"error": e.message()}))).into_response();
+        return status_to_response(e);
     }
     let user_id = match ctx.attrs.get("user_id") {
         Some(id) => id.clone(),
-        None => return (StatusCode::UNAUTHORIZED, Json(serde_json::json!({"error": "Unauthorized"}))).into_response(),
+        None => return status_to_response(tonic::Status::unauthenticated("Unauthorized")),
     };
 
     match get_client(&state.resolver).await {
         Ok(mut client) => {
             let mut req = tonic::Request::new(UnlikeArticleRequest { article_id: id });
-            if let Ok(val) = user_id.parse() { req.metadata_mut().insert("x-user-id", val); }
+            helpers::inject_user_id_metadata(&mut req, &user_id);
             match client.unlike_article(req).await {
-                Ok(resp) => Json(serde_json::json!({"like_count": resp.into_inner().like_count})).into_response(),
-                Err(e) => (StatusCode::BAD_REQUEST, Json(serde_json::json!({"error": e.message()}))).into_response(),
+                Ok(resp) => {
+                    let dto = LikeResponseDto { like_count: resp.into_inner().like_count };
+                    Json(serde_json::to_value(&dto).unwrap_or_default()).into_response()
+                }
+                Err(e) => status_to_response(e),
             }
         }
-        Err(code) => (code, Json(serde_json::json!({"error": "Service unavailable"}))).into_response(),
+        Err(code) => (code, Json(serde_json::json!({"code": "UNAVAILABLE", "message": "Service unavailable"}))).into_response(),
     }
 }
 
@@ -192,27 +155,30 @@ pub async fn favorite_article(
     Path(id): Path<String>,
     headers: axum::http::HeaderMap,
 ) -> impl IntoResponse {
-    let auth = extract_bearer(&headers);
-    let metadata = build_metadata(auth.as_deref());
+    let auth = helpers::extract_bearer(&headers);
+    let metadata = helpers::build_metadata(auth.as_deref());
     let mut ctx = RpcContext::new("social", "favorite_article");
     if let Err(e) = state.pipeline.run_pre(&mut ctx, &metadata).await {
-        return (StatusCode::UNAUTHORIZED, Json(serde_json::json!({"error": e.message()}))).into_response();
+        return status_to_response(e);
     }
     let user_id = match ctx.attrs.get("user_id") {
         Some(id) => id.clone(),
-        None => return (StatusCode::UNAUTHORIZED, Json(serde_json::json!({"error": "Unauthorized"}))).into_response(),
+        None => return status_to_response(tonic::Status::unauthenticated("Unauthorized")),
     };
 
     match get_client(&state.resolver).await {
         Ok(mut client) => {
             let mut req = tonic::Request::new(FavoriteArticleRequest { article_id: id });
-            if let Ok(val) = user_id.parse() { req.metadata_mut().insert("x-user-id", val); }
+            helpers::inject_user_id_metadata(&mut req, &user_id);
             match client.favorite_article(req).await {
-                Ok(resp) => Json(serde_json::json!({"favorite_count": resp.into_inner().favorite_count})).into_response(),
-                Err(e) => (StatusCode::BAD_REQUEST, Json(serde_json::json!({"error": e.message()}))).into_response(),
+                Ok(resp) => {
+                    let dto = FavoriteResponseDto { favorite_count: resp.into_inner().favorite_count };
+                    Json(serde_json::to_value(&dto).unwrap_or_default()).into_response()
+                }
+                Err(e) => status_to_response(e),
             }
         }
-        Err(code) => (code, Json(serde_json::json!({"error": "Service unavailable"}))).into_response(),
+        Err(code) => (code, Json(serde_json::json!({"code": "UNAVAILABLE", "message": "Service unavailable"}))).into_response(),
     }
 }
 
@@ -233,27 +199,30 @@ pub async fn unfavorite_article(
     Path(id): Path<String>,
     headers: axum::http::HeaderMap,
 ) -> impl IntoResponse {
-    let auth = extract_bearer(&headers);
-    let metadata = build_metadata(auth.as_deref());
+    let auth = helpers::extract_bearer(&headers);
+    let metadata = helpers::build_metadata(auth.as_deref());
     let mut ctx = RpcContext::new("social", "unfavorite_article");
     if let Err(e) = state.pipeline.run_pre(&mut ctx, &metadata).await {
-        return (StatusCode::UNAUTHORIZED, Json(serde_json::json!({"error": e.message()}))).into_response();
+        return status_to_response(e);
     }
     let user_id = match ctx.attrs.get("user_id") {
         Some(id) => id.clone(),
-        None => return (StatusCode::UNAUTHORIZED, Json(serde_json::json!({"error": "Unauthorized"}))).into_response(),
+        None => return status_to_response(tonic::Status::unauthenticated("Unauthorized")),
     };
 
     match get_client(&state.resolver).await {
         Ok(mut client) => {
             let mut req = tonic::Request::new(UnfavoriteArticleRequest { article_id: id });
-            if let Ok(val) = user_id.parse() { req.metadata_mut().insert("x-user-id", val); }
+            helpers::inject_user_id_metadata(&mut req, &user_id);
             match client.unfavorite_article(req).await {
-                Ok(resp) => Json(serde_json::json!({"favorite_count": resp.into_inner().favorite_count})).into_response(),
-                Err(e) => (StatusCode::BAD_REQUEST, Json(serde_json::json!({"error": e.message()}))).into_response(),
+                Ok(resp) => {
+                    let dto = FavoriteResponseDto { favorite_count: resp.into_inner().favorite_count };
+                    Json(serde_json::to_value(&dto).unwrap_or_default()).into_response()
+                }
+                Err(e) => status_to_response(e),
             }
         }
-        Err(code) => (code, Json(serde_json::json!({"error": "Service unavailable"}))).into_response(),
+        Err(code) => (code, Json(serde_json::json!({"code": "UNAVAILABLE", "message": "Service unavailable"}))).into_response(),
     }
 }
 
@@ -272,8 +241,8 @@ pub async fn get_interaction(
     Path(id): Path<String>,
     headers: axum::http::HeaderMap,
 ) -> impl IntoResponse {
-    let auth = extract_bearer(&headers);
-    let metadata = build_metadata(auth.as_deref());
+    let auth = helpers::extract_bearer(&headers);
+    let metadata = helpers::build_metadata(auth.as_deref());
     let mut ctx = RpcContext::new("social", "get_interaction");
     let _ = state.pipeline.run_pre(&mut ctx, &metadata).await; // 可选认证
 
@@ -281,22 +250,23 @@ pub async fn get_interaction(
         Ok(mut client) => {
             let mut req = tonic::Request::new(GetArticleInteractionRequest { article_id: id });
             if let Some(user_id) = ctx.attrs.get("user_id") {
-                if let Ok(val) = user_id.parse() { req.metadata_mut().insert("x-user-id", val); }
+                helpers::inject_user_id_metadata(&mut req, user_id);
             }
             match client.get_article_interaction(req).await {
                 Ok(resp) => {
                     let inner = resp.into_inner();
-                    Json(serde_json::json!({
-                        "liked": inner.liked,
-                        "favorited": inner.favorited,
-                        "like_count": inner.like_count,
-                        "favorite_count": inner.favorite_count,
-                    })).into_response()
+                    let dto = InteractionDto {
+                        liked: inner.liked,
+                        favorited: inner.favorited,
+                        like_count: inner.like_count,
+                        favorite_count: inner.favorite_count,
+                    };
+                    Json(serde_json::to_value(&dto).unwrap_or_default()).into_response()
                 }
-                Err(e) => (StatusCode::BAD_REQUEST, Json(serde_json::json!({"error": e.message()}))).into_response(),
+                Err(e) => status_to_response(e),
             }
         }
-        Err(code) => (code, Json(serde_json::json!({"error": "Service unavailable"}))).into_response(),
+        Err(code) => (code, Json(serde_json::json!({"code": "UNAVAILABLE", "message": "Service unavailable"}))).into_response(),
     }
 }
 
@@ -315,50 +285,51 @@ pub async fn list_favorites(
     State(state): State<SocialRouterState>,
     headers: axum::http::HeaderMap,
 ) -> impl IntoResponse {
-    let auth = extract_bearer(&headers);
-    let metadata = build_metadata(auth.as_deref());
+    let auth = helpers::extract_bearer(&headers);
+    let metadata = helpers::build_metadata(auth.as_deref());
     let mut ctx = RpcContext::new("social", "list_favorites");
     if let Err(e) = state.pipeline.run_pre(&mut ctx, &metadata).await {
-        return (StatusCode::UNAUTHORIZED, Json(serde_json::json!({"error": e.message()}))).into_response();
+        return status_to_response(e);
     }
     let user_id = match ctx.attrs.get("user_id") {
         Some(id) => id.clone(),
-        None => return (StatusCode::UNAUTHORIZED, Json(serde_json::json!({"error": "Unauthorized"}))).into_response(),
+        None => return status_to_response(tonic::Status::unauthenticated("Unauthorized")),
     };
 
     match get_client(&state.resolver).await {
         Ok(mut client) => {
             let mut req = tonic::Request::new(ListFavoritesRequest {
                 pagination: Some(shared::proto::PaginationRequest {
-                    page_size: 50,
+                    page_size: shared::constants::DEFAULT_PAGE_SIZE,
                     page_token: String::new(),
                 }),
             });
-            if let Ok(val) = user_id.parse() { req.metadata_mut().insert("x-user-id", val); }
+            helpers::inject_user_id_metadata(&mut req, &user_id);
             match client.list_favorites(req).await {
                 Ok(resp) => {
                     let inner = resp.into_inner();
-                    let articles: Vec<_> = inner.articles.into_iter().map(|a| {
-                        serde_json::json!({
-                            "id": a.id,
-                            "title": a.title,
-                            "slug": a.slug,
-                            "summary": a.summary,
-                            "author_id": a.author_id,
-                            "tags": a.tags,
-                            "view_count": a.view_count,
-                            "like_count": a.like_count,
-                            "status": a.status,
-                            "categories": a.categories,
-                            "created_at": a.created_at.map(|t| t.seconds.to_string()),
-                            "published_at": a.published_at.map(|t| t.seconds.to_string()),
-                        })
-                    }).collect();
-                    Json(serde_json::json!({"articles": articles, "total_count": inner.pagination.map(|p| p.total_count).unwrap_or(0)})).into_response()
+                    let articles: Vec<_> = inner.articles.into_iter().map(proto_to_article_dto).collect();
+                    let total_count = inner.pagination.map(|p| p.total_count).unwrap_or(0);
+                    Json(serde_json::json!({"articles": articles, "total_count": total_count})).into_response()
                 }
-                Err(e) => (StatusCode::BAD_REQUEST, Json(serde_json::json!({"error": e.message()}))).into_response(),
+                Err(e) => status_to_response(e),
             }
         }
-        Err(code) => (code, Json(serde_json::json!({"error": "Service unavailable"}))).into_response(),
+        Err(code) => (code, Json(serde_json::json!({"code": "UNAVAILABLE", "message": "Service unavailable"}))).into_response(),
     }
+}
+
+// ──── Router 构建 ────
+
+pub fn social_rest_router(
+    resolver: Arc<ServiceResolver>,
+    pipeline: Arc<InterceptorPipeline>,
+) -> axum::Router {
+    let state = SocialRouterState { resolver, pipeline };
+    axum::Router::new()
+        .route("/api/v1/articles/{id}/like", axum::routing::post(like_article).delete(unlike_article))
+        .route("/api/v1/articles/{id}/favorite", axum::routing::post(favorite_article).delete(unfavorite_article))
+        .route("/api/v1/articles/{id}/interaction", axum::routing::get(get_interaction))
+        .route("/api/v1/user/favorites", axum::routing::get(list_favorites))
+        .with_state(state)
 }
