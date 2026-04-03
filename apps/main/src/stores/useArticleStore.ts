@@ -11,7 +11,7 @@ interface FetchArticlesParams {
   tag?: string;
   authorId?: string;
   query?: string;
-  category?: number;
+  categories?: number[];
   pageSize?: number;
   pageToken?: string;
 }
@@ -22,7 +22,7 @@ interface CreateArticleData {
   summary?: string;
   tags: string[];
   status: number;
-  category?: number;
+  categories?: number[];
 }
 
 interface UpdateArticleData {
@@ -31,7 +31,7 @@ interface UpdateArticleData {
   summary?: string;
   tags?: string[];
   status?: number;
-  category?: number;
+  categories?: number[];
 }
 
 interface ArticleState {
@@ -78,7 +78,7 @@ export const useArticleStore = create<ArticleState>((set, get) => ({
         authorId: params?.authorId ?? '',
         query: params?.query ?? '',
         tag: params?.tag ?? '',
-        category: params?.category ?? 0,
+        categories: params?.categories ?? [],
       });
       set({
         articles: res.articles,
@@ -117,7 +117,7 @@ export const useArticleStore = create<ArticleState>((set, get) => ({
       summary: data.summary ?? '',
       tags: data.tags,
       status: data.status,
-      category: data.category ?? 0,
+      categories: data.categories ?? [],
     });
     const article = res.article;
     if (!article) throw new Error('创建文章失败：服务端未返回文章');
@@ -132,7 +132,7 @@ export const useArticleStore = create<ArticleState>((set, get) => ({
       summary: data.summary ?? '',
       tags: data.tags ?? [],
       status: data.status ?? 0,
-      category: data.category ?? 0,
+      categories: data.categories ?? [],
     });
     const { articles, currentArticle } = get();
     if (data.title || data.content || data.tags || data.status) {
@@ -172,7 +172,7 @@ export const useArticleStore = create<ArticleState>((set, get) => ({
       authorId: params.authorId ?? '',
       query: params.query ?? '',
       tag: params.tag ?? '',
-      category: params.category ?? 0,
+      categories: params.categories ?? [],
     });
     return res.articles;
   },

@@ -45,7 +45,10 @@ export default function HomePage() {
             </button>
           </div>
         </div>
-        <ArticleList category={activeCategory || undefined} onLoad={handleArticleLoad} />
+        <ArticleList
+          categories={activeCategory ? [activeCategory] : undefined}
+          onLoad={handleArticleLoad}
+        />
       </div>
 
       {/* 右侧栏 */}

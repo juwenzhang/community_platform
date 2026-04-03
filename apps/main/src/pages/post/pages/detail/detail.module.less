@@ -130,6 +130,20 @@
       overflow-x: auto;
       margin: 1em 0;
 
+      &::-webkit-scrollbar {
+        height: 6px;
+      }
+      &::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      &::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 3px;
+      }
+      &::-webkit-scrollbar-thumb:hover {
+        background: rgba(255, 255, 255, 0.35);
+      }
+
       code {
         background: none;
         padding: 0;
@@ -202,15 +216,6 @@
       border-top: 1px solid var(--color-border);
       margin: 2em 0;
     }
-  }
-
-  .actions {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-top: 32px;
-    padding-top: 20px;
-    border-top: 1px solid var(--color-border);
   }
 
   .error {
