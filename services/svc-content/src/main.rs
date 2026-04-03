@@ -1,6 +1,7 @@
 mod config;
 mod error;
 mod handlers;
+mod repositories;
 mod services;
 
 use std::sync::Arc;
@@ -54,22 +55,29 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         };
 
     // ── NATS 连接（graceful degradation：失败不阻止启动）──
-    let nats_url = std::env::var("NATS_URL").unwrap_or_else(|_| "nats://localhost:4222".to_string());
-    let nats: Option<async_nats::Client> = match async_nats::connect(&nats_url).await {
-        Ok(client) => {
-            info!(url = %nats_url, "Connected to NATS");
-            Some(client)
-        }
-        Err(e) => {
-            warn!(error = %e, "NATS connection failed, running without event publishing");
-            None
-        }
-    };
+    let nats: Option<Arc<shared::messaging::NatsClient>> =
+        match shared::messaging::NatsClient::connect(
+            &std::env::var("NATS_URL").unwrap_or_else(|_| "nats://localhost:4222".to_string()),
+        )
+        .await
+        {
+            Ok(client) => {
+                info!("Connected to NATS");
+                Some(Arc::new(client))
+            }
+            Err(e) => {
+                warn!(
+                    error = %e,
+                    "NATS connection failed, running without event publishing"
+                );
+                None
+            }
+        };
 
     // ── Consul 注册（graceful degradation：失败不阻止启动）──
     let consul = ConsulClient::new(&config.consul_url);
     let registration = ServiceRegistration::grpc(
-        "svc-content",
+        shared::constants::SVC_CONTENT,
         &config.bind_address,
         config.port,
         &config.consul_url,

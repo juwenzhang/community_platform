@@ -16,25 +16,6 @@ use shared::proto::{
 
 use crate::handlers::social;
 
-fn db_unavailable() -> Status {
-    Status::unavailable("Database not available, service running in degraded mode")
-}
-
-fn extract_user_id(metadata: &tonic::metadata::MetadataMap) -> Result<String, Status> {
-    metadata
-        .get("x-user-id")
-        .and_then(|v| v.to_str().ok())
-        .map(|s| s.to_string())
-        .ok_or_else(|| Status::unauthenticated("Missing x-user-id metadata"))
-}
-
-fn try_extract_user_id(metadata: &tonic::metadata::MetadataMap) -> Option<String> {
-    metadata
-        .get("x-user-id")
-        .and_then(|v| v.to_str().ok())
-        .map(|s| s.to_string())
-}
-
 #[derive(Clone)]
 pub struct SocialServiceImpl {
     db: Option<Arc<DatabaseConnection>>,
@@ -46,7 +27,9 @@ impl SocialServiceImpl {
     }
 
     fn db(&self) -> Result<&DatabaseConnection, Status> {
-        self.db.as_deref().ok_or_else(db_unavailable)
+        self.db
+            .as_deref()
+            .ok_or_else(shared::extract::db_unavailable)
     }
 }
 
@@ -56,7 +39,7 @@ impl SocialService for SocialServiceImpl {
         &self,
         request: Request<LikeArticleRequest>,
     ) -> Result<Response<LikeArticleResponse>, Status> {
-        let user_id = extract_user_id(request.metadata())?;
+        let user_id = shared::extract::extract_user_id(&request)?;
         let req = request.into_inner();
         info!(user_id = %user_id, article_id = %req.article_id, "LikeArticle");
 
@@ -68,7 +51,7 @@ impl SocialService for SocialServiceImpl {
         &self,
         request: Request<UnlikeArticleRequest>,
     ) -> Result<Response<UnlikeArticleResponse>, Status> {
-        let user_id = extract_user_id(request.metadata())?;
+        let user_id = shared::extract::extract_user_id(&request)?;
         let req = request.into_inner();
         info!(user_id = %user_id, article_id = %req.article_id, "UnlikeArticle");
 
@@ -80,7 +63,7 @@ impl SocialService for SocialServiceImpl {
         &self,
         request: Request<FavoriteArticleRequest>,
     ) -> Result<Response<FavoriteArticleResponse>, Status> {
-        let user_id = extract_user_id(request.metadata())?;
+        let user_id = shared::extract::extract_user_id(&request)?;
         let req = request.into_inner();
         info!(user_id = %user_id, article_id = %req.article_id, "FavoriteArticle");
 
@@ -93,7 +76,7 @@ impl SocialService for SocialServiceImpl {
         &self,
         request: Request<UnfavoriteArticleRequest>,
     ) -> Result<Response<UnfavoriteArticleResponse>, Status> {
-        let user_id = extract_user_id(request.metadata())?;
+        let user_id = shared::extract::extract_user_id(&request)?;
         let req = request.into_inner();
         info!(user_id = %user_id, article_id = %req.article_id, "UnfavoriteArticle");
 
@@ -106,7 +89,7 @@ impl SocialService for SocialServiceImpl {
         &self,
         request: Request<GetArticleInteractionRequest>,
     ) -> Result<Response<GetArticleInteractionResponse>, Status> {
-        let user_id = try_extract_user_id(request.metadata());
+        let user_id = shared::extract::try_extract_user_id(&request);
         let req = request.into_inner();
         info!(article_id = %req.article_id, "GetArticleInteraction");
 
@@ -126,7 +109,7 @@ impl SocialService for SocialServiceImpl {
         &self,
         request: Request<ListFavoritesRequest>,
     ) -> Result<Response<ListFavoritesResponse>, Status> {
-        let user_id = extract_user_id(request.metadata())?;
+        let user_id = shared::extract::extract_user_id(&request)?;
         let req = request.into_inner();
         let pagination = req.pagination.unwrap_or_default();
         info!(user_id = %user_id, "ListFavorites");

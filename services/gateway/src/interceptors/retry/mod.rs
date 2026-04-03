@@ -53,8 +53,8 @@ impl PostInterceptor for RetryInterceptor {
             return Ok(());
         };
 
-        // 构建重试 subject: luhanxin.retry.<service>.<method>
-        let subject = format!("luhanxin.retry.{}.{}", ctx.service, ctx.method);
+        // 构建重试 subject: <NATS_RETRY_PREFIX>.<service>.<method>
+        let subject = format!("{}.{}.{}", shared::constants::NATS_RETRY_PREFIX, ctx.service, ctx.method);
 
         // 构建 RetryRequest（简化版：使用 JSON 编码上下文信息）
         let retry_payload = serde_json::json!({

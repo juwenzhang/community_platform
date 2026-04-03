@@ -22,7 +22,7 @@ pub enum AppError {
     Unavailable(String),
 
     #[error("Configuration error: {0}")]
-    Config(#[from] super::config::ConfigError),
+    Config(String),
 }
 
 impl From<AppError> for Status {
@@ -34,7 +34,7 @@ impl From<AppError> for Status {
             AppError::PermissionDenied(msg) => Status::permission_denied(msg),
             AppError::Internal(msg) => Status::internal(msg),
             AppError::Unavailable(msg) => Status::unavailable(msg),
-            AppError::Config(err) => Status::internal(err.to_string()),
+            AppError::Config(msg) => Status::internal(msg),
         }
     }
 }

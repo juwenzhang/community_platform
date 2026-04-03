@@ -1,4 +1,5 @@
 mod config;
+mod dto;
 mod interceptors;
 mod middleware;
 mod resolver;
@@ -84,28 +85,31 @@ use crate::worker::retry_worker;
     components(schemas(
         health::HealthResponse,
         health::RequestData,
-        user_routes::UserDto,
-        user_routes::GetUserDto,
-        user_routes::AuthDto,
-        user_routes::RegisterDto,
-        user_routes::LoginDto,
-        user_routes::UpdateProfileDto,
-        user_routes::ListUsersDto,
-        user_routes::ListUsersQuery,
-        user_routes::ApiError,
-        article_routes::ArticleDto,
-        article_routes::GetArticleDto,
-        article_routes::ListArticlesDto,
-        article_routes::ListArticlesQuery,
-        article_routes::CreateArticleDto,
-        article_routes::UpdateArticleDto,
-        comment_routes::CommentDto,
-        comment_routes::CommentAuthorDto,
-        comment_routes::ListCommentsDto,
-        comment_routes::CreateCommentBody,
-        social_routes::InteractionDto,
-        social_routes::LikeResponseDto,
-        social_routes::FavoriteResponseDto,
+        dto::common::ApiError,
+        dto::common::PaginationQuery,
+        dto::user::UserDto,
+        dto::user::SocialLinkDto,
+        dto::user::GetUserDto,
+        dto::user::AuthDto,
+        dto::user::RegisterDto,
+        dto::user::LoginDto,
+        dto::user::UpdateProfileDto,
+        dto::user::ListUsersDto,
+        dto::user::ListUsersQuery,
+        dto::article::ArticleDto,
+        dto::article::GetArticleDto,
+        dto::article::ListArticlesDto,
+        dto::article::ListArticlesQuery,
+        dto::article::CreateArticleDto,
+        dto::article::UpdateArticleDto,
+        dto::comment::CommentDto,
+        dto::comment::CommentAuthorDto,
+        dto::comment::ListCommentsDto,
+        dto::comment::CreateCommentBody,
+        dto::comment::ListCommentsQuery,
+        dto::social::InteractionDto,
+        dto::social::LikeResponseDto,
+        dto::social::FavoriteResponseDto,
     )),
     tags(
         (name = "系统", description = "系统管理端点（健康检查、监控等）"),
@@ -157,8 +161,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // ── 服务解析器（Consul 动态路由 + 连接池）──
     let consul = ConsulClient::new(&config.consul_url);
     let resolver = Arc::new(ServiceResolver::new(consul, config.fallback_urls));
-    resolver.start_watcher("svc-user");
-    resolver.start_watcher("svc-content");
+    resolver.start_watcher(shared::constants::SVC_USER);
+    resolver.start_watcher(shared::constants::SVC_CONTENT);
 
     // ── 拦截器管道（执行顺序：Log → Auth → 调用 → Log → Retry）──
     let pipeline = Arc::new(

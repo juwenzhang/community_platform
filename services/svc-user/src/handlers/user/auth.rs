@@ -13,10 +13,14 @@ use super::user_model_to_proto;
 
 /// 用户名校验：3-20 字符，字母/数字/下划线/连字符，字母或数字开头
 fn validate_username(username: &str) -> Result<(), Status> {
-    if username.len() < 3 || username.len() > 20 {
-        return Err(Status::invalid_argument(
-            "Username must be 3-20 characters",
-        ));
+    if username.len() < shared::constants::USERNAME_MIN_LEN
+        || username.len() > shared::constants::USERNAME_MAX_LEN
+    {
+        return Err(Status::invalid_argument(format!(
+            "Username must be {}-{} characters",
+            shared::constants::USERNAME_MIN_LEN,
+            shared::constants::USERNAME_MAX_LEN,
+        )));
     }
     let chars: Vec<char> = username.chars().collect();
     if !chars[0].is_alphanumeric() {
@@ -37,10 +41,14 @@ fn validate_username(username: &str) -> Result<(), Status> {
 
 /// 密码校验：8-72 字符，至少包含字母和数字
 fn validate_password(password: &str) -> Result<(), Status> {
-    if password.len() < 8 || password.len() > 72 {
-        return Err(Status::invalid_argument(
-            "Password must be 8-72 characters",
-        ));
+    if password.len() < shared::constants::PASSWORD_MIN_LEN
+        || password.len() > shared::constants::PASSWORD_MAX_LEN
+    {
+        return Err(Status::invalid_argument(format!(
+            "Password must be {}-{} characters",
+            shared::constants::PASSWORD_MIN_LEN,
+            shared::constants::PASSWORD_MAX_LEN,
+        )));
     }
     let has_letter = password.chars().any(|c| c.is_alphabetic());
     let has_digit = password.chars().any(|c| c.is_ascii_digit());
@@ -74,7 +82,7 @@ pub async fn register(
 
     // 2. bcrypt hash（CPU 密集，用 spawn_blocking）
     let password_owned = password.to_string();
-    let password_hash = tokio::task::spawn_blocking(move || bcrypt::hash(password_owned, 12))
+    let password_hash = tokio::task::spawn_blocking(move || bcrypt::hash(password_owned, shared::constants::BCRYPT_COST))
         .await
         .map_err(|_| Status::internal("Hash task failed"))?
         .map_err(|_| Status::internal("Password hash failed"))?;

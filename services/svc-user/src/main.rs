@@ -1,6 +1,7 @@
 mod config;
 mod error;
 mod handlers;
+mod repositories;
 mod services;
 
 use std::sync::Arc;
@@ -52,7 +53,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // ── Consul 注册（graceful degradation：失败不阻止启动）──
     let consul = ConsulClient::new(&config.consul_url);
     let registration =
-        ServiceRegistration::grpc("svc-user", &config.bind_address, config.port, &config.consul_url)
+        ServiceRegistration::grpc(shared::constants::SVC_USER, &config.bind_address, config.port, &config.consul_url)
             .await;
     let service_id = registration.id.clone();
 

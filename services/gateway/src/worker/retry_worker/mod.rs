@@ -45,7 +45,7 @@ pub fn spawn_retry_worker(nats: Arc<NatsClient>) -> JoinHandle<()> {
 
             if retry_count >= max_retries {
                 // 超过最大重试次数 → 死信队列
-                let deadletter_subject = format!("luhanxin.deadletter.{service}");
+                let deadletter_subject = format!("{}.{service}", shared::constants::NATS_DEADLETTER_PREFIX);
                 error!(
                     service = %service,
                     method = %method,

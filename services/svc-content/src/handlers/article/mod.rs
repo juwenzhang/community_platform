@@ -12,6 +12,8 @@ use uuid::Uuid;
 use shared::entity::articles;
 use shared::entity::prelude::Articles;
 use shared::proto::{Article, ArticleStatus};
+use shared::convert::article_model_to_proto;
+use shared::extract::{parse_uuid, db_error};
 
 // ────────────────────── 查询 ──────────────────────
 
@@ -49,7 +51,7 @@ pub async fn list_articles(
     page_size: i32,
     page_token: &str,
 ) -> Result<(Vec<Article>, String, i32), Status> {
-    let limit = page_size.clamp(1, 100) as u64;
+    let limit = page_size.clamp(shared::constants::MIN_PAGE_SIZE, shared::constants::MAX_PAGE_SIZE) as u64;
 
     let mut base_query = Articles::find();
 
@@ -381,45 +383,4 @@ async fn increment_view_count(
         .await?;
 
     Ok(())
-}
-
-/// Entity Model → Proto Article 转换
-fn article_model_to_proto(model: articles::Model) -> Article {
-    Article {
-        id: model.id.to_string(),
-        title: model.title,
-        slug: model.slug,
-        summary: model.summary,
-        content: model.content,
-        author_id: model.author_id.to_string(),
-        tags: model.tags,
-        view_count: model.view_count,
-        like_count: model.like_count,
-        status: model.status as i32,
-        created_at: Some(datetime_to_timestamp(model.created_at)),
-        updated_at: Some(datetime_to_timestamp(model.updated_at)),
-        published_at: model.published_at.map(datetime_to_timestamp),
-        author: None, // Gateway BFF 层填充
-        categories: model.categories.iter().map(|&c| c as i32).collect(),
-    }
-}
-
-/// chrono DateTime → prost Timestamp 转换
-fn datetime_to_timestamp(dt: chrono::DateTime<chrono::FixedOffset>) -> prost_types::Timestamp {
-    prost_types::Timestamp {
-        seconds: dt.timestamp(),
-        nanos: dt.timestamp_subsec_nanos() as i32,
-    }
-}
-
-/// 解析 UUID
-fn parse_uuid(id: &str) -> Result<Uuid, Status> {
-    Uuid::parse_str(id)
-        .map_err(|_| Status::invalid_argument(format!("Invalid UUID format: '{id}'")))
-}
-
-/// 数据库错误转换
-fn db_error(e: sea_orm::DbErr) -> Status {
-    tracing::error!(error = %e, "Database query failed");
-    Status::internal("Database query failed")
 }

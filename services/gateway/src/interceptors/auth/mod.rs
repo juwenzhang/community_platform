@@ -47,9 +47,9 @@ impl PreInterceptor for AuthInterceptor {
 
         // 提取 Authorization header（公开方法可选，非公开方法必须）
         let token = metadata
-            .get("authorization")
+            .get(shared::constants::AUTH_HEADER)
             .and_then(|v| v.to_str().ok())
-            .and_then(|v| v.strip_prefix("Bearer "));
+            .and_then(|v| v.strip_prefix(shared::constants::BEARER_PREFIX));
 
         match token {
             Some(token) => {

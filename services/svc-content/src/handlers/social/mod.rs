@@ -12,6 +12,8 @@ use uuid::Uuid;
 use shared::entity::{articles, favorites, likes};
 use shared::entity::prelude::{Articles, Favorites, Likes};
 use shared::proto::Article;
+use shared::convert::article_model_to_proto;
+use shared::extract::{parse_uuid, db_error};
 
 // ────────────────────── 点赞 ──────────────────────
 
@@ -162,7 +164,7 @@ pub async fn list_favorites(
     _page_token: &str,
 ) -> Result<(Vec<Article>, String, i32), Status> {
     let user_uuid = parse_uuid(user_id)?;
-    let limit = page_size.clamp(1, 100) as u64;
+    let limit = page_size.clamp(shared::constants::MIN_PAGE_SIZE, shared::constants::MAX_PAGE_SIZE) as u64;
 
     // 查 favorites 按时间倒序
     let fav_models = Favorites::find()
@@ -235,41 +237,4 @@ async fn count_favorites(db: &DatabaseConnection, article_id: Uuid) -> Result<i3
         .await
         .map_err(db_error)? as i32;
     Ok(count)
-}
-
-fn article_model_to_proto(model: articles::Model) -> Article {
-    Article {
-        id: model.id.to_string(),
-        title: model.title,
-        slug: model.slug,
-        summary: model.summary,
-        content: model.content,
-        author_id: model.author_id.to_string(),
-        tags: model.tags,
-        view_count: model.view_count,
-        like_count: model.like_count,
-        status: model.status as i32,
-        created_at: Some(datetime_to_timestamp(model.created_at)),
-        updated_at: Some(datetime_to_timestamp(model.updated_at)),
-        published_at: model.published_at.map(datetime_to_timestamp),
-        author: None,
-        categories: model.categories.iter().map(|&c| c as i32).collect(),
-    }
-}
-
-fn datetime_to_timestamp(dt: chrono::DateTime<chrono::FixedOffset>) -> prost_types::Timestamp {
-    prost_types::Timestamp {
-        seconds: dt.timestamp(),
-        nanos: dt.timestamp_subsec_nanos() as i32,
-    }
-}
-
-fn parse_uuid(id: &str) -> Result<Uuid, Status> {
-    Uuid::parse_str(id)
-        .map_err(|_| Status::invalid_argument(format!("Invalid UUID format: '{id}'")))
-}
-
-fn db_error(e: sea_orm::DbErr) -> Status {
-    tracing::error!(error = %e, "Database query failed");
-    Status::internal("Database query failed")
 }

@@ -2,6 +2,7 @@
 //!
 //! 负责请求解析 + 调用 handler + 构造响应。
 //! 业务逻辑在 handlers/user/ 中。
+//! 使用 shared::extract 替代本地 extract_user_id / db_unavailable。
 
 use std::sync::Arc;
 
@@ -18,20 +19,6 @@ use shared::proto::{
 
 use crate::handlers::user;
 
-/// 数据库不可用时的统一错误
-fn db_unavailable() -> Status {
-    Status::unavailable("Database not available, service running in degraded mode")
-}
-
-/// 从 request metadata 中提取 x-user-id（Gateway 透传的认证用户 ID）
-fn extract_user_id(metadata: &tonic::metadata::MetadataMap) -> Result<String, Status> {
-    metadata
-        .get("x-user-id")
-        .and_then(|v| v.to_str().ok())
-        .map(|s| s.to_string())
-        .ok_or_else(|| Status::unauthenticated("Missing x-user-id metadata"))
-}
-
 /// UserService gRPC 实现
 #[derive(Clone)]
 pub struct UserServiceImpl {
@@ -44,7 +31,9 @@ impl UserServiceImpl {
     }
 
     fn db(&self) -> Result<&DatabaseConnection, Status> {
-        self.db.as_deref().ok_or_else(db_unavailable)
+        self.db
+            .as_deref()
+            .ok_or_else(shared::extract::db_unavailable)
     }
 }
 
@@ -109,7 +98,7 @@ impl UserService for UserServiceImpl {
         &self,
         request: Request<GetCurrentUserRequest>,
     ) -> Result<Response<GetUserResponse>, Status> {
-        let user_id = extract_user_id(request.metadata())?;
+        let user_id = shared::extract::extract_user_id(&request)?;
         info!(user_id = %user_id, "GetCurrentUser");
 
         let proto_user = user::get_user_by_id(self.db()?, &user_id).await?;
@@ -157,7 +146,7 @@ impl UserService for UserServiceImpl {
         &self,
         request: Request<UpdateProfileRequest>,
     ) -> Result<Response<UpdateProfileResponse>, Status> {
-        let user_id = extract_user_id(request.metadata())?;
+        let user_id = shared::extract::extract_user_id(&request)?;
         let req = request.into_inner();
         info!(user_id = %user_id, "UpdateProfile");
 

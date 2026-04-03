@@ -1,21 +1,7 @@
-use thiserror::Error;
-use tonic::Status;
+//! svc-user 服务级错误
+//!
+//! 当前直接使用 tonic::Status 作为错误类型。
+//! 保留此文件作为未来扩展点（如需要更细粒度的错误枚举）。
 
-/// svc-user 服务级错误
-#[derive(Error, Debug)]
-pub enum SvcUserError {
-    #[error("用户未找到: {0}")]
-    NotFound(String),
-
-    #[error("内部错误: {0}")]
-    Internal(String),
-}
-
-impl From<SvcUserError> for Status {
-    fn from(err: SvcUserError) -> Self {
-        match err {
-            SvcUserError::NotFound(msg) => Status::not_found(msg),
-            SvcUserError::Internal(msg) => Status::internal(msg),
-        }
-    }
-}
+// 目前所有 handler 和 service 直接返回 tonic::Status，
+// 此文件暂无内容。后续如需自定义错误枚举，在此扩展。

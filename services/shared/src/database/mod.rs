@@ -26,7 +26,7 @@ impl DatabaseConfig {
     /// - `DB_CONNECT_TIMEOUT`：连接超时秒数（默认 5）
     pub fn from_env() -> Self {
         let url = std::env::var("DATABASE_URL")
-            .unwrap_or_else(|_| "postgres://luhanxin:luhanxin_dev_2024@localhost:5432/luhanxin_community".to_string());
+            .expect("DATABASE_URL must be set — refusing to start with default credentials");
 
         let max_connections = std::env::var("DB_MAX_CONNECTIONS")
             .ok()
