@@ -5,6 +5,7 @@ import { Alert, Button, Form, Input, Select } from 'antd';
 import { useEffect, useState } from 'react';
 
 import { antdMessage } from '@/lib/antdStatic';
+import { userClient } from '@/lib/grpc-clients';
 import { useAuthStore } from '@/stores/useAuthStore';
 import styles from '../../profile.module.less';
 
@@ -111,12 +112,7 @@ export default function EditProfileForm({ user, onSuccess }: EditProfileFormProp
     setLoading(true);
     setError(null);
     try {
-      const { createClient } = await import('@connectrpc/connect');
-      const { UserService } = await import('@luhanxin/shared-types');
-      const { transport } = await import('@/lib/connect');
-
-      const client = createClient(UserService, transport);
-      const resp = await client.updateProfile({
+      const resp = await userClient.updateProfile({
         displayName: values.displayName || '',
         avatarUrl: values.avatarUrl || '',
         bio: values.bio || '',

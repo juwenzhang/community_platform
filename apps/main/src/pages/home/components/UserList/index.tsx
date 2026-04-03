@@ -1,15 +1,10 @@
 import { UserOutlined } from '@ant-design/icons';
-import { createClient } from '@connectrpc/connect';
-import type { User } from '@luhanxin/shared-types';
-import { UserService } from '@luhanxin/shared-types';
 import { Avatar, Skeleton } from 'antd';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import { transport } from '@/lib/connect';
+import { useUserStore } from '@/stores/useUserStore';
 import styles from './userList.module.less';
-
-const userClient = createClient(UserService, transport);
 
 interface UserListProps {
   onLoad?: (totalCount: number) => void;
@@ -18,26 +13,24 @@ interface UserListProps {
 }
 
 export default function UserList({ onLoad, compact }: UserListProps) {
-  const [users, setUsers] = useState<User[]>([]);
-  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
-  const fetchedRef = useRef(false);
+  const { users, usersTotalCount, usersLoading, fetchUsers } = useUserStore();
+  const onLoadRef = useRef(onLoad);
+  onLoadRef.current = onLoad;
+
+  const pageSize = compact ? 5 : 20;
 
   useEffect(() => {
-    if (fetchedRef.current) return;
-    fetchedRef.current = true;
+    fetchUsers({ pageSize });
+  }, [fetchUsers, pageSize]);
 
-    userClient
-      .listUsers({ query: '', pagination: { pageSize: compact ? 5 : 20, pageToken: '' } })
-      .then((res) => {
-        setUsers(res.users);
-        onLoad?.(res.pagination?.totalCount ?? res.users.length);
-      })
-      .catch((err) => console.error('ListUsers failed:', err))
-      .finally(() => setLoading(false));
-  }, [onLoad, compact]);
+  useEffect(() => {
+    if (!usersLoading && usersTotalCount > 0) {
+      onLoadRef.current?.(usersTotalCount);
+    }
+  }, [usersLoading, usersTotalCount]);
 
-  if (loading) {
+  if (usersLoading) {
     return (
       <div className={compact ? undefined : styles.skeleton}>
         {['sk-a', 'sk-b', 'sk-c', 'sk-d', 'sk-e'].slice(0, compact ? 3 : 5).map((key) => (

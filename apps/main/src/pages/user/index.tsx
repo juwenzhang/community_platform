@@ -1,37 +1,28 @@
 import { UserOutlined } from '@ant-design/icons';
-import { createClient } from '@connectrpc/connect';
-import type { User } from '@luhanxin/shared-types';
-import { UserService } from '@luhanxin/shared-types';
 import { Avatar, Button, Skeleton } from 'antd';
-import { Suspense, useEffect, useState } from 'react';
+import { Suspense, useEffect } from 'react';
 import { Route, Routes, useNavigate, useParams } from 'react-router-dom';
+
 import ArticleList from '@/components/ArticleList';
 import Loading from '@/components/Loading';
-import { transport } from '@/lib/connect';
+import { useUserStore } from '@/stores/useUserStore';
 import styles from './user.module.less';
-
-const userClient = createClient(UserService, transport);
 
 function UserProfilePage() {
   const { username } = useParams<{ username: string }>();
   const navigate = useNavigate();
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const {
+    profileUser: user,
+    profileLoading: loading,
+    profileError: error,
+    fetchUserByUsername,
+    clearProfile,
+  } = useUserStore();
 
   useEffect(() => {
-    if (!username) return;
-    setLoading(true);
-    setError('');
-    userClient
-      .getUserByUsername({ username })
-      .then((res) => {
-        if (res.user) setUser(res.user);
-        else setError('用户不存在');
-      })
-      .catch(() => setError('加载失败'))
-      .finally(() => setLoading(false));
-  }, [username]);
+    if (username) fetchUserByUsername(username);
+    return () => clearProfile();
+  }, [username, fetchUserByUsername, clearProfile]);
 
   if (loading) {
     return (
@@ -61,7 +52,6 @@ function UserProfilePage() {
 
   return (
     <div className={styles.page}>
-      {/* 用户信息卡片 */}
       <div className={styles.profileCard}>
         <Avatar
           src={user.avatarUrl || undefined}
@@ -81,7 +71,6 @@ function UserProfilePage() {
         </div>
       </div>
 
-      {/* 用户文章列表 */}
       <div className={styles.articles}>
         <h2 className={styles.articlesTitle}>发布的文章</h2>
         <ArticleList authorId={user.id} />

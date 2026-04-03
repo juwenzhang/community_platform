@@ -1,11 +1,7 @@
-import { createClient } from '@connectrpc/connect';
 import type { Article } from '@luhanxin/shared-types';
-import { ArticleService } from '@luhanxin/shared-types';
 import { create } from 'zustand';
 
-import { transport } from '@/lib/connect';
-
-const articleClient = createClient(ArticleService, transport);
+import { articleClient } from '@/lib/grpc-clients';
 
 interface FetchArticlesParams {
   tag?: string;

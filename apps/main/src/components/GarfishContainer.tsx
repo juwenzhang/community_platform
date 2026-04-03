@@ -1,6 +1,7 @@
 import { getGarfishApps } from '@luhanxin/app-registry/adapters';
 import Garfish from 'garfish';
 import { useEffect, useRef } from 'react';
+import { articleClient, userClient } from '@/lib/grpc-clients';
 import { registry } from '@/lib/registry';
 import { useAuthStore } from '@/stores/useAuthStore';
 
@@ -32,6 +33,8 @@ function ensureGarfishInit() {
         const match = window.location.pathname.match(/^\/user\/([^/]+)/);
         return { username: match?.[1] || '' };
       },
+      // 共享 gRPC clients — 子应用无需自建 transport
+      grpcClients: { userClient, articleClient },
     },
   }));
 

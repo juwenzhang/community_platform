@@ -69,8 +69,16 @@ import { computed, onMounted, ref } from 'vue';
 import ProfileCard from '../components/ProfileCard.vue';
 import { transport } from '../lib/connect';
 
-const userClient = createClient(UserService, transport);
-const articleClient = createClient(ArticleService, transport);
+// 通过 Garfish props 获取路由参数和当前登录用户
+const garfishProps =
+  (window as any).__GARFISH_EXPORTS__?.props ||
+  (window as any).Garfish?.appInfos?.['user-profile']?.props ||
+  {};
+
+// 优先使用主应用共享的 gRPC clients（共享 dedup interceptor），fallback 到本地 client
+const sharedClients = garfishProps.grpcClients;
+const userClient = sharedClients?.userClient ?? createClient(UserService, transport);
+const articleClient = sharedClients?.articleClient ?? createClient(ArticleService, transport);
 
 const loading = ref(true);
 const error = ref<string | null>(null);
@@ -78,12 +86,6 @@ const errorMessage = ref('');
 const user = ref<User | null>(null);
 const articles = ref<Article[]>([]);
 const articlesLoading = ref(false);
-
-// 通过 Garfish props 获取路由参数和当前登录用户
-const garfishProps =
-  (window as any).__GARFISH_EXPORTS__?.props ||
-  (window as any).Garfish?.appInfos?.['user-profile']?.props ||
-  {};
 
 // 优先从 Garfish props 获取 username，fallback 到 URL 解析
 const routeParams = garfishProps.getRouteParams?.() || {};
