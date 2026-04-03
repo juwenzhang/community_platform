@@ -44,6 +44,14 @@ const localRoutes: RouteConfig[] = [
       auth: true,
     },
   },
+  {
+    path: '/user/*',
+    component: lazy(() => import('@/pages/user')),
+    meta: {
+      title: '用户',
+      hidden: true,
+    },
+  },
 ];
 
 /**

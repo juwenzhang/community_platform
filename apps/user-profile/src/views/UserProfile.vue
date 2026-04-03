@@ -80,14 +80,17 @@ const articles = ref<Article[]>([]);
 const articlesLoading = ref(false);
 
 // 通过 Garfish props 获取路由参数和当前登录用户
-const garfishProps = (window as any).__GARFISH_EXPORTS__?.props
-  || (window as any).Garfish?.appInfos?.['user-profile']?.props
-  || {};
+const garfishProps =
+  (window as any).__GARFISH_EXPORTS__?.props ||
+  (window as any).Garfish?.appInfos?.['user-profile']?.props ||
+  {};
 
 // 优先从 Garfish props 获取 username，fallback 到 URL 解析
 const routeParams = garfishProps.getRouteParams?.() || {};
 const pathParts = window.location.pathname.split('/');
-const username = ref(routeParams.username || pathParts[pathParts.length - 1] || pathParts[pathParts.length - 2] || '');
+const username = ref(
+  routeParams.username || pathParts[pathParts.length - 1] || pathParts[pathParts.length - 2] || '',
+);
 
 const currentUser = garfishProps.getCurrentUser?.();
 const isOwner = computed(() => !!currentUser && currentUser.username === username.value);
