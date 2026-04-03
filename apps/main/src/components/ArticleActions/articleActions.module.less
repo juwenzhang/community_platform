@@ -23,11 +23,38 @@
       background: rgba(30, 128, 255, 0.06);
     }
 
-    .count {
-      font-size: 10px;
-      line-height: 1;
-      margin-top: -2px;
+    /* 点赞 active — 红色系 */
+    &.activeLike {
+      color: #f53f3f;
+      border-color: #f53f3f;
+      background: rgba(245, 63, 63, 0.06);
+
+      &:hover {
+        background: rgba(245, 63, 63, 0.1);
+      }
     }
+
+    /* 收藏 active — 浅灰色系（掘金风格） */
+    &.activeFavorite {
+      color: #515767;
+      border-color: #e4e6eb;
+      background: #f2f3f5;
+
+      &:hover {
+        color: #252933;
+        border-color: #c2c8d1;
+        background: #e8e9ec;
+      }
+    }
+  }
+
+  /* count 提升到 .actions 层级，适配新 DOM 结构（与 button 同级） */
+  .count {
+    @apply text-center;
+    font-size: 10px;
+    line-height: 1;
+    color: var(--color-text-3);
+    margin-top: -2px;
   }
 
   .divider {
