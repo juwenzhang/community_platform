@@ -48,6 +48,8 @@ message ListArticlesRequest {
   string tag = 4;
   // 可选：按分类筛选（支持多选，匹配任一分类）
   repeated ArticleCategory categories = 5;
+  // 可选：排序方式
+  ArticleSort sort = 6;
 }
 
 // 获取文章列表响应
@@ -168,4 +170,11 @@ enum ArticleCategory {
   ARTICLE_CATEGORY_MOBILE = 4;
   ARTICLE_CATEGORY_DEVTOOLS = 5;
   ARTICLE_CATEGORY_READING = 6;
+}
+
+// 文章排序枚举
+enum ArticleSort {
+  ARTICLE_SORT_UNSPECIFIED = 0;
+  ARTICLE_SORT_RECOMMENDED = 1;
+  ARTICLE_SORT_LATEST = 2;
 }

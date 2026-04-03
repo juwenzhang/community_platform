@@ -1,0 +1,102 @@
+syntax = "proto3";
+
+package luhanxin.community.v1;
+
+import "luhanxin/community/v1/article.proto";
+import "luhanxin/community/v1/common.proto";
+
+// 社交互动服务（点赞/收藏）
+service SocialService {
+  // 点赞文章（需认证，幂等）
+  rpc LikeArticle(LikeArticleRequest) returns (LikeArticleResponse);
+  // 取消点赞（需认证，幂等）
+  rpc UnlikeArticle(UnlikeArticleRequest) returns (UnlikeArticleResponse);
+  // 收藏文章（需认证，幂等）
+  rpc FavoriteArticle(FavoriteArticleRequest) returns (FavoriteArticleResponse);
+  // 取消收藏（需认证，幂等）
+  rpc UnfavoriteArticle(UnfavoriteArticleRequest) returns (UnfavoriteArticleResponse);
+  // 获取当前用户对文章的互动状态
+  rpc GetArticleInteraction(GetArticleInteractionRequest) returns (GetArticleInteractionResponse);
+  // 获取用户收藏列表（需认证）
+  rpc ListFavorites(ListFavoritesRequest) returns (ListFavoritesResponse);
+}
+
+// ──── 点赞 ────
+
+message LikeArticleRequest {
+  // 文章 ID
+  string article_id = 1;
+}
+
+message LikeArticleResponse {
+  // 点赞后的 like_count
+  int32 like_count = 1;
+}
+
+// ──── 取消点赞 ────
+
+message UnlikeArticleRequest {
+  // 文章 ID
+  string article_id = 1;
+}
+
+message UnlikeArticleResponse {
+  // 取消后的 like_count
+  int32 like_count = 1;
+}
+
+// ──── 收藏 ────
+
+message FavoriteArticleRequest {
+  // 文章 ID
+  string article_id = 1;
+}
+
+message FavoriteArticleResponse {
+  // 收藏后的 favorite_count
+  int32 favorite_count = 1;
+}
+
+// ──── 取消收藏 ────
+
+message UnfavoriteArticleRequest {
+  // 文章 ID
+  string article_id = 1;
+}
+
+message UnfavoriteArticleResponse {
+  // 取消后的 favorite_count
+  int32 favorite_count = 1;
+}
+
+// ──── 互动状态 ────
+
+message GetArticleInteractionRequest {
+  // 文章 ID
+  string article_id = 1;
+}
+
+message GetArticleInteractionResponse {
+  // 当前用户是否已点赞
+  bool liked = 1;
+  // 当前用户是否已收藏
+  bool favorited = 2;
+  // 文章点赞总数
+  int32 like_count = 3;
+  // 文章收藏总数
+  int32 favorite_count = 4;
+}
+
+// ──── 收藏列表 ────
+
+message ListFavoritesRequest {
+  // 分页参数
+  PaginationRequest pagination = 1;
+}
+
+message ListFavoritesResponse {
+  // 收藏的文章列表
+  repeated Article articles = 1;
+  // 分页元数据
+  PaginationResponse pagination = 2;
+}

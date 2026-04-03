@@ -89,6 +89,7 @@ impl ArticleService for ArticleServiceImpl {
             &req.tag,
             &req.categories,
             caller_id.as_deref(),
+            req.sort,
             pagination.page_size,
             &pagination.page_token,
         )

@@ -16,6 +16,9 @@ tracing-subscriber.workspace = true
 sea-orm.workspace = true
 uuid.workspace = true
 chrono.workspace = true
+regex = "1"
+serde_json.workspace = true
+async-nats.workspace = true
 
 [lints]
 workspace = true

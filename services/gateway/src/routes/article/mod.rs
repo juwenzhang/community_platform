@@ -69,6 +69,8 @@ pub struct ListArticlesQuery {
     pub query: Option<String>,
     pub tag: Option<String>,
     pub categories: Option<Vec<i32>>,
+    /// 排序方式：0=推荐(默认), 1=推荐, 2=最新
+    pub sort: Option<i32>,
 }
 
 /// 创建文章请求
@@ -270,6 +272,7 @@ pub async fn list_articles(
                 query: params.query.unwrap_or_default(),
                 tag: params.tag.unwrap_or_default(),
                 categories: params.categories.unwrap_or_default(),
+                sort: params.sort.unwrap_or(0),
             };
 
             // 如果认证成功，将 user_id 传给下游（可选，用于草稿可见性）

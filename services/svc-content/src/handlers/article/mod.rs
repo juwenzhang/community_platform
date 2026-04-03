@@ -36,7 +36,7 @@ pub async fn get_article(db: &DatabaseConnection, article_id: &str) -> Result<Ar
     Ok(article_model_to_proto(model))
 }
 
-/// 文章列表（query 搜索 + tag 筛选 + 草稿可见性 + 游标分页 + total_count）
+/// 文章列表（query 搜索 + tag 筛选 + 草稿可见性 + 排序 + 游标分页 + total_count）
 #[allow(clippy::too_many_arguments)]
 pub async fn list_articles(
     db: &DatabaseConnection,
@@ -45,6 +45,7 @@ pub async fn list_articles(
     tag: &str,
     categories: &[i32],
     caller_id: Option<&str>,
+    sort: i32,
     page_size: i32,
     page_token: &str,
 ) -> Result<(Vec<Article>, String, i32), Status> {
@@ -108,7 +109,8 @@ pub async fn list_articles(
         );
     }
 
-    // 排序：有 query 时按相似度排序，否则按时间排序
+    // 排序：有 query 时按相似度排序，否则按 sort 参数
+    // sort: 0=UNSPECIFIED(默认推荐), 1=RECOMMENDED, 2=LATEST
     if has_query {
         base_query = base_query.order_by_desc(sea_orm::prelude::Expr::cust_with_values(
             "similarity(title, $1)",
@@ -116,7 +118,14 @@ pub async fn list_articles(
         ));
     } else if !author_id.is_empty() {
         base_query = base_query.order_by_desc(articles::Column::CreatedAt);
+    } else if sort == 2 {
+        // LATEST: 按发布时间降序
+        base_query = base_query.order_by_desc(articles::Column::PublishedAt);
     } else {
+        // RECOMMENDED (default): 按热度加权降序
+        base_query = base_query.order_by_desc(sea_orm::prelude::Expr::cust(
+            "(view_count + like_count * 3)",
+        ));
         base_query = base_query.order_by_desc(articles::Column::PublishedAt);
     }
 

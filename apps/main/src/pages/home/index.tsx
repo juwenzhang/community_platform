@@ -47,6 +47,7 @@ export default function HomePage() {
         </div>
         <ArticleList
           categories={activeCategory ? [activeCategory] : undefined}
+          sort={activeSort === 'latest' ? 2 : 1}
           onLoad={handleArticleLoad}
         />
       </div>

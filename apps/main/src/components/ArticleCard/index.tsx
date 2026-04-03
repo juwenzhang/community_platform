@@ -21,7 +21,13 @@ export default function ArticleCard({ article }: ArticleCardProps) {
     : '';
 
   return (
-    <button type="button" className={styles.card} onClick={() => navigate(`/post/${article.id}`)}>
+    <div
+      className={styles.card}
+      onClick={() => navigate(`/post/${article.id}`)}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => e.key === 'Enter' && navigate(`/post/${article.id}`)}
+    >
       <div className={styles.main}>
         <div className={styles.titleRow}>
           <h3 className={styles.title}>{article.title}</h3>
@@ -29,6 +35,7 @@ export default function ArticleCard({ article }: ArticleCardProps) {
           {isArchived && <span className={styles.archivedBadge}>已归档</span>}
         </div>
         {article.summary && <p className={styles.summary}>{article.summary}</p>}
+        {/* {article.summary && <MarkdownRender content={article.summary} />} */}
 
         <div className={styles.meta}>
           {author && (
@@ -38,7 +45,23 @@ export default function ArticleCard({ article }: ArticleCardProps) {
                 icon={!author.avatarUrl ? <UserOutlined /> : undefined}
                 size={18}
               />
-              <span className={styles.authorName}>{author.displayName || author.username}</span>
+              <span
+                className={styles.authorName}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  navigate(`/user/${author.username}`);
+                }}
+                role="link"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.stopPropagation();
+                    navigate(`/user/${author.username}`);
+                  }
+                }}
+              >
+                {author.displayName || author.username}
+              </span>
             </span>
           )}
 
@@ -68,6 +91,6 @@ export default function ArticleCard({ article }: ArticleCardProps) {
           ))}
         </div>
       )}
-    </button>
+    </div>
   );
 }
