@@ -1,5 +1,7 @@
 # Protobuf 定义 — `proto/`
 
+> [English](./README.en.md) | 中文
+
 Luhanxin Community Platform 的 **Protocol Buffers 定义**，是前后端 API 契约的 **唯一真相源 (Single Source of Truth)**。
 
 ## 概述

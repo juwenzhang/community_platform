@@ -1,5 +1,7 @@
 # Docker 基础设施 — `docker/`
 
+> [English](./README.en.md) | 中文
+
 Luhanxin Community Platform 的 **本地开发环境基础设施**，包含数据库和搜索引擎。
 
 ## 服务列表
