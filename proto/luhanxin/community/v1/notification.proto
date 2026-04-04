@@ -1,0 +1,112 @@
+syntax = "proto3";
+
+package luhanxin.community.v1;
+
+import "google/protobuf/timestamp.proto";
+import "luhanxin/community/v1/common.proto";
+import "luhanxin/community/v1/user.proto";
+
+// 通知服务
+service NotificationService {
+  // 获取通知列表（需认证，分页，按时间倒序）
+  rpc ListNotifications(ListNotificationsRequest) returns (ListNotificationsResponse);
+  // 获取未读通知计数（需认证，Redis 缓存 1min TTL）
+  rpc GetUnreadCount(GetUnreadCountRequest) returns (GetUnreadCountResponse);
+  // 标记单条通知已读（需认证）
+  rpc MarkAsRead(MarkAsReadRequest) returns (MarkAsReadResponse);
+  // 标记全部通知已读（需认证）
+  rpc MarkAllAsRead(MarkAllAsReadRequest) returns (MarkAllAsReadResponse);
+}
+
+// ──── 通知列表 ────
+
+message ListNotificationsRequest {
+  // 分页参数
+  PaginationRequest pagination = 1;
+}
+
+message ListNotificationsResponse {
+  // 通知列表
+  repeated Notification notifications = 1;
+  // 分页元数据
+  PaginationResponse pagination = 2;
+}
+
+// ──── 未读计数 ────
+
+message GetUnreadCountRequest {
+  // 无参数，通过 x-user-id metadata 识别
+}
+
+message GetUnreadCountResponse {
+  // 未读通知数量
+  int32 count = 1;
+}
+
+// ──── 标记已读 ────
+
+message MarkAsReadRequest {
+  // 通知 ID
+  string notification_id = 1;
+}
+
+message MarkAsReadResponse {
+  // 空响应，标记成功
+}
+
+// ──── 全部已读 ────
+
+message MarkAllAsReadRequest {
+  // 无参数，通过 x-user-id metadata 识别
+}
+
+message MarkAllAsReadResponse {
+  // 标记已读的通知数量
+  int32 count = 1;
+}
+
+// ──── 公共类型 ────
+
+// 通知类型枚举
+enum NotificationType {
+  NOTIFICATION_TYPE_UNSPECIFIED = 0;
+  // 评论通知
+  NOTIFICATION_TYPE_COMMENT = 1;
+  // 点赞通知
+  NOTIFICATION_TYPE_LIKE = 2;
+  // 收藏通知
+  NOTIFICATION_TYPE_FAVORITE = 3;
+}
+
+// 通知目标类型枚举
+enum NotificationTargetType {
+  NOTIFICATION_TARGET_TYPE_UNSPECIFIED = 0;
+  // 文章
+  NOTIFICATION_TARGET_TYPE_ARTICLE = 1;
+  // 评论
+  NOTIFICATION_TARGET_TYPE_COMMENT = 2;
+}
+
+// 通知信息
+message Notification {
+  // 通知唯一标识
+  string id = 1;
+  // 接收者 ID
+  string user_id = 2;
+  // 通知类型
+  NotificationType type = 3;
+  // 触发者 ID
+  string actor_id = 4;
+  // 目标类型
+  NotificationTargetType target_type = 5;
+  // 目标 ID（文章/评论 ID）
+  string target_id = 6;
+  // 是否已读
+  bool is_read = 7;
+  // 创建时间
+  google.protobuf.Timestamp created_at = 8;
+  // 触发者信息（由服务端填充）
+  User actor = 9;
+  // 目标文章标题（由服务端填充，方便前端显示）
+  string target_title = 10;
+}

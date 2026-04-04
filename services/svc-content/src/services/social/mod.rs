@@ -14,22 +14,52 @@ use shared::proto::{
     UnfavoriteArticleResponse, UnlikeArticleRequest, UnlikeArticleResponse,
 };
 
+use shared::redis::RedisPool;
+use shared::messaging::NatsClient;
+
 use crate::handlers::social;
 
 #[derive(Clone)]
 pub struct SocialServiceImpl {
     db: Option<Arc<DatabaseConnection>>,
+    redis: Option<Arc<RedisPool>>,
+    nats: Option<Arc<NatsClient>>,
 }
 
 impl SocialServiceImpl {
-    pub fn new(db: Option<Arc<DatabaseConnection>>) -> Self {
-        Self { db }
+    pub fn new(
+        db: Option<Arc<DatabaseConnection>>,
+        redis: Option<Arc<RedisPool>>,
+        nats: Option<Arc<NatsClient>>,
+    ) -> Self {
+        Self { db, redis, nats }
     }
 
     fn db(&self) -> Result<&DatabaseConnection, Status> {
         self.db
             .as_deref()
             .ok_or_else(shared::extract::db_unavailable)
+    }
+
+    /// Fire-and-forget NATS 事件发布
+    fn publish_event(&self, subject: &str, payload: Vec<u8>) {
+        if let Some(nats) = &self.nats {
+            let nats = nats.clone();
+            let subject = subject.to_string();
+            tokio::spawn(async move {
+                if let Err(e) = nats.publish_bytes(&subject, payload).await {
+                    tracing::warn!(error = %e, subject = %subject, "Failed to publish NATS event");
+                }
+            });
+        }
+    }
+
+    /// 失效文章缓存（点赞/收藏改变了 like_count/favorite_count）
+    async fn invalidate_article_cache(&self, article_id: &str) {
+        if let Some(redis) = &self.redis {
+            let key = format!("{}{article_id}", shared::constants::REDIS_ARTICLE_KEY_PREFIX);
+            redis.del(&[&key]).await;
+        }
     }
 }
 
@@ -44,6 +74,15 @@ impl SocialService for SocialServiceImpl {
         info!(user_id = %user_id, article_id = %req.article_id, "LikeArticle");
 
         let like_count = social::like_article(self.db()?, &user_id, &req.article_id).await?;
+
+        // 发布点赞事件（通知 + 缓存失效）
+        let payload = serde_json::json!({"article_id": req.article_id, "user_id": user_id});
+        self.publish_event(
+            shared::constants::NATS_EVENT_SOCIAL_LIKED,
+            serde_json::to_vec(&payload).unwrap_or_default(),
+        );
+        self.invalidate_article_cache(&req.article_id).await;
+
         Ok(Response::new(LikeArticleResponse { like_count }))
     }
 
@@ -56,6 +95,8 @@ impl SocialService for SocialServiceImpl {
         info!(user_id = %user_id, article_id = %req.article_id, "UnlikeArticle");
 
         let like_count = social::unlike_article(self.db()?, &user_id, &req.article_id).await?;
+        self.invalidate_article_cache(&req.article_id).await;
+
         Ok(Response::new(UnlikeArticleResponse { like_count }))
     }
 
@@ -69,6 +110,15 @@ impl SocialService for SocialServiceImpl {
 
         let favorite_count =
             social::favorite_article(self.db()?, &user_id, &req.article_id).await?;
+
+        // 发布收藏事件（通知）
+        let payload = serde_json::json!({"article_id": req.article_id, "user_id": user_id});
+        self.publish_event(
+            shared::constants::NATS_EVENT_SOCIAL_FAVORITED,
+            serde_json::to_vec(&payload).unwrap_or_default(),
+        );
+        self.invalidate_article_cache(&req.article_id).await;
+
         Ok(Response::new(FavoriteArticleResponse { favorite_count }))
     }
 
@@ -82,6 +132,8 @@ impl SocialService for SocialServiceImpl {
 
         let favorite_count =
             social::unfavorite_article(self.db()?, &user_id, &req.article_id).await?;
+        self.invalidate_article_cache(&req.article_id).await;
+
         Ok(Response::new(UnfavoriteArticleResponse { favorite_count }))
     }
 

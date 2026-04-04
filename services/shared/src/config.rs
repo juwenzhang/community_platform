@@ -19,8 +19,16 @@ pub struct SharedConfig {
 impl SharedConfig {
     /// 从环境变量加载通用配置（自动加载 .env 文件）
     pub fn from_env() -> Self {
-        // 尝试加载 .env，不存在也没关系
-        dotenvy::dotenv().ok();
+        // 多路径尝试加载 .env（兼容不同工作目录）
+        // 1. 当前目录 .env
+        // 2. docker/.env（从项目根目录启动）
+        // 3. ../docker/.env（从 services/ 目录启动，如 cargo-watch）
+        for path in &[".env", "docker/.env", "../docker/.env"] {
+            if std::path::Path::new(path).exists() {
+                dotenvy::from_filename(path).ok();
+                break;
+            }
+        }
 
         Self {
             database_url: env::var("DATABASE_URL")

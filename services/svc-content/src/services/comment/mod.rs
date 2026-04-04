@@ -53,6 +53,21 @@ impl CommentService for CommentServiceImpl {
         )
         .await?;
 
+        // 发布评论创建事件（用于通知系统）
+        if let Some(nats) = &self.nats {
+            let event_payload = serde_json::json!({
+                "article_id": req.article_id,
+                "comment_id": proto_comment.id,
+                "author_id": author_id,
+                "parent_id": req.parent_id,
+                "reply_to_id": req.reply_to_id,
+            });
+            let payload_bytes = serde_json::to_vec(&event_payload).unwrap_or_default();
+            if let Err(e) = nats.publish_bytes(shared::constants::NATS_EVENT_CONTENT_COMMENTED, payload_bytes).await {
+                tracing::warn!(error = %e, "Failed to publish content.commented event");
+            }
+        }
+
         // 如果有 @mentions，发布 NATS 事件
         let mentions = comment::get_mentions(&req.content);
         if !mentions.is_empty() {
@@ -64,7 +79,7 @@ impl CommentService for CommentServiceImpl {
                     "mentions": mentions,
                 });
                 let payload_bytes = serde_json::to_vec(&event_payload).unwrap_or_default();
-                let subject = format!("{}.comment.mentioned", shared::constants::NATS_EVENTS_PREFIX);
+                let subject = shared::constants::NATS_EVENT_CONTENT_MENTIONED;
                 if let Err(e) = nats.publish_bytes(&subject, payload_bytes).await {
                     tracing::warn!(error = %e, "Failed to publish comment.mentioned event");
                 }

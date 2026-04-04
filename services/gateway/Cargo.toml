@@ -21,6 +21,10 @@ uuid.workspace = true
 utoipa.workspace = true
 utoipa-swagger-ui.workspace = true
 futures = "0.3"
+sha1 = "0.10"
+hex = "0.4"
+dotenvy = "0.15"
+reqwest.workspace = true
 
 [lints]
 workspace = true

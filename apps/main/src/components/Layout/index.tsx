@@ -7,6 +7,8 @@ import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import type { RouteConfig } from '@/routes';
 import { useArticleStore } from '@/stores/useArticleStore';
 import { useAuthStore } from '@/stores/useAuthStore';
+import NotificationBell from '../NotificationBell';
+import ThemeToggle from '../ThemeToggle';
 import UserArea from '../UserArea';
 import styles from './layout.module.less';
 
@@ -140,6 +142,12 @@ export default function Layout({ routes }: LayoutProps) {
                 prefix={<SearchOutlined style={{ color: 'var(--color-text-4)' }} />}
                 value={searchValue}
                 onChange={handleSearchChange}
+                onPressEnter={() => {
+                  if (searchValue.trim()) {
+                    setSearchOpen(false);
+                    navigate(`/search?q=${encodeURIComponent(searchValue.trim())}`);
+                  }
+                }}
                 allowClear
                 onClear={() => {
                   setSuggestions([]);
@@ -157,6 +165,8 @@ export default function Layout({ routes }: LayoutProps) {
             >
               写文章
             </Button>
+            <ThemeToggle />
+            <NotificationBell />
             <UserArea />
           </div>
         </div>

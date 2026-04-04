@@ -3,7 +3,7 @@ import { ConnectError } from '@connectrpc/connect';
 import type { User } from '@luhanxin/shared-types';
 import { Alert, Button, Form, Input, Select } from 'antd';
 import { useEffect, useState } from 'react';
-
+import AvatarUpload from '@/components/AvatarUpload';
 import { antdMessage } from '@/lib/antdStatic';
 import { userClient } from '@/lib/grpc-clients';
 import { useAuthStore } from '@/stores/useAuthStore';
@@ -158,8 +158,8 @@ export default function EditProfileForm({ user, onSuccess }: EditProfileFormProp
           <Input placeholder="你希望别人怎么称呼你" maxLength={100} className={styles.input} />
         </Form.Item>
 
-        <Form.Item label="头像 URL" name="avatarUrl">
-          <Input placeholder="https://example.com/avatar.jpg" className={styles.input} />
+        <Form.Item label="头像" name="avatarUrl">
+          <AvatarUpload />
         </Form.Item>
 
         <Form.Item label="个人简介" name="bio">

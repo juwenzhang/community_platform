@@ -1,7 +1,7 @@
 /**
  * 全局 CSS 变量 — 设计系统 Token
  *
- * 掘金风格配色体系。后续可通过 JS 切换 :root 变量实现暗黑模式。
+ * 掘金风格配色体系。通过 data-theme 属性切换亮色/暗色模式。
  *
  * 命名规则: --color-{语义}-{层级}
  */
@@ -41,4 +41,36 @@
   --header-height: 48px;
   --content-max-width: 1200px;
   --sidebar-width: 240px;
+}
+
+/**
+ * 暗黑模式 — 通过 data-theme="dark" 属性激活
+ *
+ * 使用 CSS 变量覆盖，运行时切换，无需重新编译。
+ */
+[data-theme="dark"] {
+  /* ===== 品牌色（暗色适配）===== */
+  --color-primary: #4c9aff;
+  --color-primary-hover: #6db3ff;
+  --color-primary-bg: #1a3353;
+
+  /* ===== 文字色 ===== */
+  --color-text-1: #e8e8e8;
+  --color-text-2: #c9c9c9;
+  --color-text-3: #8b8b8b;
+  --color-text-4: #5a5a5a;
+
+  /* ===== 背景色 ===== */
+  --color-bg-page: #141414;
+  --color-bg-card: #1f1f1f;
+  --color-bg-hover: #2a2a2a;
+  --color-bg-active: #1a3353;
+
+  /* ===== 边框色 ===== */
+  --color-border: #303030;
+  --color-border-light: #252525;
+
+  /* ===== 阴影 ===== */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
 }

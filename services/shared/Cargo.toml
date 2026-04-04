@@ -13,6 +13,7 @@ serde_json.workspace = true
 dotenvy.workspace = true
 thiserror.workspace = true
 tracing.workspace = true
+tokio.workspace = true
 reqwest.workspace = true
 async-nats.workspace = true
 uuid.workspace = true
@@ -20,6 +21,8 @@ hostname.workspace = true
 sea-orm.workspace = true
 chrono.workspace = true
 jsonwebtoken.workspace = true
+redis.workspace = true
+deadpool-redis.workspace = true
 
 [lints]
 workspace = true

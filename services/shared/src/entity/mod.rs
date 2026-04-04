@@ -6,4 +6,5 @@ pub mod articles;
 pub mod comments;
 pub mod favorites;
 pub mod likes;
+pub mod notifications;
 pub mod users;

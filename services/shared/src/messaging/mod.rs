@@ -82,6 +82,20 @@ impl NatsClient {
     pub fn inner(&self) -> &async_nats::Client {
         &self.client
     }
+
+    /// Fire-and-forget 事件发布（失败只 log warning，不影响调用方）
+    ///
+    /// 在 tokio::spawn 中异步发布，调用方无需 await。
+    /// 适用于业务操作成功后的事件通知（通知、搜索索引同步等）。
+    pub fn publish_fire_and_forget(self: &std::sync::Arc<Self>, subject: &str, payload: Vec<u8>) {
+        let nats = self.clone();
+        let subject = subject.to_string();
+        tokio::spawn(async move {
+            if let Err(e) = nats.publish_bytes(&subject, payload).await {
+                tracing::warn!(error = %e, subject = %subject, "Failed to publish NATS event (fire-and-forget)");
+            }
+        });
+    }
 }
 
 /// 从 NATS 消息中解码 Protobuf 消息

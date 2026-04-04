@@ -1,0 +1,93 @@
+.page {
+  @apply max-w-3xl mx-auto px-4 py-6;
+
+  .highlight {
+    @apply not-italic font-semibold;
+    color: var(--color-primary);
+  }
+
+  .searchBar {
+    @apply mb-6;
+  }
+
+  .center {
+    @apply flex items-center justify-center py-12;
+  }
+
+  .results {
+    @apply flex flex-col gap-1;
+  }
+
+  .articleItem {
+    @apply flex flex-col gap-1 p-4 rounded-lg text-left w-full cursor-pointer;
+    border: none;
+    background: var(--color-bg-1);
+    border-bottom: 1px solid var(--color-border-3);
+    transition: background 0.15s;
+
+    &:hover {
+      background: var(--color-bg-hover);
+    }
+
+    .articleTitle {
+      @apply text-base font-medium leading-snug m-0;
+      color: var(--color-text-1);
+    }
+
+    .articleSummary {
+      @apply text-sm leading-relaxed m-0;
+      color: var(--color-text-3);
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .articleMeta {
+      @apply flex items-center gap-3 text-xs mt-1;
+      color: var(--color-text-4);
+
+      .tags {
+        @apply flex gap-1;
+
+        .tag {
+          @apply rounded text-xs;
+          padding: 2px 6px;
+          background: var(--color-bg-3);
+          color: var(--color-text-3);
+        }
+      }
+    }
+  }
+
+  .userItem {
+    @apply flex items-center gap-3 p-4 rounded-lg w-full text-left cursor-pointer;
+    border: none;
+    background: var(--color-bg-1);
+    border-bottom: 1px solid var(--color-border-3);
+    transition: background 0.15s;
+
+    &:hover {
+      background: var(--color-bg-hover);
+    }
+
+    .userInfo {
+      @apply flex flex-col min-w-0;
+
+      .userName {
+        @apply font-medium text-sm;
+        color: var(--color-text-1);
+      }
+
+      .userHandle {
+        @apply text-xs;
+        color: var(--color-text-4);
+      }
+
+      .userBio {
+        @apply text-xs mt-1 m-0 truncate;
+        color: var(--color-text-3);
+      }
+    }
+  }
+}

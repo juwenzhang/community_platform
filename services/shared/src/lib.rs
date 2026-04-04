@@ -10,3 +10,5 @@ pub mod auth;
 pub mod constants;
 pub mod convert;
 pub mod extract;
+pub mod redis;
+pub mod bootstrap;

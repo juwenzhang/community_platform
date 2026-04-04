@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+package luhanxin.community.v1;
+
+// 上传服务（签名生成，实际上传走 REST multipart）
+service UploadService {
+  // 获取 Cloudinary 上传签名（需认证）
+  rpc GetUploadSignature(GetUploadSignatureRequest) returns (GetUploadSignatureResponse);
+}
+
+// ──── 获取上传签名 ────
+
+message GetUploadSignatureRequest {
+  // 上传目标文件夹（如 "avatars"、"covers"）
+  string folder = 1;
+}
+
+message GetUploadSignatureResponse {
+  // Cloudinary SHA-1 签名
+  string signature = 1;
+  // 签名时间戳（Unix 秒）
+  int64 timestamp = 2;
+  // Cloudinary Cloud Name
+  string cloud_name = 3;
+  // Cloudinary API Key（公开，非 Secret）
+  string api_key = 4;
+  // 实际上传文件夹路径（含 user_id，如 "avatars/uuid-xxx"）
+  string folder = 5;
+}

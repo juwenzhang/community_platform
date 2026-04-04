@@ -4,6 +4,7 @@ members = [
     "shared",
     "svc-user",
     "svc-content",
+    "svc-notification",
     "gateway",
     "migration",
 ]
@@ -52,6 +53,7 @@ reqwest = { version = "0.12", default-features = false, features = ["json", "rus
 
 # Messaging (NATS)
 async-nats = "0.38"
+futures = "0.3"
 
 # Utilities
 uuid = { version = "1", features = ["v4"] }
@@ -66,6 +68,11 @@ bcrypt = "0.16"
 sea-orm = { version = "1", features = ["runtime-tokio-rustls", "sqlx-postgres", "with-uuid", "with-chrono", "postgres-array"] }
 sea-orm-migration = { version = "1", features = ["runtime-tokio-rustls", "sqlx-postgres"] }
 
+# Cache (Redis)
+redis = { version = "0.27", features = ["tokio-comp", "connection-manager"] }
+deadpool-redis = "0.18"
+base64 = "0.22"
+
 # API Documentation
 utoipa = { version = "5", features = ["axum_extras"] }
 utoipa-swagger-ui = { version = "9", features = ["axum", "vendored"] }
@@ -76,6 +83,10 @@ utoipa-swagger-ui = { version = "9", features = ["axum", "vendored"] }
 [workspace.lints.rust]
 unsafe_code = "forbid"
 unused_must_use = "deny"
+# 开发阶段允许未使用的导入和死代码（Proto 生成的 Schema alias、预留的 DTO 等）
+dead_code = "allow"
+unused_imports = "allow"
+unused_variables = "allow"
 
 [workspace.lints.clippy]
 # 代码质量
