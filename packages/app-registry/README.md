@@ -1,5 +1,7 @@
 # @luhanxin/app-registry
 
+> [English](./README.en.md) | 中文
+
 微前端子应用服务发现注册表。
 
 ## 功能

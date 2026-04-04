@@ -1,5 +1,7 @@
 # 共享类型包 — `packages/shared-types/`
 
+> [English](./README.en.md) | 中文
+
 **前端共享的 TypeScript 类型定义**，包含 buf 自动生成的 Protobuf TypeScript 类型。
 
 ## 概述
