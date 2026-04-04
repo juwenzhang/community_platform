@@ -56,10 +56,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // ── NATS 连接（graceful degradation：失败不阻止启动）──
     let nats: Option<Arc<shared::messaging::NatsClient>> =
-        match shared::messaging::NatsClient::connect(
-            &std::env::var("NATS_URL").unwrap_or_else(|_| "nats://localhost:4222".to_string()),
-        )
-        .await
+        match shared::messaging::NatsClient::connect(&config.nats_url).await
         {
             Ok(client) => {
                 info!("Connected to NATS");
@@ -70,6 +67,24 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     error = %e,
                     "NATS connection failed, running without event publishing"
                 );
+                None
+            }
+        };
+
+    // ── Redis 连接池（graceful degradation：失败不阻止启动）──
+    let redis: Option<Arc<shared::redis::RedisPool>> =
+        match shared::redis::RedisPool::new(&config.redis_url) {
+            Ok(pool) => {
+                if pool.is_healthy().await {
+                    info!("Redis connection pool established");
+                    Some(Arc::new(pool))
+                } else {
+                    warn!("Redis pool created but not healthy, running without cache");
+                    Some(Arc::new(pool)) // 仍然保留，后续可能恢复
+                }
+            }
+            Err(e) => {
+                warn!(error = %e, "Redis pool creation failed, running without cache");
                 None
             }
         };
@@ -95,9 +110,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // ── gRPC 服务 ──
     let addr = format!("0.0.0.0:{}", config.port).parse()?;
-    let article_service = ArticleServiceImpl::new(db.clone());
-    let comment_service = CommentServiceImpl::new(db.clone(), nats);
-    let social_service = SocialServiceImpl::new(db);
+    let article_service = ArticleServiceImpl::new(db.clone(), redis.clone(), nats.clone());
+    let comment_service = CommentServiceImpl::new(db.clone(), nats.clone());
+    let social_service = SocialServiceImpl::new(db, redis, nats);
 
     // ── gRPC Health Checking Protocol（Consul 健康检查需要）──
     let (health_reporter, health_service) = tonic_health::server::health_reporter();

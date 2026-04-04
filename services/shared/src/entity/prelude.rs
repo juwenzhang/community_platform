@@ -4,4 +4,5 @@ pub use super::articles::Entity as Articles;
 pub use super::comments::Entity as Comments;
 pub use super::favorites::Entity as Favorites;
 pub use super::likes::Entity as Likes;
+pub use super::notifications::Entity as Notifications;
 pub use super::users::Entity as Users;

@@ -1,10 +1,34 @@
-import { ClockCircleOutlined, EyeOutlined, TagOutlined, UserOutlined } from '@ant-design/icons';
+import {
+  ClockCircleOutlined,
+  EyeOutlined,
+  HeartOutlined,
+  TagOutlined,
+  UserOutlined,
+} from '@ant-design/icons';
 import type { Article } from '@luhanxin/shared-types';
 import { ArticleStatus } from '@luhanxin/shared-types';
 import { Avatar } from 'antd';
 import { useNavigate } from 'react-router-dom';
 
 import styles from './articleCard.module.less';
+
+/** 去除 Markdown 标记，返回纯文本（用于摘要预览） */
+function stripMarkdown(md: string): string {
+  return md
+    .replace(/```[\s\S]*?```/g, '') // 代码块
+    .replace(/`[^`]+`/g, '') // 行内代码
+    .replace(/#{1,6}\s+/g, '') // 标题
+    .replace(/[*_]{1,3}([^*_]+)[*_]{1,3}/g, '$1') // 加粗/斜体
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1') // 链接
+    .replace(/!\[([^\]]*)\]\([^)]+\)/g, '$1') // 图片
+    .replace(/>\s+/g, '') // 引用
+    .replace(/<[^>]+>/g, '') // HTML 标签
+    .replace(/[-*+]\s+/g, '') // 无序列表
+    .replace(/\d+\.\s+/g, '') // 有序列表
+    .replace(/\n{2,}/g, ' ') // 多空行 → 空格
+    .replace(/\n/g, ' ') // 单换行 → 空格
+    .trim();
+}
 
 interface ArticleCardProps {
   article: Article;
@@ -34,8 +58,7 @@ export default function ArticleCard({ article }: ArticleCardProps) {
           {isDraft && <span className={styles.draftBadge}>草稿</span>}
           {isArchived && <span className={styles.archivedBadge}>已归档</span>}
         </div>
-        {article.summary && <p className={styles.summary}>{article.summary}</p>}
-        {/* {article.summary && <MarkdownRender content={article.summary} />} */}
+        {article.summary && <p className={styles.summary}>{stripMarkdown(article.summary)}</p>}
 
         <div className={styles.meta}>
           {author && (
@@ -76,6 +99,13 @@ export default function ArticleCard({ article }: ArticleCardProps) {
             <span className={styles.views}>
               <EyeOutlined />
               {article.viewCount}
+            </span>
+          )}
+
+          {article.likeCount > 0 && (
+            <span className={styles.likes}>
+              <HeartOutlined />
+              {article.likeCount}
             </span>
           )}
         </div>

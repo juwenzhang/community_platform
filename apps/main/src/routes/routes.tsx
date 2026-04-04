@@ -52,6 +52,14 @@ const localRoutes: RouteConfig[] = [
       hidden: true,
     },
   },
+  {
+    path: '/search',
+    component: lazy(() => import('@/pages/search')),
+    meta: {
+      title: '搜索',
+      hidden: true,
+    },
+  },
 ];
 
 /**

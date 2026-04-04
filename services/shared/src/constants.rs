@@ -14,9 +14,34 @@ pub const NATS_EVENTS_PREFIX: &str = "luhanxin.events";
 pub const NATS_RETRY_PREFIX: &str = "luhanxin.retry";
 pub const NATS_DEADLETTER_PREFIX: &str = "luhanxin.deadletter";
 
+// ── NATS 业务事件 Subject ──
+pub const NATS_EVENT_CONTENT_COMMENTED: &str = "luhanxin.events.content.commented";
+pub const NATS_EVENT_CONTENT_MENTIONED: &str = "luhanxin.events.content.mentioned";
+pub const NATS_EVENT_CONTENT_PUBLISHED: &str = "luhanxin.events.content.published";
+pub const NATS_EVENT_CONTENT_UPDATED: &str = "luhanxin.events.content.updated";
+pub const NATS_EVENT_CONTENT_DELETED: &str = "luhanxin.events.content.deleted";
+pub const NATS_EVENT_SOCIAL_LIKED: &str = "luhanxin.events.social.liked";
+pub const NATS_EVENT_SOCIAL_UNLIKED: &str = "luhanxin.events.social.unliked";
+pub const NATS_EVENT_SOCIAL_FAVORITED: &str = "luhanxin.events.social.favorited";
+pub const NATS_EVENT_SOCIAL_UNFAVORITED: &str = "luhanxin.events.social.unfavorited";
+pub const NATS_EVENT_USER_UPDATED: &str = "luhanxin.events.user.updated";
+
 // ── 服务名 ──
 pub const SVC_USER: &str = "svc-user";
 pub const SVC_CONTENT: &str = "svc-content";
+pub const SVC_NOTIFICATION: &str = "svc-notification";
+
+// ── Redis Key 前缀 ──
+pub const REDIS_PREFIX: &str = "luhanxin";
+pub const REDIS_ARTICLE_KEY_PREFIX: &str = "luhanxin:article:";
+pub const REDIS_USER_KEY_PREFIX: &str = "luhanxin:user:";
+pub const REDIS_USER_USERNAME_KEY_PREFIX: &str = "luhanxin:user:username:";
+pub const REDIS_NOTIFICATION_UNREAD_KEY_PREFIX: &str = "luhanxin:notification:unread:";
+
+// ── 缓存 TTL（秒）──
+pub const CACHE_TTL_ARTICLE: u64 = 300;       // 5 minutes
+pub const CACHE_TTL_USER: u64 = 600;          // 10 minutes
+pub const CACHE_TTL_UNREAD_COUNT: u64 = 60;   // 1 minute
 
 // ── 分页 ──
 pub const DEFAULT_PAGE_SIZE: i32 = 20;

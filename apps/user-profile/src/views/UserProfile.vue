@@ -43,7 +43,7 @@
             class="article-card"
           >
             <h4 class="article-title">{{ article.title }}</h4>
-            <p v-if="article.summary" class="article-summary">{{ article.summary }}</p>
+            <p v-if="article.summary" class="article-summary">{{ stripMarkdown(article.summary) }}</p>
             <div class="article-meta">
               <span v-if="article.publishedAt" class="article-date">
                 {{ formatDate(article.publishedAt) }}
@@ -100,6 +100,24 @@ const isOwner = computed(() => !!currentUser && currentUser.username === usernam
 function formatDate(timestamp: { seconds: bigint } | undefined): string {
   if (!timestamp) return '';
   return new Date(Number(timestamp.seconds) * 1000).toLocaleDateString('zh-CN');
+}
+
+/** 去除 Markdown 标记，返回纯文本（用于摘要预览） */
+function stripMarkdown(md: string): string {
+  return md
+    .replace(/```[\s\S]*?```/g, '')
+    .replace(/`[^`]+`/g, '')
+    .replace(/#{1,6}\s+/g, '')
+    .replace(/[*_]{1,3}([^*_]+)[*_]{1,3}/g, '$1')
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+    .replace(/!\[([^\]]*)\]\([^)]+\)/g, '$1')
+    .replace(/>\s+/g, '')
+    .replace(/<[^>]+>/g, '')
+    .replace(/[-*+]\s+/g, '')
+    .replace(/\d+\.\s+/g, '')
+    .replace(/\n{2,}/g, ' ')
+    .replace(/\n/g, ' ')
+    .trim();
 }
 
 onMounted(async () => {

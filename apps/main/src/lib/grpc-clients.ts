@@ -9,7 +9,14 @@
  */
 
 import { createClient } from '@connectrpc/connect';
-import { ArticleService, CommentService, SocialService, UserService } from '@luhanxin/shared-types';
+import {
+  ArticleService,
+  CommentService,
+  NotificationService,
+  SearchService,
+  SocialService,
+  UserService,
+} from '@luhanxin/shared-types';
 
 import { transport } from './connect';
 
@@ -17,3 +24,5 @@ export const userClient = createClient(UserService, transport);
 export const articleClient = createClient(ArticleService, transport);
 export const commentClient = createClient(CommentService, transport);
 export const socialClient = createClient(SocialService, transport);
+export const notificationClient = createClient(NotificationService, transport);
+export const searchClient = createClient(SearchService, transport);

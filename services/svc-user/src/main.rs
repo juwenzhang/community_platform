@@ -50,6 +50,37 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             }
         };
 
+    // ── Redis 连接池（graceful degradation：失败不阻止启动）──
+    let redis: Option<Arc<shared::redis::RedisPool>> =
+        match shared::redis::RedisPool::new(&config.redis_url) {
+            Ok(pool) => {
+                if pool.is_healthy().await {
+                    info!("Redis connection pool established");
+                } else {
+                    warn!("Redis pool created but not healthy, running without cache");
+                }
+                Some(Arc::new(pool))
+            }
+            Err(e) => {
+                warn!(error = %e, "Redis pool creation failed, running without cache");
+                None
+            }
+        };
+
+    // ── NATS 连接（graceful degradation：失败不阻止启动）──
+    let nats: Option<Arc<shared::messaging::NatsClient>> =
+        match shared::messaging::NatsClient::connect(&config.nats_url).await
+        {
+            Ok(client) => {
+                info!("Connected to NATS");
+                Some(Arc::new(client))
+            }
+            Err(e) => {
+                warn!(error = %e, "NATS connection failed, running without event publishing");
+                None
+            }
+        };
+
     // ── Consul 注册（graceful degradation：失败不阻止启动）──
     let consul = ConsulClient::new(&config.consul_url);
     let registration =
@@ -67,7 +98,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // ── gRPC 服务 ──
     let addr = format!("0.0.0.0:{}", config.port).parse()?;
-    let user_service = UserServiceImpl::new(db);
+    let user_service = UserServiceImpl::new(db, redis, nats);
 
     // ── gRPC Health Checking Protocol（Consul 健康检查需要）──
     let (health_reporter, health_service) = tonic_health::server::health_reporter();

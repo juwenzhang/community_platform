@@ -1,0 +1,85 @@
+.bellBtn {
+  @apply flex items-center justify-center cursor-pointer rounded;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: none;
+  transition: background 0.2s;
+
+  &:hover {
+    background: var(--color-bg-hover);
+  }
+}
+
+.panel {
+  width: 360px;
+  max-height: 480px;
+  display: flex;
+  flex-direction: column;
+
+  .header {
+    @apply flex items-center justify-between px-4 py-3;
+    border-bottom: 1px solid var(--color-border-2);
+
+    .title {
+      @apply font-semibold text-base;
+      color: var(--color-text-1);
+    }
+  }
+
+  .list {
+    @apply overflow-y-auto;
+    max-height: 400px;
+  }
+
+  .center {
+    @apply flex items-center justify-center py-8;
+  }
+
+  .item {
+    @apply flex items-start gap-3 px-4 py-3 w-full text-left cursor-pointer;
+    border: none;
+    background: none;
+    border-bottom: 1px solid var(--color-border-3);
+    transition: background 0.15s;
+
+    &:hover {
+      background: var(--color-bg-hover);
+    }
+
+    &.unread {
+      background: var(--color-bg-2);
+    }
+
+    .itemContent {
+      @apply flex-1 min-w-0;
+
+      .itemText {
+        @apply text-sm leading-snug;
+        color: var(--color-text-2);
+
+        .actorName {
+          @apply font-medium;
+          color: var(--color-text-1);
+        }
+      }
+
+      .targetTitle {
+        @apply text-xs mt-1 truncate;
+        color: var(--color-text-3);
+      }
+
+      .time {
+        @apply text-xs mt-1;
+        color: var(--color-text-4);
+      }
+    }
+
+    .dot {
+      @apply flex-shrink-0 rounded-full mt-2;
+      width: 8px;
+      height: 8px;
+      background: var(--color-primary);
+    }
+  }
+}

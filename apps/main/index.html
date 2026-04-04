@@ -5,6 +5,13 @@
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Luhanxin Community</title>
+    <script>
+      // 防闪烁：在 React 渲染前立即应用暗黑模式
+      (function() {
+        var t = localStorage.getItem('luhanxin-theme');
+        if (t === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

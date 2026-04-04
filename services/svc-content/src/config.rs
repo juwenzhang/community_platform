@@ -3,6 +3,8 @@ pub struct SvcContentConfig {
     pub port: u16,
     pub consul_url: String,
     pub bind_address: String,
+    pub redis_url: String,
+    pub nats_url: String,
 }
 
 impl SvcContentConfig {
@@ -15,6 +17,8 @@ impl SvcContentConfig {
             port: svc.port,
             consul_url: shared.consul_url,
             bind_address: svc.bind_address,
+            redis_url: shared.redis_url,
+            nats_url: shared.nats_url,
         }
     }
 }

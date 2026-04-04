@@ -619,6 +619,256 @@ pub struct RetryRequest {
     #[prost(message, optional, tag = "7")]
     pub created_at: ::core::option::Option<::prost_types::Timestamp>,
 }
+// ──── 通知列表 ────
+
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct ListNotificationsRequest {
+    /// 分页参数
+    #[prost(message, optional, tag = "1")]
+    pub pagination: ::core::option::Option<PaginationRequest>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ListNotificationsResponse {
+    /// 通知列表
+    #[prost(message, repeated, tag = "1")]
+    pub notifications: ::prost::alloc::vec::Vec<Notification>,
+    /// 分页元数据
+    #[prost(message, optional, tag = "2")]
+    pub pagination: ::core::option::Option<PaginationResponse>,
+}
+// ──── 未读计数 ────
+
+/// 无参数，通过 x-user-id metadata 识别
+#[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct GetUnreadCountRequest {
+}
+#[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct GetUnreadCountResponse {
+    /// 未读通知数量
+    #[prost(int32, tag = "1")]
+    pub count: i32,
+}
+// ──── 标记已读 ────
+
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct MarkAsReadRequest {
+    /// 通知 ID
+    #[prost(string, tag = "1")]
+    pub notification_id: ::prost::alloc::string::String,
+}
+/// 空响应，标记成功
+#[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct MarkAsReadResponse {
+}
+// ──── 全部已读 ────
+
+/// 无参数，通过 x-user-id metadata 识别
+#[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct MarkAllAsReadRequest {
+}
+#[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct MarkAllAsReadResponse {
+    /// 标记已读的通知数量
+    #[prost(int32, tag = "1")]
+    pub count: i32,
+}
+/// 通知信息
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Notification {
+    /// 通知唯一标识
+    #[prost(string, tag = "1")]
+    pub id: ::prost::alloc::string::String,
+    /// 接收者 ID
+    #[prost(string, tag = "2")]
+    pub user_id: ::prost::alloc::string::String,
+    /// 通知类型
+    #[prost(enumeration = "NotificationType", tag = "3")]
+    pub r#type: i32,
+    /// 触发者 ID
+    #[prost(string, tag = "4")]
+    pub actor_id: ::prost::alloc::string::String,
+    /// 目标类型
+    #[prost(enumeration = "NotificationTargetType", tag = "5")]
+    pub target_type: i32,
+    /// 目标 ID（文章/评论 ID）
+    #[prost(string, tag = "6")]
+    pub target_id: ::prost::alloc::string::String,
+    /// 是否已读
+    #[prost(bool, tag = "7")]
+    pub is_read: bool,
+    /// 创建时间
+    #[prost(message, optional, tag = "8")]
+    pub created_at: ::core::option::Option<::prost_types::Timestamp>,
+    /// 触发者信息（由服务端填充）
+    #[prost(message, optional, tag = "9")]
+    pub actor: ::core::option::Option<User>,
+    /// 目标文章标题（由服务端填充，方便前端显示）
+    #[prost(string, tag = "10")]
+    pub target_title: ::prost::alloc::string::String,
+}
+// ──── 公共类型 ────
+
+/// 通知类型枚举
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
+#[repr(i32)]
+pub enum NotificationType {
+    Unspecified = 0,
+    /// 评论通知
+    Comment = 1,
+    /// 点赞通知
+    Like = 2,
+    /// 收藏通知
+    Favorite = 3,
+}
+impl NotificationType {
+    /// String value of the enum field names used in the ProtoBuf definition.
+    ///
+    /// The values are not transformed in any way and thus are considered stable
+    /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+    pub fn as_str_name(&self) -> &'static str {
+        match self {
+            Self::Unspecified => "NOTIFICATION_TYPE_UNSPECIFIED",
+            Self::Comment => "NOTIFICATION_TYPE_COMMENT",
+            Self::Like => "NOTIFICATION_TYPE_LIKE",
+            Self::Favorite => "NOTIFICATION_TYPE_FAVORITE",
+        }
+    }
+    /// Creates an enum from field names used in the ProtoBuf definition.
+    pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+        match value {
+            "NOTIFICATION_TYPE_UNSPECIFIED" => Some(Self::Unspecified),
+            "NOTIFICATION_TYPE_COMMENT" => Some(Self::Comment),
+            "NOTIFICATION_TYPE_LIKE" => Some(Self::Like),
+            "NOTIFICATION_TYPE_FAVORITE" => Some(Self::Favorite),
+            _ => None,
+        }
+    }
+}
+/// 通知目标类型枚举
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
+#[repr(i32)]
+pub enum NotificationTargetType {
+    Unspecified = 0,
+    /// 文章
+    Article = 1,
+    /// 评论
+    Comment = 2,
+}
+impl NotificationTargetType {
+    /// String value of the enum field names used in the ProtoBuf definition.
+    ///
+    /// The values are not transformed in any way and thus are considered stable
+    /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+    pub fn as_str_name(&self) -> &'static str {
+        match self {
+            Self::Unspecified => "NOTIFICATION_TARGET_TYPE_UNSPECIFIED",
+            Self::Article => "NOTIFICATION_TARGET_TYPE_ARTICLE",
+            Self::Comment => "NOTIFICATION_TARGET_TYPE_COMMENT",
+        }
+    }
+    /// Creates an enum from field names used in the ProtoBuf definition.
+    pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+        match value {
+            "NOTIFICATION_TARGET_TYPE_UNSPECIFIED" => Some(Self::Unspecified),
+            "NOTIFICATION_TARGET_TYPE_ARTICLE" => Some(Self::Article),
+            "NOTIFICATION_TARGET_TYPE_COMMENT" => Some(Self::Comment),
+            _ => None,
+        }
+    }
+}
+// ──── 搜索文章 ────
+
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct SearchArticlesRequest {
+    /// 搜索关键词（不能为空）
+    #[prost(string, tag = "1")]
+    pub query: ::prost::alloc::string::String,
+    /// 分页参数
+    #[prost(message, optional, tag = "2")]
+    pub pagination: ::core::option::Option<PaginationRequest>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct SearchArticlesResponse {
+    /// 搜索结果列表
+    #[prost(message, repeated, tag = "1")]
+    pub hits: ::prost::alloc::vec::Vec<SearchArticleHit>,
+    /// 分页元数据
+    #[prost(message, optional, tag = "2")]
+    pub pagination: ::core::option::Option<PaginationResponse>,
+}
+/// 文章搜索结果
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct SearchArticleHit {
+    /// 文章 ID
+    #[prost(string, tag = "1")]
+    pub id: ::prost::alloc::string::String,
+    /// 文章标题（可能包含 <em> 高亮标签）
+    #[prost(string, tag = "2")]
+    pub title: ::prost::alloc::string::String,
+    /// 文章摘要（可能包含 <em> 高亮标签）
+    #[prost(string, tag = "3")]
+    pub summary: ::prost::alloc::string::String,
+    /// 作者 ID
+    #[prost(string, tag = "4")]
+    pub author_id: ::prost::alloc::string::String,
+    /// 标签列表
+    #[prost(string, repeated, tag = "5")]
+    pub tags: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+    /// 浏览次数
+    #[prost(int32, tag = "6")]
+    pub view_count: i32,
+    /// 点赞次数
+    #[prost(int32, tag = "7")]
+    pub like_count: i32,
+    /// 发布时间
+    #[prost(message, optional, tag = "8")]
+    pub published_at: ::core::option::Option<::prost_types::Timestamp>,
+    /// 作者信息（由 Gateway BFF 层聚合填充）
+    #[prost(message, optional, tag = "9")]
+    pub author: ::core::option::Option<User>,
+    /// URL slug
+    #[prost(string, tag = "10")]
+    pub slug: ::prost::alloc::string::String,
+}
+// ──── 搜索用户 ────
+
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct SearchUsersRequest {
+    /// 搜索关键词（不能为空）
+    #[prost(string, tag = "1")]
+    pub query: ::prost::alloc::string::String,
+    /// 分页参数
+    #[prost(message, optional, tag = "2")]
+    pub pagination: ::core::option::Option<PaginationRequest>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct SearchUsersResponse {
+    /// 搜索结果列表
+    #[prost(message, repeated, tag = "1")]
+    pub hits: ::prost::alloc::vec::Vec<SearchUserHit>,
+    /// 分页元数据
+    #[prost(message, optional, tag = "2")]
+    pub pagination: ::core::option::Option<PaginationResponse>,
+}
+/// 用户搜索结果
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct SearchUserHit {
+    /// 用户 ID
+    #[prost(string, tag = "1")]
+    pub id: ::prost::alloc::string::String,
+    /// 用户名（可能包含 <em> 高亮标签）
+    #[prost(string, tag = "2")]
+    pub username: ::prost::alloc::string::String,
+    /// 显示名称（可能包含 <em> 高亮标签）
+    #[prost(string, tag = "3")]
+    pub display_name: ::prost::alloc::string::String,
+    /// 头像 URL
+    #[prost(string, tag = "4")]
+    pub avatar_url: ::prost::alloc::string::String,
+    /// 个人简介
+    #[prost(string, tag = "5")]
+    pub bio: ::prost::alloc::string::String,
+}
 // ──── 点赞 ────
 
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
@@ -714,6 +964,32 @@ pub struct ListFavoritesResponse {
     /// 分页元数据
     #[prost(message, optional, tag = "2")]
     pub pagination: ::core::option::Option<PaginationResponse>,
+}
+// ──── 获取上传签名 ────
+
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct GetUploadSignatureRequest {
+    /// 上传目标文件夹（如 "avatars"、"covers"）
+    #[prost(string, tag = "1")]
+    pub folder: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct GetUploadSignatureResponse {
+    /// Cloudinary SHA-1 签名
+    #[prost(string, tag = "1")]
+    pub signature: ::prost::alloc::string::String,
+    /// 签名时间戳（Unix 秒）
+    #[prost(int64, tag = "2")]
+    pub timestamp: i64,
+    /// Cloudinary Cloud Name
+    #[prost(string, tag = "3")]
+    pub cloud_name: ::prost::alloc::string::String,
+    /// Cloudinary API Key（公开，非 Secret）
+    #[prost(string, tag = "4")]
+    pub api_key: ::prost::alloc::string::String,
+    /// 实际上传文件夹路径（含 user_id，如 "avatars/uuid-xxx"）
+    #[prost(string, tag = "5")]
+    pub folder: ::prost::alloc::string::String,
 }
 include!("luhanxin.community.v1.tonic.rs");
 // @@protoc_insertion_point(module)

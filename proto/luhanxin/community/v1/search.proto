@@ -1,0 +1,85 @@
+syntax = "proto3";
+
+package luhanxin.community.v1;
+
+import "google/protobuf/timestamp.proto";
+import "luhanxin/community/v1/common.proto";
+import "luhanxin/community/v1/user.proto";
+
+// 搜索服务（Gateway BFF 层直接调用 Meilisearch）
+service SearchService {
+  // 搜索文章（公开，支持中文分词 + 高亮）
+  rpc SearchArticles(SearchArticlesRequest) returns (SearchArticlesResponse);
+  // 搜索用户（公开）
+  rpc SearchUsers(SearchUsersRequest) returns (SearchUsersResponse);
+}
+
+// ──── 搜索文章 ────
+
+message SearchArticlesRequest {
+  // 搜索关键词（不能为空）
+  string query = 1;
+  // 分页参数
+  PaginationRequest pagination = 2;
+}
+
+message SearchArticlesResponse {
+  // 搜索结果列表
+  repeated SearchArticleHit hits = 1;
+  // 分页元数据
+  PaginationResponse pagination = 2;
+}
+
+// 文章搜索结果
+message SearchArticleHit {
+  // 文章 ID
+  string id = 1;
+  // 文章标题（可能包含 <em> 高亮标签）
+  string title = 2;
+  // 文章摘要（可能包含 <em> 高亮标签）
+  string summary = 3;
+  // 作者 ID
+  string author_id = 4;
+  // 标签列表
+  repeated string tags = 5;
+  // 浏览次数
+  int32 view_count = 6;
+  // 点赞次数
+  int32 like_count = 7;
+  // 发布时间
+  google.protobuf.Timestamp published_at = 8;
+  // 作者信息（由 Gateway BFF 层聚合填充）
+  User author = 9;
+  // URL slug
+  string slug = 10;
+}
+
+// ──── 搜索用户 ────
+
+message SearchUsersRequest {
+  // 搜索关键词（不能为空）
+  string query = 1;
+  // 分页参数
+  PaginationRequest pagination = 2;
+}
+
+message SearchUsersResponse {
+  // 搜索结果列表
+  repeated SearchUserHit hits = 1;
+  // 分页元数据
+  PaginationResponse pagination = 2;
+}
+
+// 用户搜索结果
+message SearchUserHit {
+  // 用户 ID
+  string id = 1;
+  // 用户名（可能包含 <em> 高亮标签）
+  string username = 2;
+  // 显示名称（可能包含 <em> 高亮标签）
+  string display_name = 3;
+  // 头像 URL
+  string avatar_url = 4;
+  // 个人简介
+  string bio = 5;
+}

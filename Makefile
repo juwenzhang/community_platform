@@ -20,6 +20,7 @@ export
 GATEWAY_PORT     ?= 8000
 SVC_USER_PORT    ?= 50051
 SVC_CONTENT_PORT ?= 50052
+SVC_NOTIFICATION_PORT ?= 50053
 CONSUL_HTTP_PORT ?= 8500
 MAIN_PORT        ?= 5173
 FEED_PORT        ?= 5174
@@ -101,25 +102,29 @@ dev-infra-logs: ## 查看 Docker 容器日志
 # 后端
 # ------------------------------------------------------------
 
-dev-backend: ## 启动后端服务 (Gateway + svc-user + svc-content, 有 cargo-watch 则热重载)
+dev-backend: ## 启动后端服务 (Gateway + svc-user + svc-content + svc-notification, 有 cargo-watch 则热重载)
 	@echo ""
 	@echo "\033[1m🦀 Starting backend services...\033[0m"
 	@echo ""
 	@if command -v cargo-watch >/dev/null 2>&1; then \
 		echo "  → Using cargo-watch (hot-reload enabled)"; \
-		cd services && RUST_LOG=gateway=info,svc_user=info,svc_content=info,shared=info cargo watch -q -x 'run --bin svc-user' 2>&1 | sed 's/^/  [svc-user]    /' & \
+		cd services && RUST_LOG=gateway=info,svc_user=info,svc_content=info,svc_notification=info,shared=info cargo watch -q -x 'run --bin svc-user' 2>&1 | sed 's/^/  [svc-user]    /' & \
 		sleep 2; \
-		cd services && RUST_LOG=gateway=info,svc_user=info,svc_content=info,shared=info cargo watch -q -x 'run --bin svc-content' 2>&1 | sed 's/^/  [svc-content] /' & \
+		cd services && RUST_LOG=gateway=info,svc_user=info,svc_content=info,svc_notification=info,shared=info cargo watch -q -x 'run --bin svc-content' 2>&1 | sed 's/^/  [svc-content] /' & \
 		sleep 2; \
-		cd services && RUST_LOG=gateway=info,svc_user=info,svc_content=info,shared=info cargo watch -q -x 'run --bin gateway' 2>&1 | sed 's/^/  [gateway]     /' & \
+		cd services && RUST_LOG=gateway=info,svc_user=info,svc_content=info,svc_notification=info,shared=info cargo watch -q -x 'run --bin svc-notification' 2>&1 | sed 's/^/  [svc-notif]   /' & \
+		sleep 2; \
+		cd services && RUST_LOG=gateway=info,svc_user=info,svc_content=info,svc_notification=info,shared=info cargo watch -q -x 'run --bin gateway' 2>&1 | sed 's/^/  [gateway]     /' & \
 	else \
 		echo "  ⚠️  cargo-watch not installed, starting without hot-reload"; \
 		echo "  💡 Install: cargo install cargo-watch"; \
-		cd services && RUST_LOG=gateway=info,svc_user=info,svc_content=info,shared=info cargo run --bin svc-user 2>&1 | sed 's/^/  [svc-user]    /' & \
+		cd services && RUST_LOG=gateway=info,svc_user=info,svc_content=info,svc_notification=info,shared=info cargo run --bin svc-user 2>&1 | sed 's/^/  [svc-user]    /' & \
 		sleep 2; \
-		cd services && RUST_LOG=gateway=info,svc_user=info,svc_content=info,shared=info cargo run --bin svc-content 2>&1 | sed 's/^/  [svc-content] /' & \
+		cd services && RUST_LOG=gateway=info,svc_user=info,svc_content=info,svc_notification=info,shared=info cargo run --bin svc-content 2>&1 | sed 's/^/  [svc-content] /' & \
 		sleep 2; \
-		cd services && RUST_LOG=gateway=info,svc_user=info,svc_content=info,shared=info cargo run --bin gateway 2>&1 | sed 's/^/  [gateway]     /' & \
+		cd services && RUST_LOG=gateway=info,svc_user=info,svc_content=info,svc_notification=info,shared=info cargo run --bin svc-notification 2>&1 | sed 's/^/  [svc-notif]   /' & \
+		sleep 2; \
+		cd services && RUST_LOG=gateway=info,svc_user=info,svc_content=info,svc_notification=info,shared=info cargo run --bin gateway 2>&1 | sed 's/^/  [gateway]     /' & \
 	fi
 	@sleep 5
 	@echo ""
@@ -131,6 +136,7 @@ dev-backend: ## 启动后端服务 (Gateway + svc-user + svc-content, 有 cargo-
 	@echo "  Health:       \033[36mhttp://localhost:$(GATEWAY_PORT)/health\033[0m"
 	@echo "  svc-user:     \033[36mlocalhost:$(SVC_USER_PORT)\033[0m (gRPC)"
 	@echo "  svc-content:  \033[36mlocalhost:$(SVC_CONTENT_PORT)\033[0m (gRPC)"
+	@echo "  svc-notif:    \033[36mlocalhost:$(SVC_NOTIFICATION_PORT)\033[0m (gRPC)"
 	@echo "  Consul UI:    \033[36mhttp://localhost:$(CONSUL_HTTP_PORT)\033[0m"
 	@echo "\033[1m└──────────────────────────────────────────────────┘\033[0m"
 	@echo ""
@@ -217,9 +223,9 @@ test: test-backend ## 运行所有测试 (单元 + E2E)
 	pnpm test
 	@$(MAKE) test-e2e
 
-kill-ports: ## 杀掉项目占用的端口进程 (8000,50051,50052,5173,5174,4173)
+kill-ports: ## 杀掉项目占用的端口进程 (8000,50051,50052,50053,5173,5174,4173)
 	@echo "🔪 Killing processes on project ports..."
-	@for port in 8000 50051 50052 5173 5174 4173; do \
+	@for port in 8000 50051 50052 50053 5173 5174 4173; do \
 		pid=$$(lsof -ti:$$port 2>/dev/null); \
 		if [ -n "$$pid" ]; then \
 			echo "  → port $$port: killing PID $$pid"; \
@@ -238,8 +244,8 @@ clean: ## 清理构建产物 (保留 node_modules)
 	@echo "✅ Clean complete"
 
 clean-all: clean ## 深度清理 (含 node_modules + 杀端口进程, 需要重新 install)
-	@echo "🧹 Killing processes on project ports (8000,50051,50052,5173,5174,4173)..."
-	@-lsof -ti:8000,50051,50052,5173,5174,4173 2>/dev/null | xargs kill 2>/dev/null; true
+	@echo "🧹 Killing processes on project ports (8000,50051,50052,50053,5173,5174,4173)..."
+	@-lsof -ti:8000,50051,50052,50053,5173,5174,4173 2>/dev/null | xargs kill 2>/dev/null; true
 	@echo "🧹 Deep cleaning..."
 	rm -rf node_modules apps/*/node_modules packages/*/node_modules
 	@echo "✅ Deep clean complete. Run 'make install' to reinstall."
