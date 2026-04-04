@@ -1,3 +1,4 @@
+import { dispatchHostThemeChange } from '@luhanxin/app-registry/theme-bridge';
 import { create } from 'zustand';
 
 type Theme = 'light' | 'dark';
@@ -14,6 +15,7 @@ function getInitialTheme(): Theme {
 function applyTheme(theme: Theme) {
   document.documentElement.setAttribute('data-theme', theme);
   localStorage.setItem(STORAGE_KEY, theme);
+  dispatchHostThemeChange(theme);
 }
 
 interface ThemeState {

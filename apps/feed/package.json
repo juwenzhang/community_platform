@@ -11,6 +11,7 @@
   "dependencies": {
     "@ant-design/icons": "^5.6.1",
     "@garfish/bridge-react-v18": "1.19.8",
+    "@luhanxin/app-registry": "workspace:*",
     "@luhanxin/shared-types": "workspace:*",
     "antd": "^5.22.0",
     "react": "^18.3.0",

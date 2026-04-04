@@ -86,6 +86,9 @@ importers:
       '@garfish/bridge-react-v18':
         specifier: 1.19.8
         version: 1.19.8(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@luhanxin/app-registry':
+        specifier: workspace:*
+        version: link:../../packages/app-registry
       '@luhanxin/shared-types':
         specifier: workspace:*
         version: link:../../packages/shared-types
@@ -232,6 +235,9 @@ importers:
       '@garfish/bridge-vue-v3':
         specifier: 1.19.8
         version: 1.19.8(vue@3.5.31(typescript@5.9.3))
+      '@luhanxin/app-registry':
+        specifier: workspace:*
+        version: link:../../packages/app-registry
       '@luhanxin/shared-types':
         specifier: workspace:*
         version: link:../../packages/shared-types

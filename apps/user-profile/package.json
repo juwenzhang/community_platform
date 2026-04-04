@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@luhanxin/app-registry": "workspace:*",
     "@connectrpc/connect": "^2.0.0",
     "@connectrpc/connect-web": "^2.0.0",
     "@garfish/bridge-vue-v3": "1.19.8",
