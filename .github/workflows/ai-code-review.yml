@@ -18,23 +18,6 @@ concurrency:
 
 jobs:
   # ========================================
-  # DeepSource 静态分析（免费，公开仓库）
-  # ========================================
-  deepsource:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: DeepSource Analysis
-        uses: deepsourcelabs/action@latest
-        env:
-          DEEPSOURCE_DSN: ${{ secrets.DEEPSOURCE_DSN }}
-        # DeepSource 通过 .deepsource.toml 配置分析器
-
-  # ========================================
   # 自定义 GPT-4 分析（Push 触发）
   # ========================================
   custom-ai-review:
