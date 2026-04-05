@@ -1,0 +1,64 @@
+{
+  "name": "@luhanxin/md-parser-core",
+  "version": "0.1.0",
+  "description": "Core Markdown parser with unified ecosystem, WASM Worker, and plugin system",
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup && tsc -p tsconfig.build.json",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "keywords": [
+    "markdown",
+    "parser",
+    "unified",
+    "remark",
+    "rehype",
+    "mdast",
+    "toc",
+    "ast"
+  ],
+  "author": "luhanxin",
+  "license": "MIT",
+  "dependencies": {
+    "hast-util-sanitize": "5.0.2",
+    "js-yaml": "^4.1.0",
+    "mdast-util-to-hast": "^13.0.0",
+    "rehype-katex": "^7.0.0",
+    "rehype-raw": "7.0.0",
+    "rehype-sanitize": "^6.0.0",
+    "rehype-stringify": "^10.0.0",
+    "remark-frontmatter": "^5.0.0",
+    "remark-gfm": "^4.0.0",
+    "remark-math": "^6.0.0",
+    "remark-parse": "^11.0.0",
+    "remark-rehype": "^11.0.0",
+    "shiki": "^1.0.0",
+    "unified": "^11.0.0",
+    "unist-util-visit": "^5.0.0",
+    "vfile": "^6.0.0"
+  },
+  "devDependencies": {
+    "@types/js-yaml": "^4.0.0",
+    "@types/mdast": "^4.0.0",
+    "@types/node": "^20.0.0",
+    "@types/unist": "^3.0.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5.6.0",
+    "vitest": "^1.0.0"
+  }
+}

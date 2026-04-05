@@ -1,0 +1,441 @@
+/* React Markdown 样式
+ * 规范：CSS 嵌套映射 DOM 结构（无 Tailwind）
+ */
+
+.markdown-body {
+  line-height: 1.6;
+  word-wrap: break-word;
+  color: #24292f;
+
+  /* ==================== 标题样式 ==================== */
+  h1 {
+    font-size: 2em;
+    font-weight: 600;
+    margin: 0.67em 0;
+    padding-bottom: 0.3em;
+    border-bottom: 1px solid #eaecef;
+  }
+
+  h2 {
+    font-size: 1.5em;
+    font-weight: 600;
+    margin: 1em 0 0.5em;
+    padding-bottom: 0.3em;
+    border-bottom: 1px solid #eaecef;
+  }
+
+  h3 {
+    font-size: 1.25em;
+    font-weight: 600;
+    margin: 1em 0 0.5em;
+  }
+
+  h4,
+  h5,
+  h6 {
+    font-size: 1em;
+    font-weight: 600;
+    margin: 1em 0 0.5em;
+  }
+
+  /* ==================== 段落和文本 ==================== */
+  p {
+    margin: 1em 0;
+  }
+
+  strong {
+    font-weight: 600;
+  }
+
+  em {
+    font-style: italic;
+  }
+
+  /* ==================== 代码样式 ==================== */
+  code {
+    padding: 0.2em 0.4em;
+    margin: 0;
+    font-size: 85%;
+    font-family:
+      ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+    background-color: rgba(27, 31, 35, 0.05);
+    border-radius: 3px;
+  }
+
+  pre {
+    padding: 16px;
+    overflow: auto;
+    font-size: 85%;
+    line-height: 1.45;
+    background-color: #f6f8fa;
+    border-radius: 6px;
+    margin: 1em 0;
+
+    code {
+      background-color: transparent;
+      padding: 0;
+      font-size: inherit;
+    }
+
+    /* Shiki 高亮主题 */
+    &.shiki {
+      background-color: #1e1e1e;
+      color: #d4d4d4;
+
+      span {
+        color: var(--shiki-color, inherit);
+      }
+    }
+  }
+
+  /* ==================== 引用 ==================== */
+  blockquote {
+    padding: 0 1em;
+    margin: 1em 0;
+    color: #6a737d;
+    border-left: 0.25em solid #dfe2e5;
+  }
+
+  /* ==================== 列表 ==================== */
+  ul,
+  ol {
+    padding-left: 2em;
+    margin: 1em 0;
+  }
+
+  li {
+    margin: 0.25em 0;
+  }
+
+  /* ==================== 表格 ==================== */
+  table {
+    border-spacing: 0;
+    border-collapse: collapse;
+    width: 100%;
+    margin: 1em 0;
+    display: block;
+    overflow-x: auto;
+
+    th,
+    td {
+      padding: 6px 13px;
+      border: 1px solid #dfe2e5;
+    }
+
+    th {
+      font-weight: 600;
+      background-color: #f6f8fa;
+    }
+
+    tr:nth-child(2n) {
+      background-color: #f6f8fa;
+    }
+  }
+
+  /* ==================== 图片 ==================== */
+  img {
+    max-width: 100%;
+    box-sizing: content-box;
+    background-color: #fff;
+    border-radius: 4px;
+    margin: 1em 0;
+  }
+
+  /* ==================== 链接 ==================== */
+  a {
+    color: #1e80ff;
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+
+  /* ==================== 分割线 ==================== */
+  hr {
+    height: 0.25em;
+    padding: 0;
+    margin: 24px 0;
+    background-color: #e1e4e8;
+    border: 0;
+  }
+
+  /* ==================== 删除线 ==================== */
+  del {
+    text-decoration: line-through;
+  }
+
+  /* ==================== 任务列表 ==================== */
+  input[type="checkbox"] {
+    margin-right: 0.5em;
+  }
+
+  /* ==================== 脚注 ==================== */
+  .footnotes {
+    font-size: 0.9em;
+    border-top: 1px solid #eaecef;
+    padding-top: 1em;
+    margin-top: 2em;
+  }
+}
+
+/* ==================== 自定义语法样式 ==================== */
+
+/* @用户提及 */
+.mention {
+  color: #1e80ff;
+  font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+/* #标签 */
+.hashtag {
+  color: #1e80ff;
+  font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+/* ==================== 自定义容器 ==================== */
+
+.customContainer {
+  padding: 1rem;
+  border-radius: 4px;
+  margin: 1rem 0;
+
+  .customContainerTitle {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+
+    .customContainerIcon {
+      font-size: 1.2em;
+    }
+  }
+
+  .customContainerContent {
+    line-height: 1.6;
+  }
+
+  /* 提示容器 */
+  &.tip {
+    background-color: #e8f3ff;
+    border-left: 4px solid #1e80ff;
+
+    .customContainerTitle {
+      color: #1e3a8a;
+    }
+  }
+
+  /* 警告容器 */
+  &.warning {
+    background-color: #fff8e6;
+    border-left: 4px solid #f59e0b;
+
+    .customContainerTitle {
+      color: #92400e;
+    }
+  }
+
+  /* 信息容器 */
+  &.info {
+    background-color: #f0f9ff;
+    border-left: 4px solid #0ea5e9;
+
+    .customContainerTitle {
+      color: #0c4a6e;
+    }
+  }
+
+  /* 危险容器 */
+  &.danger {
+    background-color: #fef2f2;
+    border-left: 4px solid #ef4444;
+
+    .customContainerTitle {
+      color: #991b1b;
+    }
+  }
+}
+
+/* ==================== KaTeX 数学公式 ==================== */
+
+.katex {
+  font-size: 1.1em;
+}
+
+.katexDisplay {
+  margin: 1em 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+/* ==================== Mermaid 图表 ==================== */
+
+.mermaidDiagram {
+  margin: 1em 0;
+  text-align: center;
+  overflow-x: auto;
+
+  svg {
+    max-width: 100%;
+    height: auto;
+  }
+}
+
+.mermaidLoading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 2rem;
+  color: #6a737d;
+
+  .mermaidSpinner {
+    width: 20px;
+    height: 20px;
+    border: 2px solid #e1e4e8;
+    border-top-color: #1e80ff;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+}
+
+.mermaidError {
+  padding: 1rem;
+  background: #fff8e6;
+  border: 1px solid #f59e0b;
+  border-radius: 4px;
+
+  .mermaidErrorIcon {
+    margin-right: 0.5rem;
+  }
+
+  .mermaidErrorText {
+    color: #92400e;
+    font-weight: 500;
+  }
+
+  .mermaidErrorCode {
+    margin-top: 0.5rem;
+    padding: 0.5rem;
+    background: #fffbeb;
+    border-radius: 4px;
+    font-size: 0.875rem;
+    overflow-x: auto;
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ==================== 代码块包装器 ==================== */
+
+.codeBlockWrapper {
+  position: relative;
+  margin: 1em 0;
+
+  .codeBlockLanguage {
+    position: absolute;
+    top: 0;
+    right: 0;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+    color: #6a737d;
+    background-color: #f6f8fa;
+    border-bottom-left-radius: 4px;
+    border: 1px solid #e1e4e8;
+    border-top: none;
+    border-right: none;
+  }
+
+  .copyButton {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    padding: 0.25rem 0.5rem;
+    background: rgba(255, 255, 255, 0.8);
+    border: 1px solid #e1e4e8;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.875rem;
+    opacity: 0;
+    transition: opacity 0.2s;
+
+    &:hover {
+      background: rgba(255, 255, 255, 1);
+    }
+  }
+
+  &:hover .copyButton {
+    opacity: 1;
+  }
+
+  .codeLine {
+    display: flex;
+  }
+
+  .lineNumber {
+    display: inline-block;
+    width: 3em;
+    padding-right: 1em;
+    margin-right: 1em;
+    text-align: right;
+    color: #6a737d;
+    background-color: #f6f8fa;
+    border-right: 1px solid #e1e4e8;
+    user-select: none;
+  }
+
+  .lineContent {
+    flex: 1;
+  }
+}
+
+/* ==================== 加载和错误状态 ==================== */
+
+.skeleton {
+  padding: 1rem;
+  background: #f5f5f5;
+  color: #999;
+  text-align: center;
+  border-radius: 4px;
+}
+
+.error {
+  padding: 1rem;
+  background: #fff5f5;
+  color: #c53030;
+  border: 1px solid #fc8181;
+  border-radius: 4px;
+}
+
+/* ==================== 响应式调整 ==================== */
+
+@media (max-width: 768px) {
+  .markdownBody {
+    font-size: 0.9rem;
+
+    table {
+      font-size: 0.85rem;
+    }
+
+    pre {
+      font-size: 0.85rem;
+    }
+  }
+}
