@@ -108,23 +108,23 @@ dev-backend: ## 启动后端服务 (Gateway + svc-user + svc-content + svc-notif
 	@echo ""
 	@if command -v cargo-watch >/dev/null 2>&1; then \
 		echo "  → Using cargo-watch (hot-reload enabled)"; \
-		cd services && RUST_LOG=gateway=info,svc_user=info,svc_content=info,svc_notification=info,shared=info cargo watch -q -x 'run --bin svc-user' 2>&1 | sed 's/^/  [svc-user]    /' & \
+		RUST_LOG=gateway=info,svc_user=info,svc_content=info,svc_notification=info,shared=info cargo watch -q -x 'run --bin svc-user' 2>&1 | sed 's/^/  [svc-user]    /' & \
 		sleep 2; \
-		cd services && RUST_LOG=gateway=info,svc_user=info,svc_content=info,svc_notification=info,shared=info cargo watch -q -x 'run --bin svc-content' 2>&1 | sed 's/^/  [svc-content] /' & \
+		RUST_LOG=gateway=info,svc_user=info,svc_content=info,svc_notification=info,shared=info cargo watch -q -x 'run --bin svc-content' 2>&1 | sed 's/^/  [svc-content] /' & \
 		sleep 2; \
-		cd services && RUST_LOG=gateway=info,svc_user=info,svc_content=info,svc_notification=info,shared=info cargo watch -q -x 'run --bin svc-notification' 2>&1 | sed 's/^/  [svc-notif]   /' & \
+		RUST_LOG=gateway=info,svc_user=info,svc_content=info,svc_notification=info,shared=info cargo watch -q -x 'run --bin svc-notification' 2>&1 | sed 's/^/  [svc-notif]   /' & \
 		sleep 2; \
-		cd services && RUST_LOG=gateway=info,svc_user=info,svc_content=info,svc_notification=info,shared=info cargo watch -q -x 'run --bin gateway' 2>&1 | sed 's/^/  [gateway]     /' & \
+		RUST_LOG=gateway=info,svc_user=info,svc_content=info,svc_notification=info,shared=info cargo watch -q -x 'run --bin gateway' 2>&1 | sed 's/^/  [gateway]     /' & \
 	else \
 		echo "  ⚠️  cargo-watch not installed, starting without hot-reload"; \
 		echo "  💡 Install: cargo install cargo-watch"; \
-		cd services && RUST_LOG=gateway=info,svc_user=info,svc_content=info,svc_notification=info,shared=info cargo run --bin svc-user 2>&1 | sed 's/^/  [svc-user]    /' & \
+		RUST_LOG=gateway=info,svc_user=info,svc_content=info,svc_notification=info,shared=info cargo run --bin svc-user 2>&1 | sed 's/^/  [svc-user]    /' & \
 		sleep 2; \
-		cd services && RUST_LOG=gateway=info,svc_user=info,svc_content=info,svc_notification=info,shared=info cargo run --bin svc-content 2>&1 | sed 's/^/  [svc-content] /' & \
+		RUST_LOG=gateway=info,svc_user=info,svc_content=info,svc_notification=info,shared=info cargo run --bin svc-content 2>&1 | sed 's/^/  [svc-content] /' & \
 		sleep 2; \
-		cd services && RUST_LOG=gateway=info,svc_user=info,svc_content=info,svc_notification=info,shared=info cargo run --bin svc-notification 2>&1 | sed 's/^/  [svc-notif]   /' & \
+		RUST_LOG=gateway=info,svc_user=info,svc_content=info,svc_notification=info,shared=info cargo run --bin svc-notification 2>&1 | sed 's/^/  [svc-notif]   /' & \
 		sleep 2; \
-		cd services && RUST_LOG=gateway=info,svc_user=info,svc_content=info,svc_notification=info,shared=info cargo run --bin gateway 2>&1 | sed 's/^/  [gateway]     /' & \
+		RUST_LOG=gateway=info,svc_user=info,svc_content=info,svc_notification=info,shared=info cargo run --bin gateway 2>&1 | sed 's/^/  [gateway]     /' & \
 	fi
 	@sleep 5
 	@echo ""
@@ -142,10 +142,10 @@ dev-backend: ## 启动后端服务 (Gateway + svc-user + svc-content + svc-notif
 	@echo ""
 
 build-backend: ## 构建后端 (release)
-	cd services && cargo build --release
+	cargo build --release
 
 test-backend: ## 运行后端测试
-	cd services && cargo test --all-targets
+	cargo test --all-targets
 
 # ------------------------------------------------------------
 # 前端
@@ -185,16 +185,16 @@ test-e2e-ui: ## 打开 Playwright UI 模式
 # ------------------------------------------------------------
 
 fmt: ## 格式化所有代码 (Rust + TypeScript)
-	cd services && cargo fmt --all
+	cargo fmt --all
 	pnpm format
 
 fmt-check: ## 检查格式化 (CI 用)
-	cd services && cargo fmt --all -- --check
+	cargo fmt --all -- --check
 	pnpm format:check
 
 lint: proto-lint ## 运行所有 lint 检查
 	@echo "🔍 Running lints..."
-	cd services && cargo clippy --all-targets --all-features -- -D warnings
+	cargo clippy --all-targets --all-features -- -D warnings
 	pnpm lint
 	@echo "✅ All lints passed"
 
@@ -238,7 +238,7 @@ kill-ports: ## 杀掉项目占用的端口进程 (8000,50051,50052,50053,5173,51
 
 clean: ## 清理构建产物 (保留 node_modules)
 	@echo "🧹 Cleaning build artifacts..."
-	cd services && cargo clean
+	cargo clean
 	rm -rf apps/*/dist packages/*/dist
 	rm -f .dev-registry.json
 	@echo "✅ Clean complete"
@@ -258,27 +258,27 @@ DATABASE_URL ?= postgres://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@localhost:$(POS
 
 db-migrate: ## 运行数据库迁移 (向上)
 	@echo "🗄  Running database migrations..."
-	cd services && DATABASE_URL=$(DATABASE_URL) cargo run -p migration -- up
+	DATABASE_URL=$(DATABASE_URL) cargo run -p migration -- up
 	@echo "✅ Migrations applied"
 
 db-migrate-down: ## 回滚最近一次迁移
 	@echo "🗄  Rolling back last migration..."
-	cd services && DATABASE_URL=$(DATABASE_URL) cargo run -p migration -- down -n 1
+	DATABASE_URL=$(DATABASE_URL) cargo run -p migration -- down -n 1
 	@echo "✅ Rolled back 1 migration"
 
 db-migrate-status: ## 查看迁移状态
-	cd services && DATABASE_URL=$(DATABASE_URL) cargo run -p migration -- status
+	DATABASE_URL=$(DATABASE_URL) cargo run -p migration -- status
 
 db-migrate-fresh: ## 重建数据库 (drop all + re-migrate, 开发用)
 	@echo "⚠️  Dropping all tables and re-running migrations..."
-	cd services && DATABASE_URL=$(DATABASE_URL) cargo run -p migration -- fresh
+	DATABASE_URL=$(DATABASE_URL) cargo run -p migration -- fresh
 	@echo "✅ Database freshly migrated"
 
 db-entity: ## 从数据库生成 SeaORM Entity 代码
 	@echo "🔧 Generating entities from database..."
-	cd services && sea-orm-cli generate entity \
+	sea-orm-cli generate entity \
 		-u $(DATABASE_URL) \
-		-o shared/src/entity \
+		-o crates/shared/src/entity \
 		--with-serde both
 	@echo "✅ Entities generated"
 

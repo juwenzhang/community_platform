@@ -2,14 +2,34 @@
 
 > English | [中文](./README.md)
 
-Backend microservice workspace for Luhanxin Community Platform, built with **Rust + Axum + Tonic gRPC + SeaORM**.
+Backend microservice directory for Luhanxin Community Platform, built with **Rust + Axum + Tonic gRPC + SeaORM**.
+
+> ⚠️ **Note**: The project now uses root-level Cargo Workspace structure:
+> - **Workspace config**: `Cargo.toml` (root)
+> - **Shared library**: `crates/shared/`
+> - **Rust configs**: `clippy.toml`, `rustfmt.toml`, `rust-toolchain.toml` (root)
 
 ## Architecture
+
+```
+community_platform/
+├── Cargo.toml              # Workspace root config
+├── crates/
+│   └── shared/             # Shared library (proto types, config, auth, discovery)
+├── services/
+│   ├── svc-user/           # User microservice (gRPC :50051)
+│   ├── svc-content/        # Content microservice (gRPC :50052)
+│   ├── svc-notification/   # Notification microservice (gRPC :50053)
+│   ├── gateway/            # HTTP Gateway (Axum :8000, BFF + Swagger UI)
+│   └── migration/          # Database migrations (SeaORM)
+└── proto/                  # Protobuf definitions (single source of truth)
+```
 
 ```
                           ┌──────────────────┐
   Browser (Connect RPC) ──▶│    Gateway       │ :8000
                           │  (Axum + Tonic)  │
+                          │  Swagger UI      │
                           └───────┬──────────┘
                                   │ gRPC (Consul discovery)
                      ┌────────────┼────────────┐
@@ -32,7 +52,8 @@ Backend microservice workspace for Luhanxin Community Platform, built with **Rus
 | [gateway](./gateway/) | 8000 | HTTP Gateway (BFF, Swagger UI, Connect RPC proxy) |
 | [svc-user](./svc-user/) | 50051 | User service (auth, profiles) |
 | [svc-content](./svc-content/) | 50052 | Content service (articles, comments, social) |
-| [shared](./shared/) | — | Shared library (proto, config, auth, discovery) |
+| [svc-notification](./svc-notification/) | 50053 | Notification service |
+| [shared](../crates/shared/) | — | Shared library (proto, config, auth, discovery) |
 | [migration](./migration/) | — | Database migrations (SeaORM) |
 
 ## Quick Start

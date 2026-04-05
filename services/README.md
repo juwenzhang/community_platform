@@ -2,18 +2,27 @@
 
 > [English](./README.en.md) | 中文
 
-Luhanxin Community Platform 的后端微服务 Workspace，基于 **Rust + Axum + Tonic gRPC + SeaORM**。
+Luhanxin Community Platform 的后端微服务目录，基于 **Rust + Axum + Tonic gRPC + SeaORM**。
+
+> ⚠️ **注意**：项目现已采用根目录 Cargo Workspace 结构，配置文件位于根目录：
+> - **Workspace 配置**: `Cargo.toml`（根目录）
+> - **共享库**: `crates/shared/`
+> - **Rust 配置**: `clippy.toml`, `rustfmt.toml`, `rust-toolchain.toml`（根目录）
 
 ## 架构总览
 
 ```
-services/
-├── Cargo.toml          # Workspace 根配置（公共依赖版本、lint 规则、profile 优化）
-├── shared/             # 公共库（proto 类型、config、error、auth、服务发现、NATS）
-├── svc-user/           # 用户微服务 (gRPC :50051)
-├── svc-content/        # 内容微服务 (gRPC :50052) — 文章、评论、社交互动
-├── gateway/            # HTTP API 网关 (Axum :8000) — BFF 层 + Swagger UI
-└── migration/          # 数据库迁移 (SeaORM Migration)
+community_platform/
+├── Cargo.toml              # Workspace 根配置（公共依赖版本、lint 规则、profile 优化）
+├── crates/
+│   └── shared/             # 公共库（proto 类型、config、error、auth、服务发现、NATS）
+├── services/
+│   ├── svc-user/           # 用户微服务 (gRPC :50051)
+│   ├── svc-content/        # 内容微服务 (gRPC :50052) — 文章、评论、社交互动
+│   ├── svc-notification/   # 通知微服务 (gRPC :50053)
+│   ├── gateway/            # HTTP API 网关 (Axum :8000) — BFF 层 + Swagger UI
+│   └── migration/          # 数据库迁移 (SeaORM Migration)
+└── proto/                  # Protobuf 定义（唯一真相源）
 ```
 
 ```
@@ -70,7 +79,7 @@ HTTP API 网关（BFF 层），职责：
 
 依赖：Tonic, SeaORM, regex（@mention 解析）, async-nats
 
-### shared (`shared/`)
+### shared (`crates/shared/`)
 
 公共库，所有微服务共享：
 - `proto/` — Protobuf 生成的 Rust 类型 + gRPC trait（prost + tonic）
@@ -91,7 +100,7 @@ SeaORM 数据库迁移：
 ## 先决条件
 
 | 工具 | 版本 | 安装方式 |
-|------|------|---------  |
+|------|------|----------|
 | Rust | stable (edition 2024) | `rustup install stable` |
 | cargo-watch | latest | `cargo install cargo-watch` |
 | sea-orm-cli | latest | `cargo install sea-orm-cli` |
@@ -115,7 +124,7 @@ make dev-backend    # 启动所有后端服务（cargo-watch 热重载）
 ### 方式二：手动逐个启动
 
 ```bash
-cd services
+# 从项目根目录
 
 # 终端 1: svc-user
 RUST_LOG=svc_user=info cargo watch -q -x 'run --bin svc-user'
@@ -232,7 +241,7 @@ RUST_LOG=trace cargo run --bin gateway
 
 ## Lint 规则
 
-Workspace 统一配置（`Cargo.toml`）：
+Workspace 统一配置（根目录 `Cargo.toml`）：
 - `unsafe_code = "forbid"` — 禁止 unsafe
 - `clippy::pedantic` — 启用 pedantic 级别 lint
 - `clippy::unwrap_used` / `expect_used` — warn（生产代码避免 panic）
@@ -241,8 +250,8 @@ Workspace 统一配置（`Cargo.toml`）：
 ## 新增微服务指南
 
 1. 创建 crate：`cargo new services/svc-xxx --name svc-xxx`
-2. 将 `svc-xxx` 加入 `Cargo.toml` 的 `[workspace] members`
-3. 添加 `shared = { path = "../shared" }` 和需要的 workspace 依赖
+2. 将 `svc-xxx` 加入根目录 `Cargo.toml` 的 `[workspace] members`
+3. 添加 `shared = { path = "../crates/shared" }` 和需要的 workspace 依赖
 4. 在 `proto/luhanxin/community/v1/` 新建 `.proto` 文件定义 Service
 5. 运行 `make proto` 生成代码
 6. 实现 Service trait，启动 Tonic Server + Consul 注册

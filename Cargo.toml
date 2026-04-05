@@ -1,12 +1,12 @@
 [workspace]
 resolver = "2"
 members = [
-    "shared",
-    "svc-user",
-    "svc-content",
-    "svc-notification",
-    "gateway",
-    "migration",
+    "crates/shared",
+    "services/gateway",
+    "services/svc-user",
+    "services/svc-content",
+    "services/svc-notification",
+    "services/migration",
 ]
 
 [workspace.package]
@@ -15,6 +15,9 @@ edition = "2024"
 license = "MIT"
 
 [workspace.dependencies]
+# 共享库
+shared = { path = "crates/shared" }
+
 # Async runtime
 tokio = { version = "1", features = ["full"] }
 async-trait = "0.1"

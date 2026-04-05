@@ -4,7 +4,7 @@ version.workspace = true
 edition.workspace = true
 
 [dependencies]
-shared = { path = "../shared" }
+shared.workspace = true
 tokio.workspace = true
 tonic.workspace = true
 tonic-health.workspace = true
