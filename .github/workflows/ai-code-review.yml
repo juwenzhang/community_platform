@@ -18,6 +18,47 @@ concurrency:
 
 jobs:
   # ========================================
+  # DeepSource 静态分析（通过 GitHub App 自动工作）
+  # 注：此 job 仅用于测试覆盖率上传（可选）
+  # ========================================
+  deepsource-coverage:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install DeepSource CLI
+        run: curl -fsSL https://cli.deepsource.com/install | BINDIR=./bin sh
+
+      - name: Run Frontend Tests with Coverage
+        run: |
+          # 如果有测试覆盖率文件，上传到 DeepSource
+          if [ -f "coverage/lcov.info" ]; then
+            ./bin/deepsource report --analyzer test-coverage \
+              --key javascript \
+              --value-file coverage/lcov.info
+          fi
+        env:
+          DEEPSOURCE_DSN: ${{ secrets.DEEPSOURCE_DSN }}
+
+      - name: Run Rust Tests with Coverage
+        run: |
+          # 如果有 Rust 测试覆盖率，上传到 DeepSource
+          if command -v cargo-tarpaulin &> /dev/null; then
+            cargo tarpaulin --out Xml
+            if [ -f "cobertura.xml" ]; then
+              ./bin/deepsource report --analyzer test-coverage \
+                --key rust \
+                --value-file cobertura.xml
+            fi
+          fi
+        env:
+          DEEPSOURCE_DSN: ${{ secrets.DEEPSOURCE_DSN }}
+
+  # ========================================
   # 自定义 GPT-4 分析（Push 触发）
   # ========================================
   custom-ai-review:
