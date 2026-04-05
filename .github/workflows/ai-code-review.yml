@@ -29,7 +29,7 @@ jobs:
           fetch-depth: 0
 
       - name: DeepSource Analysis
-        uses: deepsourcecorp/action@latest
+        uses: deepsourcelabs/action@latest
         env:
           DEEPSOURCE_DSN: ${{ secrets.DEEPSOURCE_DSN }}
         # DeepSource 通过 .deepsource.toml 配置分析器
