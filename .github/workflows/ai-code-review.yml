@@ -1,0 +1,145 @@
+name: AI Code Review
+
+on:
+  push:
+    branches: [master, main, develop]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - '.github/**'
+  pull_request:
+    branches: [master, main, develop]
+    types: [opened, synchronize, reopened]
+
+# 防止重复运行
+concurrency:
+  group: ai-review-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ========================================
+  # DeepSource 静态分析（免费，公开仓库）
+  # ========================================
+  deepsource:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: DeepSource Analysis
+        uses: deepsourcecorp/action@latest
+        env:
+          DEEPSOURCE_DSN: ${{ secrets.DEEPSOURCE_DSN }}
+        # DeepSource 通过 .deepsource.toml 配置分析器
+
+  # ========================================
+  # 自定义 GPT-4 分析（Push 触发）
+  # ========================================
+  custom-ai-review:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get Changed Files
+        id: changed-files
+        uses: tj-actions/changed-files@v44
+        with:
+          since_last_remote_commit: true
+          separator: ','
+          files: |
+            **/*.{ts,tsx,js,jsx,rs,py,go}
+            !**/*.test.*
+            !**/*.spec.*
+            !**/docs/**
+
+      - name: AI Code Analysis
+        if: steps.changed-files.outputs.any_changed == 'true'
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # 获取变更文件列表
+          FILES="${{ steps.changed-files.outputs.all_changed_files }}"
+
+          if [ -z "$FILES" ]; then
+            echo "No relevant files changed"
+            exit 0
+          fi
+
+          # 构建分析提示词
+          PROMPT="请分析以下代码变更的质量、潜在问题和改进建议：
+          $FILES
+
+          请从以下角度分析：
+          1. 代码质量和可读性
+          2. 潜在的 Bug 和边界条件
+          3. 性能问题
+          4. 安全隐患
+          5. 测试覆盖建议
+
+          请用中文回复，简洁明了。"
+
+          # 调用 OpenAI API
+          RESPONSE=$(curl -s https://api.openai.com/v1/chat/completions \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer $OPENAI_API_KEY" \
+            -d "{
+              \"model\": \"gpt-4o-mini\",
+              \"messages\": [{\"role\": \"user\", \"content\": \"$PROMPT\"}],
+              \"max_tokens\": 2000,
+              \"temperature\": 0.3
+            }")
+
+          # 提取分析结果
+          ANALYSIS=$(echo $RESPONSE | jq -r '.choices[0].message.content')
+
+          # 发布到 GitHub Commit Comment
+          curl -s -X POST \
+            -H "Authorization: token $GITHUB_TOKEN" \
+            -H "Accept: application/vnd.github.v3+json" \
+            https://api.github.com/repos/${{ github.repository }}/commits/${{ github.sha }}/comments \
+            -d "{\"body\": \"## 🤖 AI 代码分析\n\n$ANALYSIS\"}"
+
+  # ========================================
+  # PR 合并时的最终检查
+  # ========================================
+  pre-merge-check:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == true
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Final AI Security Check
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          # 获取合并的文件
+          MERGED_FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }})
+
+          PROMPT="以下代码即将合并到主分支，请进行最终安全审查：
+          $MERGED_FILES
+
+          重点检查：
+          1. 敏感信息泄露（API keys, tokens, passwords）
+          2. SQL 注入、XSS 等安全漏洞
+          3. 权限验证缺失
+          4. 依赖项安全问题
+
+          如果发现问题，请立即指出。否则回复：✅ 安全检查通过"
+
+          curl -s https://api.openai.com/v1/chat/completions \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer $OPENAI_API_KEY" \
+            -d "{
+              \"model\": \"gpt-4o-mini\",
+              \"messages\": [{\"role\": \"user\", \"content\": \"$PROMPT\"}],
+              \"max_tokens\": 1000,
+              \"temperature\": 0
+            }" | jq -r '.choices[0].message.content'
