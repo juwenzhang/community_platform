@@ -1,19 +1,18 @@
 <template>
-  <div v-if="loading" class="mermaidLoading">
-    <div class="mermaidSpinner"></div>
+  <div v-if="loading" class="mermaid-loading">
+    <div class="mermaid-spinner"></div>
     <span>正在渲染图表...</span>
   </div>
-  <div v-else-if="error" class="mermaidError">
-    <span class="mermaidErrorIcon">⚠️</span>
-    <span class="mermaidErrorText">{{ error }}</span>
-    <pre class="mermaidErrorCode">{{ code }}</pre>
+  <div v-else-if="error" class="mermaid-error">
+    <span class="mermaid-error-icon">⚠️</span>
+    <span class="mermaid-error-text">{{ error }}</span>
+    <pre class="mermaid-error-code">{{ code }}</pre>
   </div>
-  <div v-else ref="containerRef" class="mermaidDiagram" v-html="sanitizedSvg"></div>
+  <div v-else ref="containerRef" class="mermaid-diagram" v-html="svg"></div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, watch, computed } from 'vue';
-import DOMPurify from 'dompurify';
+import { ref, onMounted, onUnmounted, watch } from 'vue';
 
 interface Props {
   /** Mermaid 代码 */
@@ -31,9 +30,6 @@ const loading = ref(true);
 const error = ref('');
 const containerRef = ref<HTMLDivElement>();
 
-// 使用 DOMPurify 清理 SVG（防止 XSS）
-const sanitizedSvg = computed(() => DOMPurify.sanitize(svg.value));
-
 let cancelled = false;
 
 const renderDiagram = async () => {
@@ -47,7 +43,7 @@ const renderDiagram = async () => {
     mermaid.default.initialize({
       startOnLoad: false,
       theme: 'default',
-      securityLevel: 'loose',
+      securityLevel: 'strict',
     });
 
     // 超时机制（5秒）
@@ -90,64 +86,3 @@ watch(
 );
 </script>
 
-<style scoped>
-.mermaidDiagram {
-  margin: 1em 0;
-  text-align: center;
-  overflow-x: auto;
-}
-
-.mermaidDiagram svg {
-  max-width: 100%;
-  height: auto;
-}
-
-.mermaidLoading {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  padding: 2rem;
-  color: #6a737d;
-}
-
-.mermaidSpinner {
-  width: 20px;
-  height: 20px;
-  border: 2px solid #e1e4e8;
-  border-top-color: #1e80ff;
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-}
-
-.mermaidError {
-  padding: 1rem;
-  background: #fff8e6;
-  border: 1px solid #f59e0b;
-  border-radius: 4px;
-}
-
-.mermaidErrorIcon {
-  margin-right: 0.5rem;
-}
-
-.mermaidErrorText {
-  color: #92400e;
-  font-weight: 500;
-}
-
-.mermaidErrorCode {
-  margin-top: 0.5rem;
-  padding: 0.5rem;
-  background: #fffbeb;
-  border-radius: 4px;
-  font-size: 0.875rem;
-  overflow-x: auto;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-</style>

@@ -1,0 +1,27 @@
+{
+  "name": "@luhanxin/md-parser-theme",
+  "version": "0.2.0",
+  "description": "Default theme for md-parser — CSS styles for markdown-body, code blocks, containers, mermaid, KaTeX",
+  "type": "module",
+  "main": "./dist/index.css",
+  "exports": {
+    ".": "./dist/index.css",
+    "./index.css": "./dist/index.css"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "mkdir -p dist && cp src/index.css dist/index.css",
+    "dev": "mkdir -p dist && cp src/index.css dist/index.css"
+  },
+  "keywords": [
+    "markdown",
+    "theme",
+    "css",
+    "styles"
+  ],
+  "author": "luhanxin",
+  "license": "MIT",
+  "devDependencies": {}
+}

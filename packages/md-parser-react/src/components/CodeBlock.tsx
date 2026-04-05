@@ -1,5 +1,4 @@
-import DOMPurify from 'dompurify';
-import { useMemo, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 
 export interface CodeBlockProps {
   /** 代码内容 */
@@ -37,30 +36,22 @@ export function CodeBlock({
 
   const lines = code.split('\n');
 
-  // 使用 DOMPurify 清理高亮 HTML（防止 XSS）
-  const sanitizedHighlightedHtml = useMemo(
-    () => (highlightedHtml ? DOMPurify.sanitize(highlightedHtml) : ''),
-    [highlightedHtml],
-  );
-
-  // 生成稳定的行 key
-  const lineKeys = useMemo(() => lines.map((_, i) => `line-${i}`), [lines]);
-
   return (
-    <div className="codeBlockWrapper">
-      {language && <span className="codeBlockLanguage">{language}</span>}
+    <div className="code-block-wrapper">
+      {language && <span className="code-block-lang">{language}</span>}
       <pre ref={preRef} className={highlightedHtml ? 'shiki' : ''}>
         {highlightedHtml ? (
           <code
-            // biome-ignore lint/security/noDangerouslySetInnerHtml: HTML 已通过 DOMPurify 清理
-            dangerouslySetInnerHTML={{ __html: sanitizedHighlightedHtml }}
+            // biome-ignore lint/security/noDangerouslySetInnerHtml: HTML 来自 core 渲染管线，已通过 rehype-sanitize 清理
+            dangerouslySetInnerHTML={{ __html: highlightedHtml ?? '' }}
           />
         ) : showLineNumbers ? (
           <code>
             {lines.map((line, i) => (
-              <div key={lineKeys[i]} className="codeLine">
-                <span className="lineNumber">{i + 1}</span>
-                <span className="lineContent">{line}</span>
+              // biome-ignore lint/suspicious/noArrayIndexKey: 代码行顺序固定，不会重排序
+              <div key={`line-${i}`} className="code-line">
+                <span className="line-number">{i + 1}</span>
+                <span className="line-content">{line}</span>
               </div>
             ))}
           </code>
@@ -70,7 +61,7 @@ export function CodeBlock({
       </pre>
       <button
         type="button"
-        className="copyButton"
+        className="code-block-copy"
         onClick={handleCopy}
         aria-label={copied ? '已复制' : '复制代码'}
       >

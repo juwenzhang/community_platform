@@ -29,12 +29,12 @@ export function CustomContainer({ kind, title, children }: CustomContainerProps)
   };
 
   return (
-    <div className={`customContainer ${kind}`}>
-      <div className="customContainerTitle">
-        <span className="customContainerIcon">{iconMap[kind]}</span>
+    <div className={`custom-container ${kind}`}>
+      <div className="container-title">
+        <span className="container-icon">{iconMap[kind]}</span>
         <span>{title || defaultTitleMap[kind]}</span>
       </div>
-      <div className="customContainerContent">{children}</div>
+      <div className="container-content">{children}</div>
     </div>
   );
 }

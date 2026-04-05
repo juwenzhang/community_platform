@@ -7,9 +7,16 @@ type Schema = NonNullable<Parameters<typeof import('rehype-sanitize').default>[0
  * 自定义 XSS 防护 Schema
  *
  * 扩展默认 schema，允许：
- * - Shiki 代码高亮（大量 span + class）
+ * - Shiki 代码高亮（span + style + data 属性）
  * - Mermaid SVG 图表
  * - KaTeX 数学公式
+ * - 自定义语法元素（mention/hashtag/container）
+ * - rehype-code-meta 注入的代码块 wrapper
+ * - rehype-heading-ids 注入的锚点链接
+ *
+ * 注意：rehype-sanitize 是唯一的 XSS 防护层。
+ * 不再提供冗余的手写 sanitizeHtml/containsDangerousContent 函数
+ * （GLM 版本中这两个函数与 rehype-sanitize 功能重复且不可靠）。
  */
 export const customSanitizeSchema: Schema = {
   ...defaultSchema,
@@ -36,33 +43,42 @@ export const customSanitizeSchema: Schema = {
     // KaTeX 元素
     'mjx-container',
     'mjx-assistive-mml',
+    // rehype-code-meta wrapper
+    'button',
   ],
   attributes: {
     ...defaultSchema.attributes,
-    // 允许所有元素的 class 属性（任何值）
-    '*': [...(defaultSchema.attributes?.['*'] || []), 'className'],
-    // Shiki 高亮元素和自定义元素
+    // 允许所有元素的 class 属性
+    '*': [...(defaultSchema.attributes?.['*'] || []), 'className', 'class'],
+    // Shiki 高亮元素
     span: [
       ...(defaultSchema.attributes?.span || []),
-      // 允许 shiki 相关的 style 属性
       ['style', /^--shiki-/],
       'data-line',
       'data-lang',
-      'data-username',
-      'data-tag',
     ],
+    // 自定义语法元素 + 外链 + 锚点
     a: [
       ...(defaultSchema.attributes?.a || []),
-      // 允许 a 标签的任何 class
+      'class',
       'className',
       'data-username',
       'data-tag',
+      'target',
+      'rel',
+      'ariaHidden',
+      'tabIndex',
     ],
     div: [
       ...(defaultSchema.attributes?.div || []),
-      // 允许 div 标签的任何 class
+      'class',
       'className',
+      'data-lang', // rehype-code-meta
     ],
+    // 代码块复制按钮
+    button: ['class', 'className', 'type', 'ariaLabel', 'data-code'],
+    // 图片懒加载
+    img: [...(defaultSchema.attributes?.img || []), 'loading', 'alt'],
     // Mermaid SVG 属性
     svg: [
       ...(defaultSchema.attributes?.svg || []),
@@ -109,41 +125,9 @@ export const customSanitizeSchema: Schema = {
     // KaTeX 属性
     'mjx-container': ['class', 'style'],
   },
-  // 协议白名单
   protocols: {
     ...defaultSchema.protocols,
     href: ['http', 'https', 'mailto'],
     src: ['http', 'https', 'data'],
   },
 } as const;
-
-/**
- * 检查是否包含危险内容
- */
-export function containsDangerousContent(html: string): boolean {
-  const dangerousPatterns = [
-    /<script[\s\S]*?>[\s\S]*?<\/script>/gi,
-    /javascript:/gi,
-    /on\w+\s*=/gi, // onclick, onload, etc.
-    /<iframe[\s\S]*?>/gi,
-    /<embed[\s\S]*?>/gi,
-    /<object[\s\S]*?>/gi,
-    /expression\s*\(/gi,
-    /vbscript:/gi,
-    /data:\s*text\/html/gi,
-  ];
-
-  return dangerousPatterns.some((pattern) => pattern.test(html));
-}
-
-/**
- * 移除危险内容
- */
-export function sanitizeHtml(html: string): string {
-  // 简单的预处理，实际防护由 rehype-sanitize 完成
-  return html
-    .replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, '')
-    .replace(/on\w+\s*=\s*["'][^"']*["']/gi, '')
-    .replace(/javascript:/gi, '')
-    .replace(/vbscript:/gi, '');
-}

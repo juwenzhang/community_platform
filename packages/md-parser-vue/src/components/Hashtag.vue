@@ -29,15 +29,3 @@ const handleClick = (e: Event) => {
 };
 </script>
 
-<style scoped>
-.hashtag {
-  color: #1e80ff;
-  font-weight: 500;
-  text-decoration: none;
-  cursor: pointer;
-}
-
-.hashtag:hover {
-  text-decoration: underline;
-}
-</style>

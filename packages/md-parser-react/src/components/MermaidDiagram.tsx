@@ -1,5 +1,4 @@
-import DOMPurify from 'dompurify';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 export interface MermaidDiagramProps {
   /** Mermaid 代码 */
@@ -18,9 +17,6 @@ export function MermaidDiagram({ code, id = 'mermaid' }: MermaidDiagramProps) {
   const [error, setError] = useState<string>('');
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // 使用 DOMPurify 清理 SVG（防止 XSS）
-  const sanitizedSvg = useMemo(() => DOMPurify.sanitize(svg), [svg]);
-
   useEffect(() => {
     let cancelled = false;
 
@@ -34,7 +30,7 @@ export function MermaidDiagram({ code, id = 'mermaid' }: MermaidDiagramProps) {
         mermaid.default.initialize({
           startOnLoad: false,
           theme: 'default',
-          securityLevel: 'loose',
+          securityLevel: 'strict',
         });
 
         // 超时机制（5秒）
@@ -70,8 +66,8 @@ export function MermaidDiagram({ code, id = 'mermaid' }: MermaidDiagramProps) {
 
   if (loading) {
     return (
-      <div className="mermaidLoading">
-        <div className="mermaidSpinner" />
+      <div className="mermaid-loading">
+        <div className="mermaid-spinner" />
         <span>正在渲染图表...</span>
       </div>
     );
@@ -79,10 +75,10 @@ export function MermaidDiagram({ code, id = 'mermaid' }: MermaidDiagramProps) {
 
   if (error) {
     return (
-      <div className="mermaidError">
-        <span className="mermaidErrorIcon">⚠️</span>
-        <span className="mermaidErrorText">{error}</span>
-        <pre className="mermaidErrorCode">{code}</pre>
+      <div className="mermaid-error">
+        <span className="mermaid-error-icon">⚠️</span>
+        <span className="mermaid-error-text">{error}</span>
+        <pre className="mermaid-error-code">{code}</pre>
       </div>
     );
   }
@@ -90,9 +86,9 @@ export function MermaidDiagram({ code, id = 'mermaid' }: MermaidDiagramProps) {
   return (
     <div
       ref={containerRef}
-      className="mermaidDiagram"
-      // biome-ignore lint/security/noDangerouslySetInnerHtml: SVG 已通过 DOMPurify 清理
-      dangerouslySetInnerHTML={{ __html: sanitizedSvg }}
+      className="mermaid-diagram"
+      // biome-ignore lint/security/noDangerouslySetInnerHtml: SVG 由 mermaid securityLevel:strict 生成
+      dangerouslySetInnerHTML={{ __html: svg }}
     />
   );
 }

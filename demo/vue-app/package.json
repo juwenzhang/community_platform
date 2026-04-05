@@ -11,7 +11,9 @@
   },
   "dependencies": {
     "@luhanxin/md-parser-core": "workspace:*",
+    "@luhanxin/md-parser-theme": "workspace:*",
     "@luhanxin/md-parser-vue": "workspace:*",
+    "mermaid": "^11.0.0",
     "vue": "^3.4.0"
   },
   "devDependencies": {

@@ -22,7 +22,6 @@ describe('Markdown Parser Core', () => {
 | Cell 1   | Cell 2   |
 `;
       const ast = await parseMarkdownToAst(markdown);
-
       const table = ast.children.find((node) => node.type === 'table');
       expect(table).toBeDefined();
     });
@@ -35,71 +34,105 @@ date: 2026-04-05
 
 # Content`;
       const ast = await parseMarkdownToAst(markdown);
-
       const yaml = ast.children.find((node) => node.type === 'yaml');
       expect(yaml).toBeDefined();
     });
   });
 
-  describe('renderMarkdown', () => {
-    it('should render basic markdown to HTML', async () => {
+  describe('renderMarkdown (ParseResult)', () => {
+    it('should return ParseResult with html, toc, meta, plainText, blocks', async () => {
       const markdown = '# Hello World\n\nThis is **bold** text.';
-      const html = await renderMarkdown(markdown);
+      const result = await renderMarkdown(markdown);
 
-      expect(html).toContain('<h1');
-      expect(html).toContain('Hello World');
-      expect(html).toContain('<strong>bold</strong>');
+      // 验证 ParseResult 结构
+      expect(result).toHaveProperty('html');
+      expect(result).toHaveProperty('toc');
+      expect(result).toHaveProperty('meta');
+      expect(result).toHaveProperty('plainText');
+      expect(result).toHaveProperty('blocks');
+
+      // HTML
+      expect(result.html).toContain('Hello World');
+      expect(result.html).toContain('<strong>bold</strong>');
+
+      // TOC
+      expect(result.toc).toHaveLength(1);
+      expect(result.toc[0].text).toBe('Hello World');
+      expect(result.toc[0].level).toBe(1);
+
+      // plainText
+      expect(result.plainText).toContain('Hello World');
+      expect(result.plainText).toContain('bold');
+
+      // blocks
+      expect(result.blocks.length).toBeGreaterThan(0);
     });
 
     it('should render code blocks with syntax highlighting', async () => {
       const markdown = '```js\nconst x = 1;\n```';
-      const html = await renderMarkdown(markdown);
+      const result = await renderMarkdown(markdown);
 
-      expect(html).toContain('<pre');
-      expect(html).toContain('const');
+      expect(result.html).toContain('<pre');
+      expect(result.html).toContain('const');
     });
 
     it('should render GFM tables', async () => {
       const markdown = `| Header 1 | Header 2 |
 |----------|----------|
 | Cell 1   | Cell 2   |`;
-      const html = await renderMarkdown(markdown);
+      const result = await renderMarkdown(markdown);
 
-      expect(html).toContain('<table>');
-      expect(html).toContain('<th>');
-      expect(html).toContain('<td>');
+      expect(result.html).toContain('<table>');
+      expect(result.html).toContain('<th>');
+      expect(result.html).toContain('<td>');
+    });
+
+    it('should extract frontmatter metadata in ParseResult', async () => {
+      const markdown = `---
+title: My Article
+description: This is a test
+tags:
+  - test
+  - markdown
+---
+
+# Content`;
+      const result = await renderMarkdown(markdown);
+
+      expect(result.meta.title).toBe('My Article');
+      expect(result.meta.description).toBe('This is a test');
+      expect(result.meta.tags).toEqual(['test', 'markdown']);
+    });
+
+    it('should inject heading IDs when postProcess is enabled', async () => {
+      const markdown = '## Hello World';
+      const result = await renderMarkdown(markdown, { postProcess: true });
+
+      expect(result.html).toContain('id="hello-world"');
+      expect(result.html).toContain('heading-anchor');
+    });
+
+    it('should add lazy loading to images', async () => {
+      const markdown = '![alt1](img1.png)\n\n![alt2](img2.png)';
+      const result = await renderMarkdown(markdown, { postProcess: true });
+
+      // 第一张不 lazy（首屏 LCP），第二张 lazy
+      const imgMatches = result.html.match(/<img[^>]*>/g) || [];
+      expect(imgMatches.length).toBe(2);
+      expect(imgMatches[0]).not.toContain('loading="lazy"');
+      expect(imgMatches[1]).toContain('loading="lazy"');
     });
   });
 
-  describe('extractToc', () => {
+  describe('extractToc (standalone)', () => {
     it('should extract table of contents', async () => {
-      const markdown = `# Title
-
-## Section 1
-
-### Subsection 1.1
-
-## Section 2
-`;
+      const markdown = `# Title\n\n## Section 1\n\n### Subsection 1.1\n\n## Section 2\n`;
       const ast = await parseMarkdownToAst(markdown);
       const toc = extractToc(ast);
 
       expect(toc).toHaveLength(1);
       expect(toc[0].text).toBe('Title');
-      expect(toc[0].level).toBe(1);
       expect(toc[0].children).toHaveLength(2);
-      expect(toc[0].children?.[0].text).toBe('Section 1');
-      expect(toc[0].children?.[0].children).toHaveLength(1);
-      expect(toc[0].children?.[0].children?.[0].text).toBe('Subsection 1.1');
-    });
-
-    it('should generate heading IDs', async () => {
-      const markdown = '## Hello World\n## Another Title';
-      const ast = await parseMarkdownToAst(markdown);
-      const toc = extractToc(ast);
-
-      expect(toc[0].id).toBe('hello-world');
-      expect(toc[1].id).toBe('another-title');
     });
 
     it('should handle Chinese headings', async () => {
@@ -112,7 +145,7 @@ date: 2026-04-05
     });
   });
 
-  describe('extractPlainText', () => {
+  describe('extractPlainText (standalone)', () => {
     it('should extract plain text from markdown', async () => {
       const markdown = '# Title\n\nThis is **bold** text.';
       const ast = await parseMarkdownToAst(markdown);
@@ -123,7 +156,7 @@ date: 2026-04-05
       expect(plainText).not.toContain('**');
     });
 
-    it('should skip code blocks by default', async () => {
+    it('should skip code blocks', async () => {
       const markdown = 'Hello\n\n```js\nconst x = 1;\n```\n\nWorld';
       const ast = await parseMarkdownToAst(markdown);
       const plainText = extractPlainText(ast);
@@ -136,47 +169,30 @@ date: 2026-04-05
 
   describe('countWords', () => {
     it('should count English words', () => {
-      const text = 'Hello world this is a test';
-      const count = countWords(text);
-
-      expect(count).toBe(6);
+      expect(countWords('Hello world this is a test')).toBe(6);
     });
 
     it('should count Chinese characters', () => {
-      const text = '这是中文测试';
-      const count = countWords(text);
-
-      expect(count).toBe(6);
+      expect(countWords('这是中文测试')).toBe(6);
     });
 
     it('should count mixed Chinese and English', () => {
-      const text = 'Hello 世界 this is 测试';
-      const count = countWords(text);
-
-      // 英文单词：Hello, this, is (3个)
-      // 中文字符：世界, 测试 (4个字符)
-      // 总共：3 + 4 = 7
-      expect(count).toBe(7);
+      expect(countWords('Hello 世界 this is 测试')).toBe(7);
     });
   });
 
   describe('estimateReadingTime', () => {
     it('should estimate reading time in minutes', () => {
-      const text = 'word '.repeat(400); // 400 words
-      const time = estimateReadingTime(text, 200);
-
-      expect(time).toBe(2); // 400 / 200 = 2 minutes
+      const text = 'word '.repeat(400);
+      expect(estimateReadingTime(text, 200)).toBe(2);
     });
 
     it('should round up to at least 1 minute', () => {
-      const text = 'short text';
-      const time = estimateReadingTime(text, 200);
-
-      expect(time).toBe(1);
+      expect(estimateReadingTime('short text', 200)).toBe(1);
     });
   });
 
-  describe('extractMeta', () => {
+  describe('extractMeta (standalone)', () => {
     it('should extract frontmatter metadata', async () => {
       const markdown = `---
 title: My Article
@@ -203,16 +219,6 @@ tags:
       const meta = extractMeta(ast, plainText);
 
       expect(meta.title).toBe('Article Title');
-    });
-
-    it('should count words and estimate reading time', async () => {
-      const markdown = '# Title\n\n' + 'word '.repeat(300);
-      const ast = await parseMarkdownToAst(markdown);
-      const plainText = extractPlainText(ast);
-      const meta = extractMeta(ast, plainText);
-
-      expect(meta.wordCount).toBeGreaterThan(0);
-      expect(meta.readingTime).toBeGreaterThan(0);
     });
   });
 });

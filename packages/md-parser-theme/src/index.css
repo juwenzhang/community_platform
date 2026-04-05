@@ -1,13 +1,25 @@
-/* React Markdown 样式
- * 规范：CSS 嵌套映射 DOM 结构（无 Tailwind）
+/**
+ * @luhanxin/md-parser-theme — Default Markdown Theme
+ *
+ * 统一样式包，React / Vue 共用。
+ * 类名全部 kebab-case，与 core 输出一致。
+ *
+ * 使用方式：
+ *   import '@luhanxin/md-parser-theme';
+ *   或
+ *   import '@luhanxin/md-parser-theme/index.css';
  */
+
+/* ================================================================
+   1. Markdown Body — 主容器
+   ================================================================ */
 
 .markdown-body {
   line-height: 1.6;
   word-wrap: break-word;
   color: #24292f;
 
-  /* ==================== 标题样式 ==================== */
+  /* ── 标题 ── */
   h1 {
     font-size: 2em;
     font-weight: 600;
@@ -38,7 +50,7 @@
     margin: 1em 0 0.5em;
   }
 
-  /* ==================== 段落和文本 ==================== */
+  /* ── 段落和文本 ── */
   p {
     margin: 1em 0;
   }
@@ -51,7 +63,7 @@
     font-style: italic;
   }
 
-  /* ==================== 代码样式 ==================== */
+  /* ── 内联代码 ── */
   code {
     padding: 0.2em 0.4em;
     margin: 0;
@@ -62,6 +74,7 @@
     border-radius: 3px;
   }
 
+  /* ── 代码块 ── */
   pre {
     padding: 16px;
     overflow: auto;
@@ -77,7 +90,7 @@
       font-size: inherit;
     }
 
-    /* Shiki 高亮主题 */
+    /* Shiki 高亮 */
     &.shiki {
       background-color: #1e1e1e;
       color: #d4d4d4;
@@ -88,7 +101,7 @@
     }
   }
 
-  /* ==================== 引用 ==================== */
+  /* ── 引用 ── */
   blockquote {
     padding: 0 1em;
     margin: 1em 0;
@@ -96,7 +109,7 @@
     border-left: 0.25em solid #dfe2e5;
   }
 
-  /* ==================== 列表 ==================== */
+  /* ── 列表 ── */
   ul,
   ol {
     padding-left: 2em;
@@ -107,7 +120,7 @@
     margin: 0.25em 0;
   }
 
-  /* ==================== 表格 ==================== */
+  /* ── 表格 ── */
   table {
     border-spacing: 0;
     border-collapse: collapse;
@@ -132,7 +145,7 @@
     }
   }
 
-  /* ==================== 图片 ==================== */
+  /* ── 图片 ── */
   img {
     max-width: 100%;
     box-sizing: content-box;
@@ -141,7 +154,7 @@
     margin: 1em 0;
   }
 
-  /* ==================== 链接 ==================== */
+  /* ── 链接 ── */
   a {
     color: #1e80ff;
     text-decoration: none;
@@ -151,7 +164,7 @@
     }
   }
 
-  /* ==================== 分割线 ==================== */
+  /* ── 分割线 ── */
   hr {
     height: 0.25em;
     padding: 0;
@@ -160,17 +173,17 @@
     border: 0;
   }
 
-  /* ==================== 删除线 ==================== */
+  /* ── 删除线 ── */
   del {
     text-decoration: line-through;
   }
 
-  /* ==================== 任务列表 ==================== */
+  /* ── 任务列表 ── */
   input[type="checkbox"] {
     margin-right: 0.5em;
   }
 
-  /* ==================== 脚注 ==================== */
+  /* ── 脚注 ── */
   .footnotes {
     font-size: 0.9em;
     border-top: 1px solid #eaecef;
@@ -179,9 +192,10 @@
   }
 }
 
-/* ==================== 自定义语法样式 ==================== */
+/* ================================================================
+   2. @用户提及
+   ================================================================ */
 
-/* @用户提及 */
 .mention {
   color: #1e80ff;
   font-weight: 500;
@@ -193,7 +207,10 @@
   }
 }
 
-/* #标签 */
+/* ================================================================
+   3. #标签
+   ================================================================ */
+
 .hashtag {
   color: #1e80ff;
   font-weight: 500;
@@ -205,85 +222,94 @@
   }
 }
 
-/* ==================== 自定义容器 ==================== */
+/* ================================================================
+   4. 自定义容器
+   类名与 core hast-handlers.ts 输出一致：
+   custom-container / container-title / container-icon / container-content
+   ================================================================ */
 
-.customContainer {
+.custom-container {
   padding: 1rem;
   border-radius: 4px;
   margin: 1rem 0;
 
-  .customContainerTitle {
+  .container-title {
     font-weight: 600;
     margin-bottom: 0.5rem;
     display: flex;
     align-items: center;
     gap: 0.5rem;
 
-    .customContainerIcon {
+    .container-icon {
       font-size: 1.2em;
     }
   }
 
-  .customContainerContent {
+  .container-content {
     line-height: 1.6;
   }
 
-  /* 提示容器 */
+  /* tip */
   &.tip {
     background-color: #e8f3ff;
     border-left: 4px solid #1e80ff;
 
-    .customContainerTitle {
+    .container-title {
       color: #1e3a8a;
     }
   }
 
-  /* 警告容器 */
+  /* warning */
   &.warning {
     background-color: #fff8e6;
     border-left: 4px solid #f59e0b;
 
-    .customContainerTitle {
+    .container-title {
       color: #92400e;
     }
   }
 
-  /* 信息容器 */
+  /* info */
   &.info {
     background-color: #f0f9ff;
     border-left: 4px solid #0ea5e9;
 
-    .customContainerTitle {
+    .container-title {
       color: #0c4a6e;
     }
   }
 
-  /* 危险容器 */
+  /* danger */
   &.danger {
     background-color: #fef2f2;
     border-left: 4px solid #ef4444;
 
-    .customContainerTitle {
+    .container-title {
       color: #991b1b;
     }
   }
 }
 
-/* ==================== KaTeX 数学公式 ==================== */
+/* ================================================================
+   5. KaTeX 数学公式
+   ================================================================ */
 
 .katex {
   font-size: 1.1em;
 }
 
-.katexDisplay {
+.katex-display {
   margin: 1em 0;
   overflow-x: auto;
   overflow-y: hidden;
 }
 
-/* ==================== Mermaid 图表 ==================== */
+/* ================================================================
+   6. Mermaid 图表
+   全部 kebab-case（修复之前的 camelCase）
+   ================================================================ */
 
-.mermaidDiagram {
+.mermaid-diagram {
   margin: 1em 0;
   text-align: center;
   overflow-x: auto;
@@ -294,7 +320,7 @@
   }
 }
 
-.mermaidLoading {
+.mermaid-loading {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -302,32 +328,32 @@
   padding: 2rem;
   color: #6a737d;
 
-  .mermaidSpinner {
+  .mermaid-spinner {
     width: 20px;
     height: 20px;
     border: 2px solid #e1e4e8;
     border-top-color: #1e80ff;
     border-radius: 50%;
-    animation: spin 0.8s linear infinite;
+    animation: md-spin 0.8s linear infinite;
   }
 }
 
-.mermaidError {
+.mermaid-error {
   padding: 1rem;
   background: #fff8e6;
   border: 1px solid #f59e0b;
   border-radius: 4px;
 
-  .mermaidErrorIcon {
+  .mermaid-error-icon {
     margin-right: 0.5rem;
   }
 
-  .mermaidErrorText {
+  .mermaid-error-text {
     color: #92400e;
     font-weight: 500;
   }
 
-  .mermaidErrorCode {
+  .mermaid-error-code {
     margin-top: 0.5rem;
     padding: 0.5rem;
     background: #fffbeb;
@@ -337,19 +363,23 @@
   }
 }
 
-@keyframes spin {
+@keyframes md-spin {
   to {
     transform: rotate(360deg);
   }
 }
 
-/* ==================== 代码块包装器 ==================== */
+/* ================================================================
+   7. 代码块包装器
+   类名与 core rehype-code-meta.ts 输出一致：
+   code-block-wrapper / code-block-lang / code-block-copy
+   ================================================================ */
 
-.codeBlockWrapper {
+.code-block-wrapper {
   position: relative;
   margin: 1em 0;
 
-  .codeBlockLanguage {
+  .code-block-lang {
     position: absolute;
     top: 0;
     right: 0;
@@ -363,7 +393,7 @@
     border-right: none;
   }
 
-  .copyButton {
+  .code-block-copy {
     position: absolute;
     top: 0.5rem;
     right: 0.5rem;
@@ -381,15 +411,15 @@
     }
   }
 
-  &:hover .copyButton {
+  &:hover .code-block-copy {
     opacity: 1;
   }
 
-  .codeLine {
+  .code-line {
     display: flex;
   }
 
-  .lineNumber {
+  .line-number {
     display: inline-block;
     width: 3em;
     padding-right: 1em;
@@ -401,14 +431,16 @@
     user-select: none;
   }
 
-  .lineContent {
+  .line-content {
     flex: 1;
   }
 }
 
-/* ==================== 加载和错误状态 ==================== */
+/* ================================================================
+   8. 加载和错误状态
+   ================================================================ */
 
-.skeleton {
+.markdown-skeleton {
   padding: 1rem;
   background: #f5f5f5;
   color: #999;
@@ -416,7 +448,7 @@
   border-radius: 4px;
 }
 
-.error {
+.markdown-error {
   padding: 1rem;
   background: #fff5f5;
   color: #c53030;
@@ -424,10 +456,12 @@
   border-radius: 4px;
 }
 
-/* ==================== 响应式调整 ==================== */
+/* ================================================================
+   9. 响应式
+   ================================================================ */
 
 @media (max-width: 768px) {
-  .markdownBody {
+  .markdown-body {
     font-size: 0.9rem;
 
     table {

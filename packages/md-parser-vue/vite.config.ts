@@ -13,13 +13,12 @@ export default defineConfig({
     },
     rollupOptions: {
       // mermaid 作为 peerDependency，不打包进去（动态 import 由使用者提供）
-      external: ['vue', '@luhanxin/md-parser-core', 'mermaid', 'dompurify'],
+      external: ['vue', '@luhanxin/md-parser-core', 'mermaid'],
       output: {
         globals: {
           vue: 'Vue',
           '@luhanxin/md-parser-core': 'MdParserCore',
           mermaid: 'mermaid',
-          dompurify: 'DOMPurify',
         },
       },
     },

@@ -1,30 +1,78 @@
 <template>
-  <div class="container">
-    <h1 class="title">Vue Markdown Parser Demo</h1>
+  <div class="app">
+    <div class="layout">
+      <!-- 左侧：编辑器 + 渲染 -->
+      <div class="main">
+        <h1 class="title">Vue Markdown Parser Demo</h1>
 
-    <div class="editor">
-      <label class="label">编辑 Markdown：</label>
-      <textarea
-        v-model="markdown"
-        class="textarea"
-        rows="12"
-      ></textarea>
-    </div>
+        <textarea
+          v-model="markdown"
+          class="editor"
+          rows="8"
+        />
 
-    <div class="preview">
-      <h2 class="preview-title">渲染结果：</h2>
-      <MarkdownRenderer :content="markdown" />
+        <div ref="containerRef">
+          <MarkdownRenderer
+            :content="markdown"
+            :debounce="200"
+            :event-handlers="eventHandlers"
+            @toc-ready="onTocReady"
+          />
+        </div>
+      </div>
+
+      <!-- 右侧：TOC + 事件日志 -->
+      <div class="sidebar">
+        <nav class="toc">
+          <h3 class="toc-title">目录</h3>
+          <ul class="toc-list">
+            <li v-for="item in toc" :key="item.id">
+              <a
+                :href="`#${item.id}`"
+                :class="{ active: activeId === item.id }"
+                :style="{ paddingLeft: `${(item.level - 1) * 16}px` }"
+              >
+                {{ item.text }}
+              </a>
+            </li>
+          </ul>
+        </nav>
+
+        <div class="events">
+          <h3 class="events-title">事件日志</h3>
+          <div class="events-log">
+            <div v-if="events.length === 0" class="events-empty">
+              点击 @mention、#hashtag 等试试
+            </div>
+            <div v-for="(e, i) in events" :key="i" class="events-item">
+              {{ e }}
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
+import type { TocItem, EventHandlers } from '@luhanxin/md-parser-core';
 import { MarkdownRenderer } from '@luhanxin/md-parser-vue';
+import { useActiveHeading } from '@luhanxin/md-parser-vue';
 
-const markdown = ref(`# Vue Markdown Demo
+const containerRef = ref<HTMLElement | null>(null);
+const toc = ref<TocItem[]>([]);
+const events = ref<string[]>([]);
+const activeId = useActiveHeading(containerRef, toc);
 
-这是一个 **测试示例**，验证 \`@luhanxin/md-parser-vue\` 包是否正常工作。
+const markdown = ref(`---
+title: Vue Markdown Demo
+tags: [vue, markdown, enterprise]
+---
+
+# Vue Markdown Parser Demo
+
+这是一个 **企业级** Markdown 渲染 Demo，验证 \`@luhanxin/md-parser-vue\` 的全部能力。
 
 ## 功能测试
 
@@ -32,89 +80,156 @@ const markdown = ref(`# Vue Markdown Demo
 
 \`\`\`typescript
 import { MarkdownRenderer } from '@luhanxin/md-parser-vue';
-
 const markdown = ref('# Hello World');
 \`\`\`
 
-### 2. Mermaid 图表
+### 2. 自定义语法
 
-\`\`\`mermaid
-graph LR
-    A[Vue] --> B[Markdown]
-    B --> C[渲染]
-\`\`\`
+@vue 你好，这是一条 @mention 测试。
 
-### 3. Mention 提及
+标签：#前端 #Vue #Markdown
 
-@vue 你好，这是一条测试消息。
-
-### 4. Hashtag 标签
-
-#前端开发 #Vue #Markdown
-
-### 5. 自定义容器
+### 3. 容器
 
 :::tip 提示
-这是一个提示框
+支持 **Markdown** 语法。
 :::
 
 :::warning 警告
-这是一个警告框
+注意事项。
 :::
 
-## 列表测试
+### 4. 外链
 
-- 无序列表项 1
-- 无序列表项 2
-  - 嵌套项 2.1
-  - 嵌套项 2.2
-
-1. 有序列表项 1
-2. 有序列表项 2
+访问 [Vue.js](https://vuejs.org) 官网。
 
 ---
 
 **测试完成！** ✅
 `);
+
+const addEvent = (msg: string) => {
+  const time = new Date().toLocaleTimeString();
+  events.value = [`[${time}] ${msg}`, ...events.value.slice(0, 9)];
+};
+
+const eventHandlers: EventHandlers = {
+  onMentionClick: (u) => addEvent(`@mention: ${u}`),
+  onHashtagClick: (t) => addEvent(`#hashtag: ${t}`),
+  onImageClick: (src) => addEvent(`image: ${src}`),
+  onLinkClick: (href) => addEvent(`link: ${href}`),
+  onCodeCopy: (_, lang) => addEvent(`code copy: ${lang}`),
+  onHeadingClick: (id) => addEvent(`heading: #${id}`),
+};
+
+const onTocReady = (t: TocItem[]) => {
+  toc.value = t;
+};
 </script>
 
 <style scoped>
-.container {
-  max-width: 800px;
+.app {
+  max-width: 1200px;
   margin: 0 auto;
-  padding: 20px;
+  padding: 16px;
+}
+
+.layout {
+  display: flex;
+  gap: 24px;
+}
+
+.main {
+  flex: 1;
+  min-width: 0;
 }
 
 .title {
+  font-size: 24px;
+  font-weight: 700;
   text-align: center;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
 }
 
 .editor {
-  margin-bottom: 20px;
-}
-
-.label {
-  display: block;
-  margin-bottom: 8px;
-  font-weight: bold;
-}
-
-.textarea {
   width: 100%;
   padding: 12px;
-  font-size: 14px;
+  font-size: 13px;
   font-family: monospace;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-}
-
-.preview {
-  border-top: 2px solid #eee;
-  padding-top: 20px;
-}
-
-.preview-title {
+  border: 1px solid #e4e6eb;
+  border-radius: 8px;
   margin-bottom: 16px;
+  resize: vertical;
+}
+
+.sidebar {
+  width: 220px;
+  flex-shrink: 0;
+}
+
+.toc {
+  position: sticky;
+  top: 16px;
+}
+
+.toc-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #515767;
+  margin-bottom: 8px;
+}
+
+.toc-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+
+  a {
+    display: block;
+    padding: 4px 0;
+    font-size: 13px;
+    color: #8a919f;
+    text-decoration: none;
+    transition: color 0.2s;
+
+    &.active {
+      color: #1e80ff;
+      font-weight: 600;
+    }
+
+    &:hover {
+      color: #1e80ff;
+    }
+  }
+}
+
+.events {
+  margin-top: 24px;
+}
+
+.events-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #515767;
+  margin-bottom: 8px;
+}
+
+.events-log {
+  max-height: 300px;
+  overflow: auto;
+  font-size: 12px;
+  font-family: monospace;
+  background: #f7f8fa;
+  border-radius: 8px;
+  padding: 8px;
+}
+
+.events-empty {
+  color: #a8b1bf;
+}
+
+.events-item {
+  padding: 2px 0;
+  color: #515767;
 }
 </style>

@@ -5,7 +5,7 @@
 ## Features
 
 - ✅ **Vue 3 Composition API** - `<script setup>` + TypeScript
-- ✅ **Automatic XSS Protection** - rehype-sanitize + DOMPurify
+- ✅ **Automatic XSS Protection** - rehype-sanitize + mermaid securityLevel:strict
 - ✅ **Lazy Loading** - Mermaid/KaTeX loaded on demand
 - ✅ **Custom Components** - CodeBlock, MermaidDiagram, CustomContainer, Mention, Hashtag
 
@@ -206,12 +206,12 @@ Or use your own CSS by targeting:
 
 ## XSS Protection
 
-The library uses **double sanitization**:
+The library uses **multi-layer sanitization**:
 
-1. **Server-side** (core): `rehype-sanitize` filters dangerous HTML
-2. **Client-side** (Vue): `DOMPurify` sanitizes again before rendering
+1. **Core pipeline**: `rehype-sanitize` filters dangerous HTML during Markdown processing
+2. **Mermaid diagrams**: `securityLevel: 'strict'` prevents script injection in SVG output
 
-This ensures maximum security even if malicious HTML bypasses the first layer.
+This ensures maximum security against XSS attacks.
 
 ## License
 
