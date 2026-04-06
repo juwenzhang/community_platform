@@ -10,6 +10,7 @@ mod m20260403_000001_create_comments;
 mod m20260403_000002_create_likes;
 mod m20260403_000003_create_favorites;
 mod m20260405_000001_create_notifications;
+mod m20260406_000001_add_comment_media_attachments;
 
 pub struct Migrator;
 
@@ -27,6 +28,7 @@ impl MigratorTrait for Migrator {
             Box::new(m20260403_000002_create_likes::Migration),
             Box::new(m20260403_000003_create_favorites::Migration),
             Box::new(m20260405_000001_create_notifications::Migration),
+            Box::new(m20260406_000001_add_comment_media_attachments::Migration),
         ]
     }
 }
