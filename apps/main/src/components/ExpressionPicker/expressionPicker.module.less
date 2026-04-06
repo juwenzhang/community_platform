@@ -1,0 +1,113 @@
+.picker {
+  width: 340px;
+
+  .tabs {
+    @apply flex border-b;
+    border-color: var(--color-border, #e4e6eb);
+
+    .tab {
+      @apply flex-1 py-2 text-xs font-medium border-b-2 border-transparent cursor-pointer;
+      background: none;
+      color: var(--color-text-2, #8a919f);
+      transition: all 0.2s;
+
+      &:hover {
+        color: var(--color-text-1, #252933);
+      }
+
+      &.active {
+        color: #1e80ff;
+        border-bottom-color: #1e80ff;
+      }
+    }
+  }
+
+  .content {
+    max-height: 320px;
+    overflow-y: auto;
+  }
+
+  .attribution {
+    @apply text-center text-xs py-1;
+    color: var(--color-text-3, #c2c8d1);
+    border-top: 1px solid var(--color-border, #e4e6eb);
+  }
+}
+
+/* GIPHY Grid */
+.giphyContainer {
+  .searchInput {
+    @apply w-full px-3 py-2 text-sm;
+    border: none;
+    border-bottom: 1px solid var(--color-border, #e4e6eb);
+    outline: none;
+    background: transparent;
+    color: var(--color-text-1, #252933);
+
+    &::placeholder {
+      color: var(--color-text-3, #c2c8d1);
+    }
+
+    &:focus {
+      border-bottom-color: #1e80ff;
+    }
+  }
+
+  .gridWrapper {
+    @apply p-2;
+    max-height: 280px;
+    overflow-y: auto;
+
+    img {
+      @apply rounded cursor-pointer;
+      transition: transform 0.15s;
+
+      &:hover {
+        transform: scale(1.03);
+      }
+    }
+  }
+}
+
+.error {
+  @apply p-4 text-center text-sm;
+  color: var(--color-text-3, #c2c8d1);
+}
+
+/* Media Preview */
+.mediaPreview {
+  @apply relative inline-block rounded-lg overflow-hidden;
+  border: 1px solid var(--color-border, #e4e6eb);
+  max-width: 160px;
+
+  &.sticker {
+    border: 1px dashed var(--color-border, #e4e6eb);
+    background: transparent;
+  }
+
+  .previewImage {
+    @apply block;
+    max-height: 80px;
+    width: auto;
+  }
+
+  .removeBtn {
+    @apply absolute top-1 right-1 w-5 h-5 rounded-full flex items-center justify-center;
+    background: rgba(0, 0, 0, 0.5);
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    font-size: 10px;
+    line-height: 1;
+
+    &:hover {
+      background: rgba(0, 0, 0, 0.7);
+    }
+  }
+
+  .mediaTag {
+    @apply absolute bottom-1 left-1 px-1 rounded text-white;
+    font-size: 9px;
+    background: rgba(0, 0, 0, 0.4);
+  }
+}

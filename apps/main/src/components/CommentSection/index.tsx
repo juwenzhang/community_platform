@@ -6,16 +6,18 @@ import {
   SortAscendingOutlined,
   UpOutlined,
 } from '@ant-design/icons';
-import type { Comment } from '@luhanxin/shared-types';
+import type { Comment, MediaAttachment } from '@luhanxin/shared-types';
 import { Avatar, Button, Popover, Spin } from 'antd';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useCommentStore } from '@/stores/useCommentStore';
 import { parseMentions } from '@/utils/mentionParser';
+import ExpressionPicker from '../ExpressionPicker';
+import MediaPreview from '../ExpressionPicker/MediaPreview';
 import CommentSkeleton from './CommentSkeleton';
 import styles from './commentSection.module.less';
-import EmojiPicker from './EmojiPicker';
+import MediaAttachmentRenderer from './MediaAttachmentRenderer';
 import MentionInput from './MentionInput';
 
 interface CommentSectionProps {
@@ -49,11 +51,13 @@ export default function CommentSection({ articleId }: CommentSectionProps) {
 
   const [mainContent, setMainContent] = useState('');
   const [mainShowEmoji, setMainShowEmoji] = useState(false);
+  const [selectedMedia, setSelectedMedia] = useState<MediaAttachment | null>(null);
   const mainInputRef = useRef<HTMLTextAreaElement>(null);
 
   const [inlineReply, setInlineReply] = useState<InlineReply | null>(null);
   const [inlineContent, setInlineContent] = useState('');
   const [inlineShowEmoji, setInlineShowEmoji] = useState(false);
+  const [inlineSelectedMedia, setInlineSelectedMedia] = useState<MediaAttachment | null>(null);
   const inlineInputRef = useRef<HTMLTextAreaElement>(null);
 
   // 子评论折叠状态：key = 顶级评论 ID, value = 是否展开
@@ -90,23 +94,32 @@ export default function CommentSection({ articleId }: CommentSectionProps) {
   };
 
   const handleMainSubmit = async () => {
-    if (!mainContent.trim() || submitting) return;
-    const success = await createComment({ articleId, content: mainContent.trim() });
-    if (success) setMainContent('');
+    if ((!mainContent.trim() && !selectedMedia) || submitting) return;
+    const success = await createComment({
+      articleId,
+      content: mainContent.trim(),
+      mediaAttachments: selectedMedia ? [selectedMedia] : [],
+    });
+    if (success) {
+      setMainContent('');
+      setSelectedMedia(null);
+    }
   };
 
   const handleInlineSubmit = async () => {
-    if (!inlineContent.trim() || submitting || !inlineReply) return;
+    if ((!inlineContent.trim() && !inlineSelectedMedia) || submitting || !inlineReply) return;
     const success = await createComment({
       articleId,
       content: inlineContent.trim(),
       parentId: inlineReply.parentId,
       replyToId: inlineReply.replyToId,
+      mediaAttachments: inlineSelectedMedia ? [inlineSelectedMedia] : [],
     });
     if (success) {
       setInlineContent('');
       setInlineReply(null);
       setInlineShowEmoji(false);
+      setInlineSelectedMedia(null);
     }
   };
 
@@ -118,11 +131,13 @@ export default function CommentSection({ articleId }: CommentSectionProps) {
         setInlineReply(null);
         setInlineContent('');
         setInlineShowEmoji(false);
+        setInlineSelectedMedia(null);
         return;
       }
       setInlineReply({ parentId, replyToId, replyToUsername: username });
       setInlineContent('');
       setInlineShowEmoji(false);
+      setInlineSelectedMedia(null);
       setTimeout(() => inlineInputRef.current?.focus(), 50);
     },
     [inlineReply?.replyToId],
@@ -132,6 +147,7 @@ export default function CommentSection({ articleId }: CommentSectionProps) {
     setInlineReply(null);
     setInlineContent('');
     setInlineShowEmoji(false);
+    setInlineSelectedMedia(null);
   };
 
   const handleMainEmojiSelect = (emoji: string) => {
@@ -188,11 +204,21 @@ export default function CommentSection({ articleId }: CommentSectionProps) {
             inputRef={inlineInputRef}
             compact
           />
+          {inlineSelectedMedia && (
+            <MediaPreview
+              media={inlineSelectedMedia}
+              onRemove={() => setInlineSelectedMedia(null)}
+            />
+          )}
           <div className={styles.inlineReplyActions}>
             <Popover
               content={
-                <EmojiPicker
-                  onSelect={handleInlineEmojiSelect}
+                <ExpressionPicker
+                  onEmojiSelect={handleInlineEmojiSelect}
+                  onMediaSelect={(media) => {
+                    setInlineSelectedMedia(media);
+                    setInlineShowEmoji(false);
+                  }}
                   onClose={() => setInlineShowEmoji(false)}
                 />
               }
@@ -211,7 +237,7 @@ export default function CommentSection({ articleId }: CommentSectionProps) {
               size="small"
               onClick={handleInlineSubmit}
               loading={submitting}
-              disabled={!inlineContent.trim()}
+              disabled={!inlineContent.trim() && !inlineSelectedMedia}
             >
               回复
             </Button>
@@ -253,6 +279,7 @@ export default function CommentSection({ articleId }: CommentSectionProps) {
               <span className={styles.commentTime}>{formatTime(comment)}</span>
             </div>
             <div className={styles.commentContent}>{parseMentions(comment.content)}</div>
+            <MediaAttachmentRenderer attachments={comment.mediaAttachments} />
             <div className={styles.commentFooter}>
               {isAuthenticated && (
                 <button
@@ -361,11 +388,18 @@ export default function CommentSection({ articleId }: CommentSectionProps) {
                 placeholder="写下你的评论..."
                 inputRef={mainInputRef}
               />
+              {selectedMedia && (
+                <MediaPreview media={selectedMedia} onRemove={() => setSelectedMedia(null)} />
+              )}
               <div className={styles.inputActions}>
                 <Popover
                   content={
-                    <EmojiPicker
-                      onSelect={handleMainEmojiSelect}
+                    <ExpressionPicker
+                      onEmojiSelect={handleMainEmojiSelect}
+                      onMediaSelect={(media) => {
+                        setSelectedMedia(media);
+                        setMainShowEmoji(false);
+                      }}
                       onClose={() => setMainShowEmoji(false)}
                     />
                   }
@@ -384,7 +418,7 @@ export default function CommentSection({ articleId }: CommentSectionProps) {
                   size="small"
                   onClick={handleMainSubmit}
                   loading={submitting && !inlineReply}
-                  disabled={!mainContent.trim()}
+                  disabled={!mainContent.trim() && !selectedMedia}
                 >
                   发表评论
                 </Button>

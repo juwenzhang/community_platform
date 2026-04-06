@@ -15,6 +15,8 @@ pub struct Model {
     pub parent_id: Option<Uuid>,
     pub reply_to_id: Option<Uuid>,
     pub mentions: Vec<String>,
+    #[sea_orm(column_type = "JsonBinary")]
+    pub media_attachments: serde_json::Value,
     pub created_at: DateTimeWithTimeZone,
     pub updated_at: DateTimeWithTimeZone,
 }

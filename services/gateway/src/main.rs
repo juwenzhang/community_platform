@@ -110,6 +110,7 @@ use crate::worker::retry_worker;
         dto::article::UpdateArticleDto,
         dto::comment::CommentDto,
         dto::comment::CommentAuthorDto,
+        dto::comment::MediaAttachmentDto,
         dto::comment::ListCommentsDto,
         dto::comment::CreateCommentBody,
         dto::comment::ListCommentsQuery,
