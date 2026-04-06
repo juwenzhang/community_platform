@@ -99,10 +99,22 @@
       .date,
       .views,
       .likes,
-      .favorites {
+      .favorites,
+      .comments {
         display: flex;
         align-items: center;
         gap: 4px;
+      }
+
+      .share {
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+        transition: color 0.2s;
+
+        &:hover {
+          color: var(--color-primary);
+        }
       }
     }
   }

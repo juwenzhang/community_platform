@@ -2,8 +2,8 @@
 // @generated from file luhanxin/community/v1/comment.proto (package luhanxin.community.v1, syntax proto3)
 /* eslint-disable */
 
-import type { GenFile, GenMessage, GenService } from "@bufbuild/protobuf/codegenv2";
-import { fileDesc, messageDesc, serviceDesc } from "@bufbuild/protobuf/codegenv2";
+import type { GenEnum, GenFile, GenMessage, GenService } from "@bufbuild/protobuf/codegenv2";
+import { enumDesc, fileDesc, messageDesc, serviceDesc } from "@bufbuild/protobuf/codegenv2";
 import type { Timestamp } from "@bufbuild/protobuf/wkt";
 import { file_google_protobuf_timestamp } from "@bufbuild/protobuf/wkt";
 import type { PaginationRequest, PaginationResponse } from "./common_pb";
@@ -16,7 +16,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file luhanxin/community/v1/comment.proto.
  */
 export const file_luhanxin_community_v1_comment: GenFile = /*@__PURE__*/
-  fileDesc("CiNsdWhhbnhpbi9jb21tdW5pdHkvdjEvY29tbWVudC5wcm90bxIVbHVoYW54aW4uY29tbXVuaXR5LnYxImMKFENyZWF0ZUNvbW1lbnRSZXF1ZXN0EhIKCmFydGljbGVfaWQYASABKAkSDwoHY29udGVudBgCIAEoCRIRCglwYXJlbnRfaWQYAyABKAkSEwoLcmVwbHlfdG9faWQYBCABKAkiSAoVQ3JlYXRlQ29tbWVudFJlc3BvbnNlEi8KB2NvbW1lbnQYASABKAsyHi5sdWhhbnhpbi5jb21tdW5pdHkudjEuQ29tbWVudCJnChNMaXN0Q29tbWVudHNSZXF1ZXN0EhIKCmFydGljbGVfaWQYASABKAkSPAoKcGFnaW5hdGlvbhgCIAEoCzIoLmx1aGFueGluLmNvbW11bml0eS52MS5QYWdpbmF0aW9uUmVxdWVzdCKHAQoUTGlzdENvbW1lbnRzUmVzcG9uc2USMAoIY29tbWVudHMYASADKAsyHi5sdWhhbnhpbi5jb21tdW5pdHkudjEuQ29tbWVudBI9CgpwYWdpbmF0aW9uGAIgASgLMikubHVoYW54aW4uY29tbXVuaXR5LnYxLlBhZ2luYXRpb25SZXNwb25zZSIqChREZWxldGVDb21tZW50UmVxdWVzdBISCgpjb21tZW50X2lkGAEgASgJIhcKFURlbGV0ZUNvbW1lbnRSZXNwb25zZSL7AgoHQ29tbWVudBIKCgJpZBgBIAEoCRISCgphcnRpY2xlX2lkGAIgASgJEhEKCWF1dGhvcl9pZBgDIAEoCRIPCgdjb250ZW50GAQgASgJEhEKCXBhcmVudF9pZBgFIAEoCRITCgtyZXBseV90b19pZBgGIAEoCRIQCghtZW50aW9ucxgHIAMoCRIuCgpjcmVhdGVkX2F0GAggASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBIuCgp1cGRhdGVkX2F0GAkgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBIrCgZhdXRob3IYCiABKAsyGy5sdWhhbnhpbi5jb21tdW5pdHkudjEuVXNlchI0Cg9yZXBseV90b19hdXRob3IYCyABKAsyGy5sdWhhbnhpbi5jb21tdW5pdHkudjEuVXNlchIvCgdyZXBsaWVzGAwgAygLMh4ubHVoYW54aW4uY29tbXVuaXR5LnYxLkNvbW1lbnQy0QIKDkNvbW1lbnRTZXJ2aWNlEmoKDUNyZWF0ZUNvbW1lbnQSKy5sdWhhbnhpbi5jb21tdW5pdHkudjEuQ3JlYXRlQ29tbWVudFJlcXVlc3QaLC5sdWhhbnhpbi5jb21tdW5pdHkudjEuQ3JlYXRlQ29tbWVudFJlc3BvbnNlEmcKDExpc3RDb21tZW50cxIqLmx1aGFueGluLmNvbW11bml0eS52MS5MaXN0Q29tbWVudHNSZXF1ZXN0GisubHVoYW54aW4uY29tbXVuaXR5LnYxLkxpc3RDb21tZW50c1Jlc3BvbnNlEmoKDURlbGV0ZUNvbW1lbnQSKy5sdWhhbnhpbi5jb21tdW5pdHkudjEuRGVsZXRlQ29tbWVudFJlcXVlc3QaLC5sdWhhbnhpbi5jb21tdW5pdHkudjEuRGVsZXRlQ29tbWVudFJlc3BvbnNlYgZwcm90bzM", [file_google_protobuf_timestamp, file_luhanxin_community_v1_common, file_luhanxin_community_v1_user]);
+  fileDesc("CiNsdWhhbnhpbi9jb21tdW5pdHkvdjEvY29tbWVudC5wcm90bxIVbHVoYW54aW4uY29tbXVuaXR5LnYxImMKFENyZWF0ZUNvbW1lbnRSZXF1ZXN0EhIKCmFydGljbGVfaWQYASABKAkSDwoHY29udGVudBgCIAEoCRIRCglwYXJlbnRfaWQYAyABKAkSEwoLcmVwbHlfdG9faWQYBCABKAkiSAoVQ3JlYXRlQ29tbWVudFJlc3BvbnNlEi8KB2NvbW1lbnQYASABKAsyHi5sdWhhbnhpbi5jb21tdW5pdHkudjEuQ29tbWVudCKpAQoTTGlzdENvbW1lbnRzUmVxdWVzdBISCgphcnRpY2xlX2lkGAEgASgJEjwKCnBhZ2luYXRpb24YAiABKAsyKC5sdWhhbnhpbi5jb21tdW5pdHkudjEuUGFnaW5hdGlvblJlcXVlc3QSMAoEc29ydBgDIAEoDjIiLmx1aGFueGluLmNvbW11bml0eS52MS5Db21tZW50U29ydBIOCgZjdXJzb3IYBCABKAkihwEKFExpc3RDb21tZW50c1Jlc3BvbnNlEjAKCGNvbW1lbnRzGAEgAygLMh4ubHVoYW54aW4uY29tbXVuaXR5LnYxLkNvbW1lbnQSPQoKcGFnaW5hdGlvbhgCIAEoCzIpLmx1aGFueGluLmNvbW11bml0eS52MS5QYWdpbmF0aW9uUmVzcG9uc2UiKgoURGVsZXRlQ29tbWVudFJlcXVlc3QSEgoKY29tbWVudF9pZBgBIAEoCSIXChVEZWxldGVDb21tZW50UmVzcG9uc2UikAMKB0NvbW1lbnQSCgoCaWQYASABKAkSEgoKYXJ0aWNsZV9pZBgCIAEoCRIRCglhdXRob3JfaWQYAyABKAkSDwoHY29udGVudBgEIAEoCRIRCglwYXJlbnRfaWQYBSABKAkSEwoLcmVwbHlfdG9faWQYBiABKAkSEAoIbWVudGlvbnMYByADKAkSLgoKY3JlYXRlZF9hdBgIIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASLgoKdXBkYXRlZF9hdBgJIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASKwoGYXV0aG9yGAogASgLMhsubHVoYW54aW4uY29tbXVuaXR5LnYxLlVzZXISNAoPcmVwbHlfdG9fYXV0aG9yGAsgASgLMhsubHVoYW54aW4uY29tbXVuaXR5LnYxLlVzZXISLwoHcmVwbGllcxgMIAMoCzIeLmx1aGFueGluLmNvbW11bml0eS52MS5Db21tZW50EhMKC3JlcGx5X2NvdW50GA0gASgFKkAKC0NvbW1lbnRTb3J0EhcKE0NPTU1FTlRfU09SVF9MQVRFU1QQABIYChRDT01NRU5UX1NPUlRfUE9QVUxBUhABMtECCg5Db21tZW50U2VydmljZRJqCg1DcmVhdGVDb21tZW50EisubHVoYW54aW4uY29tbXVuaXR5LnYxLkNyZWF0ZUNvbW1lbnRSZXF1ZXN0GiwubHVoYW54aW4uY29tbXVuaXR5LnYxLkNyZWF0ZUNvbW1lbnRSZXNwb25zZRJnCgxMaXN0Q29tbWVudHMSKi5sdWhhbnhpbi5jb21tdW5pdHkudjEuTGlzdENvbW1lbnRzUmVxdWVzdBorLmx1aGFueGluLmNvbW11bml0eS52MS5MaXN0Q29tbWVudHNSZXNwb25zZRJqCg1EZWxldGVDb21tZW50EisubHVoYW54aW4uY29tbXVuaXR5LnYxLkRlbGV0ZUNvbW1lbnRSZXF1ZXN0GiwubHVoYW54aW4uY29tbXVuaXR5LnYxLkRlbGV0ZUNvbW1lbnRSZXNwb25zZWIGcHJvdG8z", [file_google_protobuf_timestamp, file_luhanxin_community_v1_common, file_luhanxin_community_v1_user]);
 
 /**
  * @generated from message luhanxin.community.v1.CreateCommentRequest
@@ -94,6 +94,20 @@ export type ListCommentsRequest = Message<"luhanxin.community.v1.ListCommentsReq
    * @generated from field: luhanxin.community.v1.PaginationRequest pagination = 2;
    */
   pagination?: PaginationRequest;
+
+  /**
+   * 排序方式（默认最新）
+   *
+   * @generated from field: luhanxin.community.v1.CommentSort sort = 3;
+   */
+  sort: CommentSort;
+
+  /**
+   * 游标分页（基于时间戳或 (like_count, created_at) 复合游标）
+   *
+   * @generated from field: string cursor = 4;
+   */
+  cursor: string;
 };
 
 /**
@@ -252,6 +266,13 @@ export type Comment = Message<"luhanxin.community.v1.Comment"> & {
    * @generated from field: repeated luhanxin.community.v1.Comment replies = 12;
    */
   replies: Comment[];
+
+  /**
+   * 子回复总数（用于折叠显示「展开查看 X 条回复」）
+   *
+   * @generated from field: int32 reply_count = 13;
+   */
+  replyCount: number;
 };
 
 /**
@@ -260,6 +281,33 @@ export type Comment = Message<"luhanxin.community.v1.Comment"> & {
  */
 export const CommentSchema: GenMessage<Comment> = /*@__PURE__*/
   messageDesc(file_luhanxin_community_v1_comment, 6);
+
+/**
+ * 评论排序枚举
+ *
+ * @generated from enum luhanxin.community.v1.CommentSort
+ */
+export enum CommentSort {
+  /**
+   * 按时间倒序（默认）
+   *
+   * @generated from enum value: COMMENT_SORT_LATEST = 0;
+   */
+  LATEST = 0,
+
+  /**
+   * 按热度排序（点赞数倒序，时间次之）
+   *
+   * @generated from enum value: COMMENT_SORT_POPULAR = 1;
+   */
+  POPULAR = 1,
+}
+
+/**
+ * Describes the enum luhanxin.community.v1.CommentSort.
+ */
+export const CommentSortSchema: GenEnum<CommentSort> = /*@__PURE__*/
+  enumDesc(file_luhanxin_community_v1_comment, 0);
 
 /**
  * 评论服务

@@ -55,7 +55,9 @@ cleanup() {
 }
 trap cleanup INT TERM
 
-FORCE_COLOR=1 pnpm -r --parallel --color dev &
+# 只启动 apps/ 下的前端应用，排除 packages/、demo/ 等非应用包
+# --filter 'apps/*' 等价于 --filter './apps/**'，只匹配 apps 目录下的子应用
+FORCE_COLOR=1 pnpm --filter './apps/**' --parallel --color dev &
 DEV_PID=$!
 
 # 3. 等待子应用注册到 .dev-registry.json（单一数据源，不解析日志）

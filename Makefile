@@ -164,8 +164,8 @@ dev-frontend-main: ## 只启动主应用 (main)
 dev-frontend-feed: ## 只启动 feed 子应用
 	pnpm dev:feed
 
-build-frontend: ## 构建前端所有包和应用
-	pnpm -r build
+build-frontend: ## 构建前端所有包和应用 (排除 demo)
+	pnpm -r --filter '!./demo/**' build
 
 build-preview: ## 构建前端并组装 preview 目录 (子应用 → main/dist/apps/)
 	@bash scripts/build-preview.sh
@@ -244,10 +244,10 @@ clean: ## 清理构建产物 (保留 node_modules)
 	@echo "✅ Clean complete"
 
 clean-all: clean ## 深度清理 (含 node_modules + 杀端口进程, 需要重新 install)
-	@echo "🧹 Killing processes on project ports (8000,50051,50052,50053,5173,5174,4173)..."
-	@-lsof -ti:8000,50051,50052,50053,5173,5174,4173 2>/dev/null | xargs kill 2>/dev/null; true
+	@echo "🧹 Killing processes on project ports (8000,50051-50053,5173-5175,4173)..."
+	@-lsof -ti:8000,50051,50052,50053,5173,5174,5175,4173 2>/dev/null | xargs kill 2>/dev/null; true
 	@echo "🧹 Deep cleaning..."
-	rm -rf node_modules apps/*/node_modules packages/*/node_modules
+	rm -rf node_modules apps/*/node_modules packages/*/node_modules demo/*/node_modules
 	@echo "✅ Deep clean complete. Run 'make install' to reinstall."
 
 # ------------------------------------------------------------
