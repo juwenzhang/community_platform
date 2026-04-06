@@ -109,30 +109,23 @@ pub async fn create_comment(
         None
     };
 
-    Ok(comment_model_to_proto(model, Some(author), reply_to_author, vec![]))
+    Ok(comment_model_to_proto(model, Some(author), reply_to_author, vec![], 0))
 }
 
 // ────────────────────── 评论列表 ──────────────────────
 
 /// 获取文章评论列表（二级嵌套：先查顶级评论，再批量查子回复）
+/// 支持排序（最新/最热）和游标分页
 pub async fn list_comments(
     db: &DatabaseConnection,
     article_id: &str,
     page_size: i32,
     _page_token: &str,
+    sort: i32,
+    cursor: &str,
 ) -> Result<(Vec<Comment>, String, i32), Status> {
     let article_uuid = parse_uuid(article_id)?;
     let limit = page_size.clamp(shared::constants::MIN_PAGE_SIZE, shared::constants::MAX_PAGE_SIZE) as u64;
-
-    // 查询顶级评论（parent_id IS NULL）
-    let top_comments = Comments::find()
-        .filter(comments::Column::ArticleId.eq(article_uuid))
-        .filter(comments::Column::ParentId.is_null())
-        .order_by_asc(comments::Column::CreatedAt)
-        .limit(limit)
-        .all(db)
-        .await
-        .map_err(db_error)?;
 
     // 总数（所有评论，含回复）
     let total_count = Comments::find()
@@ -140,6 +133,50 @@ pub async fn list_comments(
         .count(db)
         .await
         .map_err(db_error)? as i32;
+
+    // 查询顶级评论（parent_id IS NULL），根据 sort 参数排序
+    let mut query = Comments::find()
+        .filter(comments::Column::ArticleId.eq(article_uuid))
+        .filter(comments::Column::ParentId.is_null());
+
+    // 游标分页：解析游标并应用过滤
+    if !cursor.is_empty() {
+        if let Ok(cursor_ts) = cursor.parse::<i64>() {
+            let cursor_time = chrono::DateTime::from_timestamp(cursor_ts, 0)
+                .map(|dt| dt.fixed_offset())
+                .ok_or_else(|| Status::invalid_argument("Invalid cursor"))?;
+            // sort == 1 是 POPULAR，默认 0 是 LATEST
+            // 两种排序都用 created_at 作为游标（POPULAR 排序时作为 tiebreaker）
+            query = query.filter(comments::Column::CreatedAt.lt(cursor_time));
+        }
+    }
+
+    // 排序：COMMENT_SORT_POPULAR = 1
+    if sort == 1 {
+        query = query.order_by_desc(comments::Column::CreatedAt); // TODO: 添加 like_count 列后改为 ORDER BY like_count DESC, created_at DESC
+    } else {
+        query = query.order_by_desc(comments::Column::CreatedAt);
+    }
+
+    let top_comments = query
+        .limit(limit + 1) // 多取一条判断是否有下一页
+        .all(db)
+        .await
+        .map_err(db_error)?;
+
+    // 判断是否有下一页
+    let has_more = top_comments.len() as u64 > limit;
+    let top_comments: Vec<_> = top_comments.into_iter().take(limit as usize).collect();
+
+    // 计算下一页游标
+    let next_cursor = if has_more {
+        top_comments
+            .last()
+            .map(|c| c.created_at.timestamp().to_string())
+            .unwrap_or_default()
+    } else {
+        String::new()
+    };
 
     // 批量查所有子回复
     let top_ids: Vec<Uuid> = top_comments.iter().map(|c| c.id).collect();
@@ -165,10 +202,19 @@ pub async fn list_comments(
     // 批量查用户
     let users = load_users_batch(db, &user_ids).await?;
 
+    // 按 parent_id 分组统计 reply_count
+    let mut reply_count_map: std::collections::HashMap<Uuid, i32> = std::collections::HashMap::new();
+    for r in &all_replies {
+        if let Some(pid) = r.parent_id {
+            *reply_count_map.entry(pid).or_insert(0) += 1;
+        }
+    }
+
     // 组装结构
     let mut result = Vec::new();
     for top in top_comments {
         let author = users.get(&top.author_id).cloned();
+        let reply_count = reply_count_map.get(&top.id).copied().unwrap_or(0);
 
         let replies: Vec<Comment> = all_replies
             .iter()
@@ -177,7 +223,7 @@ pub async fn list_comments(
                 let r_author = users.get(&r.author_id).cloned();
                 // 查找 reply_to 的作者
                 let rta = r.reply_to_id.and_then(|rtid| {
-                    // 先在 top_comments 中找
+                    // 先在 top_comments 中找（通过 users map）
                     if rtid == top.id {
                         return users.get(&top.author_id).cloned();
                     }
@@ -187,14 +233,14 @@ pub async fn list_comments(
                         .find(|rr| rr.id == rtid)
                         .and_then(|rr| users.get(&rr.author_id).cloned())
                 });
-                comment_model_to_proto(r.clone(), r_author, rta, vec![])
+                comment_model_to_proto(r.clone(), r_author, rta, vec![], 0)
             })
             .collect();
 
-        result.push(comment_model_to_proto(top, author, None, replies));
+        result.push(comment_model_to_proto(top, author, None, replies, reply_count));
     }
 
-    Ok((result, String::new(), total_count))
+    Ok((result, next_cursor, total_count))
 }
 
 // ────────────────────── 删除评论 ──────────────────────
@@ -293,6 +339,7 @@ fn comment_model_to_proto(
     author: Option<shared::proto::User>,
     reply_to_author: Option<shared::proto::User>,
     replies: Vec<Comment>,
+    reply_count: i32,
 ) -> Comment {
     Comment {
         id: model.id.to_string(),
@@ -310,5 +357,6 @@ fn comment_model_to_proto(
         author,
         reply_to_author,
         replies,
+        reply_count,
     }
 }

@@ -75,6 +75,8 @@ pub async fn list_comments(
                     page_size: params.page_size.unwrap_or(shared::constants::DEFAULT_PAGE_SIZE),
                     page_token: params.page_token.unwrap_or_default(),
                 }),
+                sort: params.sort.unwrap_or(0),
+                cursor: params.cursor.unwrap_or_default(),
             };
             match client.list_comments(req).await {
                 Ok(resp) => {

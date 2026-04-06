@@ -19,6 +19,7 @@ pub struct CommentDto {
     pub author: Option<CommentAuthorDto>,
     pub reply_to_author: Option<CommentAuthorDto>,
     pub replies: Vec<CommentDto>,
+    pub reply_count: i32,
 }
 
 /// 评论作者（精简版用户信息）
@@ -50,6 +51,10 @@ pub struct CreateCommentBody {
 pub struct ListCommentsQuery {
     pub page_size: Option<i32>,
     pub page_token: Option<String>,
+    /// 排序方式：0=最新（默认），1=最热
+    pub sort: Option<i32>,
+    /// 游标分页（时间戳字符串）
+    pub cursor: Option<String>,
 }
 
 /// Proto User → CommentAuthorDto 转换
@@ -77,5 +82,6 @@ pub fn proto_comment_to_dto(c: shared::proto::Comment) -> CommentDto {
         author: c.author.map(user_to_author_dto),
         reply_to_author: c.reply_to_author.map(user_to_author_dto),
         replies: c.replies.into_iter().map(proto_comment_to_dto).collect(),
+        reply_count: c.reply_count,
     }
 }
