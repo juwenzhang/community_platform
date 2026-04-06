@@ -50,6 +50,7 @@ impl CommentService for CommentServiceImpl {
             &req.content,
             &req.parent_id,
             &req.reply_to_id,
+            &req.media_attachments,
         )
         .await?;
 

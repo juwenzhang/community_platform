@@ -12,7 +12,7 @@ use uuid::Uuid;
 
 use shared::entity::comments;
 use shared::entity::prelude::Comments;
-use shared::proto::Comment;
+use shared::proto::{Comment, MediaAttachment, MediaType};
 use shared::convert::{datetime_to_timestamp, user_model_to_proto};
 use shared::extract::{parse_uuid, db_error};
 
@@ -27,9 +27,33 @@ pub async fn create_comment(
     content: &str,
     parent_id: &str,
     reply_to_id: &str,
+    media_attachments: &[MediaAttachment],
 ) -> Result<Comment, Status> {
-    if content.trim().is_empty() {
-        return Err(Status::invalid_argument("Comment content is required"));
+    // 验证：content 和 media_attachments 至少有一个非空
+    if content.trim().is_empty() && media_attachments.is_empty() {
+        return Err(Status::invalid_argument(
+            "Comment must have content or media attachment",
+        ));
+    }
+
+    // 验证：最多 1 个 GIF/Sticker
+    if media_attachments.len() > 1 {
+        return Err(Status::invalid_argument(
+            "最多附带 1 个 GIF 或 Sticker",
+        ));
+    }
+
+    // 验证：media_type 只允许 GIF/STICKER（IMAGE 预留，本次不启用）
+    for ma in media_attachments {
+        let mt = MediaType::try_from(ma.media_type).unwrap_or(MediaType::Unspecified);
+        if mt != MediaType::Gif && mt != MediaType::Sticker {
+            return Err(Status::invalid_argument(
+                "Only GIF and Sticker media types are supported",
+            ));
+        }
+        if ma.url.is_empty() {
+            return Err(Status::invalid_argument("Media attachment URL is required"));
+        }
     }
 
     let author_uuid = parse_uuid(author_id)?;
@@ -74,6 +98,9 @@ pub async fn create_comment(
     // 从 content 中解析 @mentions
     let mentions = parse_mentions(content);
 
+    // 序列化 media_attachments 为 JSON
+    let media_json = serialize_media_attachments(media_attachments)?;
+
     let id = Uuid::new_v4();
     let now = chrono::Utc::now().fixed_offset();
 
@@ -85,6 +112,7 @@ pub async fn create_comment(
         parent_id: ActiveValue::Set(parent_uuid),
         reply_to_id: ActiveValue::Set(reply_to_uuid),
         mentions: ActiveValue::Set(mentions.clone()),
+        media_attachments: ActiveValue::Set(media_json),
         created_at: ActiveValue::Set(now),
         updated_at: ActiveValue::Set(now),
     };
@@ -334,6 +362,45 @@ async fn load_users_batch(
     Ok(map)
 }
 
+/// 将 Proto MediaAttachment 序列化为 JSON Value（存入 JSONB 列）
+fn serialize_media_attachments(attachments: &[MediaAttachment]) -> Result<serde_json::Value, Status> {
+    let items: Vec<serde_json::Value> = attachments
+        .iter()
+        .map(|ma| {
+            serde_json::json!({
+                "media_type": ma.media_type,
+                "url": ma.url,
+                "preview_url": ma.preview_url,
+                "width": ma.width,
+                "height": ma.height,
+                "giphy_id": ma.giphy_id,
+                "alt_text": ma.alt_text,
+            })
+        })
+        .collect();
+    Ok(serde_json::Value::Array(items))
+}
+
+/// 从 JSONB 反序列化为 Proto MediaAttachment 列表
+fn deserialize_media_attachments(value: &serde_json::Value) -> Vec<MediaAttachment> {
+    let Some(arr) = value.as_array() else {
+        return vec![];
+    };
+    arr.iter()
+        .filter_map(|item| {
+            Some(MediaAttachment {
+                media_type: item.get("media_type")?.as_i64()? as i32,
+                url: item.get("url")?.as_str()?.to_string(),
+                preview_url: item.get("preview_url")?.as_str().unwrap_or_default().to_string(),
+                width: item.get("width")?.as_i64().unwrap_or(0) as i32,
+                height: item.get("height")?.as_i64().unwrap_or(0) as i32,
+                giphy_id: item.get("giphy_id")?.as_str().unwrap_or_default().to_string(),
+                alt_text: item.get("alt_text")?.as_str().unwrap_or_default().to_string(),
+            })
+        })
+        .collect()
+}
+
 fn comment_model_to_proto(
     model: comments::Model,
     author: Option<shared::proto::User>,
@@ -341,6 +408,8 @@ fn comment_model_to_proto(
     replies: Vec<Comment>,
     reply_count: i32,
 ) -> Comment {
+    let media_attachments = deserialize_media_attachments(&model.media_attachments);
+
     Comment {
         id: model.id.to_string(),
         article_id: model.article_id.to_string(),
@@ -358,5 +427,6 @@ fn comment_model_to_proto(
         reply_to_author,
         replies,
         reply_count,
+        media_attachments,
     }
 }
