@@ -1,7 +1,10 @@
 import {
   ClockCircleOutlined,
+  CommentOutlined,
   EyeOutlined,
   HeartOutlined,
+  ShareAltOutlined,
+  StarOutlined,
   TagOutlined,
   UserOutlined,
 } from '@ant-design/icons';
@@ -10,6 +13,7 @@ import { ArticleStatus } from '@luhanxin/shared-types';
 import { Avatar } from 'antd';
 import { useNavigate } from 'react-router-dom';
 
+import { antdMessage } from '@/lib/antdStatic';
 import styles from './articleCard.module.less';
 
 /** 去除 Markdown 标记，返回纯文本（用于摘要预览） */
@@ -108,6 +112,48 @@ export default function ArticleCard({ article }: ArticleCardProps) {
               {article.likeCount}
             </span>
           )}
+
+          {article.commentCount > 0 && (
+            <span className={styles.comments}>
+              <CommentOutlined />
+              {article.commentCount}
+            </span>
+          )}
+
+          {article.favoriteCount > 0 && (
+            <span className={styles.favorites}>
+              <StarOutlined />
+              {article.favoriteCount}
+            </span>
+          )}
+
+          <span
+            className={styles.share}
+            onClick={(e) => {
+              e.stopPropagation();
+              const url = `${window.location.origin}/post/${article.id}`;
+              if (navigator.share) {
+                navigator.share({ title: article.title, url });
+              } else {
+                navigator.clipboard.writeText(url).then(() => {
+                  antdMessage.success('链接已复制到剪贴板');
+                });
+              }
+            }}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.stopPropagation();
+                const url = `${window.location.origin}/post/${article.id}`;
+                navigator.clipboard.writeText(url).then(() => {
+                  antdMessage.success('链接已复制到剪贴板');
+                });
+              }
+            }}
+          >
+            <ShareAltOutlined />
+          </span>
         </div>
       </div>
 
