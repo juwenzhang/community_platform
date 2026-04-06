@@ -1,4 +1,4 @@
-import type { Comment } from '@luhanxin/shared-types';
+import type { Comment, MediaAttachment } from '@luhanxin/shared-types';
 import { create } from 'zustand';
 
 import { antdMessage } from '@/lib/antdStatic';
@@ -28,6 +28,7 @@ interface CommentState {
     content: string;
     parentId?: string;
     replyToId?: string;
+    mediaAttachments?: MediaAttachment[];
   }) => Promise<boolean>;
   deleteComment: (commentId: string, articleId: string) => Promise<void>;
   reset: () => void;
@@ -107,7 +108,7 @@ export const useCommentStore = create<CommentState>((set, get) => ({
     get().loadComments(articleId);
   },
 
-  createComment: async ({ articleId, content, parentId, replyToId }) => {
+  createComment: async ({ articleId, content, parentId, replyToId, mediaAttachments }) => {
     set({ submitting: true });
     try {
       await commentClient.createComment({
@@ -115,6 +116,7 @@ export const useCommentStore = create<CommentState>((set, get) => ({
         content: content.trim(),
         parentId: parentId ?? '',
         replyToId: replyToId ?? '',
+        mediaAttachments: mediaAttachments ?? [],
       });
       antdMessage.success('评论成功');
       set({ submitting: false });

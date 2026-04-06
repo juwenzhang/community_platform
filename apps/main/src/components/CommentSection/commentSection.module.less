@@ -402,3 +402,39 @@
   color: var(--color-text-4);
   font-size: 13px;
 }
+
+// 评论富媒体附件
+.mediaAttachments {
+  margin-top: 8px;
+
+  .mediaItem {
+    @apply relative inline-block rounded-lg overflow-hidden;
+    max-width: 240px;
+
+    img {
+      @apply block;
+      max-height: 200px;
+      width: auto;
+      border-radius: 8px;
+    }
+
+    &.stickerItem {
+      background: transparent;
+
+      img {
+        max-height: 150px;
+      }
+    }
+
+    &.gifItem {
+      border: 1px solid var(--color-border, #e4e6eb);
+    }
+
+    .giphyBadge {
+      @apply absolute bottom-1 right-1 px-1 rounded;
+      font-size: 9px;
+      color: rgba(255, 255, 255, 0.8);
+      background: rgba(0, 0, 0, 0.3);
+    }
+  }
+}
