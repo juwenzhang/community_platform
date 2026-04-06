@@ -359,6 +359,12 @@ pub struct Article {
     /// 文章分类（可多选）
     #[prost(enumeration = "ArticleCategory", repeated, tag = "15")]
     pub categories: ::prost::alloc::vec::Vec<i32>,
+    /// 评论数量（由 Gateway BFF 层填充或从缓存读取）
+    #[prost(int32, tag = "16")]
+    pub comment_count: i32,
+    /// 收藏数量（由 Gateway BFF 层从 social service 聚合填充）
+    #[prost(int32, tag = "17")]
+    pub favorite_count: i32,
 }
 /// 文章状态枚举
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
@@ -498,6 +504,12 @@ pub struct ListCommentsRequest {
     /// 分页参数
     #[prost(message, optional, tag = "2")]
     pub pagination: ::core::option::Option<PaginationRequest>,
+    /// 排序方式（默认最新）
+    #[prost(enumeration = "CommentSort", tag = "3")]
+    pub sort: i32,
+    /// 游标分页（基于时间戳或 (like_count, created_at) 复合游标）
+    #[prost(string, tag = "4")]
+    pub cursor: ::prost::alloc::string::String,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ListCommentsResponse {
@@ -561,6 +573,38 @@ pub struct Comment {
     /// 子回复列表（仅顶级评论填充）
     #[prost(message, repeated, tag = "12")]
     pub replies: ::prost::alloc::vec::Vec<Comment>,
+    /// 子回复总数（用于折叠显示「展开查看 X 条回复」）
+    #[prost(int32, tag = "13")]
+    pub reply_count: i32,
+}
+/// 评论排序枚举
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
+#[repr(i32)]
+pub enum CommentSort {
+    /// 按时间倒序（默认）
+    Latest = 0,
+    /// 按热度排序（点赞数倒序，时间次之）
+    Popular = 1,
+}
+impl CommentSort {
+    /// String value of the enum field names used in the ProtoBuf definition.
+    ///
+    /// The values are not transformed in any way and thus are considered stable
+    /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+    pub fn as_str_name(&self) -> &'static str {
+        match self {
+            Self::Latest => "COMMENT_SORT_LATEST",
+            Self::Popular => "COMMENT_SORT_POPULAR",
+        }
+    }
+    /// Creates an enum from field names used in the ProtoBuf definition.
+    pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+        match value {
+            "COMMENT_SORT_LATEST" => Some(Self::Latest),
+            "COMMENT_SORT_POPULAR" => Some(Self::Popular),
+            _ => None,
+        }
+    }
 }
 /// 事件信封 — 所有异步事件的标准包装
 ///

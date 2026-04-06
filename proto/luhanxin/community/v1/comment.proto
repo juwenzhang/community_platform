@@ -41,6 +41,10 @@ message ListCommentsRequest {
   string article_id = 1;
   // 分页参数
   PaginationRequest pagination = 2;
+  // 排序方式（默认最新）
+  CommentSort sort = 3;
+  // 游标分页（基于时间戳或 (like_count, created_at) 复合游标）
+  string cursor = 4;
 }
 
 message ListCommentsResponse {
@@ -89,4 +93,14 @@ message Comment {
   User reply_to_author = 11;
   // 子回复列表（仅顶级评论填充）
   repeated Comment replies = 12;
+  // 子回复总数（用于折叠显示「展开查看 X 条回复」）
+  int32 reply_count = 13;
+}
+
+// 评论排序枚举
+enum CommentSort {
+  // 按时间倒序（默认）
+  COMMENT_SORT_LATEST = 0;
+  // 按热度排序（点赞数倒序，时间次之）
+  COMMENT_SORT_POPULAR = 1;
 }
