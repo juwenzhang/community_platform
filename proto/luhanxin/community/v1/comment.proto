@@ -27,6 +27,8 @@ message CreateCommentRequest {
   string parent_id = 3;
   // 被回复的评论 ID（为空表示直接回复顶级评论，非空表示回复某条二级评论）
   string reply_to_id = 4;
+  // 富媒体附件（GIF/Sticker，最多 1 个）
+  repeated MediaAttachment media_attachments = 5;
 }
 
 message CreateCommentResponse {
@@ -95,6 +97,39 @@ message Comment {
   repeated Comment replies = 12;
   // 子回复总数（用于折叠显示「展开查看 X 条回复」）
   int32 reply_count = 13;
+  // 富媒体附件（GIF/Sticker，最多 1 个）
+  repeated MediaAttachment media_attachments = 14;
+}
+
+// ──── 富媒体附件 ────
+
+// 媒体类型
+enum MediaType {
+  MEDIA_TYPE_UNSPECIFIED = 0;
+  // GIPHY GIF 动图
+  MEDIA_TYPE_GIF = 1;
+  // GIPHY Sticker（透明背景动图）
+  MEDIA_TYPE_STICKER = 2;
+  // 普通图片（预留，用于后续图片评论）
+  MEDIA_TYPE_IMAGE = 3;
+}
+
+// 媒体附件
+message MediaAttachment {
+  // 媒体类型
+  MediaType media_type = 1;
+  // 原始尺寸 URL
+  string url = 2;
+  // 预览/缩略图 URL（GIF 的 fixed_height 版本）
+  string preview_url = 3;
+  // 宽度 (px)
+  int32 width = 4;
+  // 高度 (px)
+  int32 height = 5;
+  // GIPHY ID（用于 attribution 和去重）
+  string giphy_id = 6;
+  // 标题/alt 文本
+  string alt_text = 7;
 }
 
 // 评论排序枚举

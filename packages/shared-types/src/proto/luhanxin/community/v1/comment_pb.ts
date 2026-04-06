@@ -16,7 +16,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file luhanxin/community/v1/comment.proto.
  */
 export const file_luhanxin_community_v1_comment: GenFile = /*@__PURE__*/
-  fileDesc("CiNsdWhhbnhpbi9jb21tdW5pdHkvdjEvY29tbWVudC5wcm90bxIVbHVoYW54aW4uY29tbXVuaXR5LnYxImMKFENyZWF0ZUNvbW1lbnRSZXF1ZXN0EhIKCmFydGljbGVfaWQYASABKAkSDwoHY29udGVudBgCIAEoCRIRCglwYXJlbnRfaWQYAyABKAkSEwoLcmVwbHlfdG9faWQYBCABKAkiSAoVQ3JlYXRlQ29tbWVudFJlc3BvbnNlEi8KB2NvbW1lbnQYASABKAsyHi5sdWhhbnhpbi5jb21tdW5pdHkudjEuQ29tbWVudCKpAQoTTGlzdENvbW1lbnRzUmVxdWVzdBISCgphcnRpY2xlX2lkGAEgASgJEjwKCnBhZ2luYXRpb24YAiABKAsyKC5sdWhhbnhpbi5jb21tdW5pdHkudjEuUGFnaW5hdGlvblJlcXVlc3QSMAoEc29ydBgDIAEoDjIiLmx1aGFueGluLmNvbW11bml0eS52MS5Db21tZW50U29ydBIOCgZjdXJzb3IYBCABKAkihwEKFExpc3RDb21tZW50c1Jlc3BvbnNlEjAKCGNvbW1lbnRzGAEgAygLMh4ubHVoYW54aW4uY29tbXVuaXR5LnYxLkNvbW1lbnQSPQoKcGFnaW5hdGlvbhgCIAEoCzIpLmx1aGFueGluLmNvbW11bml0eS52MS5QYWdpbmF0aW9uUmVzcG9uc2UiKgoURGVsZXRlQ29tbWVudFJlcXVlc3QSEgoKY29tbWVudF9pZBgBIAEoCSIXChVEZWxldGVDb21tZW50UmVzcG9uc2UikAMKB0NvbW1lbnQSCgoCaWQYASABKAkSEgoKYXJ0aWNsZV9pZBgCIAEoCRIRCglhdXRob3JfaWQYAyABKAkSDwoHY29udGVudBgEIAEoCRIRCglwYXJlbnRfaWQYBSABKAkSEwoLcmVwbHlfdG9faWQYBiABKAkSEAoIbWVudGlvbnMYByADKAkSLgoKY3JlYXRlZF9hdBgIIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASLgoKdXBkYXRlZF9hdBgJIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASKwoGYXV0aG9yGAogASgLMhsubHVoYW54aW4uY29tbXVuaXR5LnYxLlVzZXISNAoPcmVwbHlfdG9fYXV0aG9yGAsgASgLMhsubHVoYW54aW4uY29tbXVuaXR5LnYxLlVzZXISLwoHcmVwbGllcxgMIAMoCzIeLmx1aGFueGluLmNvbW11bml0eS52MS5Db21tZW50EhMKC3JlcGx5X2NvdW50GA0gASgFKkAKC0NvbW1lbnRTb3J0EhcKE0NPTU1FTlRfU09SVF9MQVRFU1QQABIYChRDT01NRU5UX1NPUlRfUE9QVUxBUhABMtECCg5Db21tZW50U2VydmljZRJqCg1DcmVhdGVDb21tZW50EisubHVoYW54aW4uY29tbXVuaXR5LnYxLkNyZWF0ZUNvbW1lbnRSZXF1ZXN0GiwubHVoYW54aW4uY29tbXVuaXR5LnYxLkNyZWF0ZUNvbW1lbnRSZXNwb25zZRJnCgxMaXN0Q29tbWVudHMSKi5sdWhhbnhpbi5jb21tdW5pdHkudjEuTGlzdENvbW1lbnRzUmVxdWVzdBorLmx1aGFueGluLmNvbW11bml0eS52MS5MaXN0Q29tbWVudHNSZXNwb25zZRJqCg1EZWxldGVDb21tZW50EisubHVoYW54aW4uY29tbXVuaXR5LnYxLkRlbGV0ZUNvbW1lbnRSZXF1ZXN0GiwubHVoYW54aW4uY29tbXVuaXR5LnYxLkRlbGV0ZUNvbW1lbnRSZXNwb25zZWIGcHJvdG8z", [file_google_protobuf_timestamp, file_luhanxin_community_v1_common, file_luhanxin_community_v1_user]);
+  fileDesc("CiNsdWhhbnhpbi9jb21tdW5pdHkvdjEvY29tbWVudC5wcm90bxIVbHVoYW54aW4uY29tbXVuaXR5LnYxIqYBChRDcmVhdGVDb21tZW50UmVxdWVzdBISCgphcnRpY2xlX2lkGAEgASgJEg8KB2NvbnRlbnQYAiABKAkSEQoJcGFyZW50X2lkGAMgASgJEhMKC3JlcGx5X3RvX2lkGAQgASgJEkEKEW1lZGlhX2F0dGFjaG1lbnRzGAUgAygLMiYubHVoYW54aW4uY29tbXVuaXR5LnYxLk1lZGlhQXR0YWNobWVudCJIChVDcmVhdGVDb21tZW50UmVzcG9uc2USLwoHY29tbWVudBgBIAEoCzIeLmx1aGFueGluLmNvbW11bml0eS52MS5Db21tZW50IqkBChNMaXN0Q29tbWVudHNSZXF1ZXN0EhIKCmFydGljbGVfaWQYASABKAkSPAoKcGFnaW5hdGlvbhgCIAEoCzIoLmx1aGFueGluLmNvbW11bml0eS52MS5QYWdpbmF0aW9uUmVxdWVzdBIwCgRzb3J0GAMgASgOMiIubHVoYW54aW4uY29tbXVuaXR5LnYxLkNvbW1lbnRTb3J0Eg4KBmN1cnNvchgEIAEoCSKHAQoUTGlzdENvbW1lbnRzUmVzcG9uc2USMAoIY29tbWVudHMYASADKAsyHi5sdWhhbnhpbi5jb21tdW5pdHkudjEuQ29tbWVudBI9CgpwYWdpbmF0aW9uGAIgASgLMikubHVoYW54aW4uY29tbXVuaXR5LnYxLlBhZ2luYXRpb25SZXNwb25zZSIqChREZWxldGVDb21tZW50UmVxdWVzdBISCgpjb21tZW50X2lkGAEgASgJIhcKFURlbGV0ZUNvbW1lbnRSZXNwb25zZSLTAwoHQ29tbWVudBIKCgJpZBgBIAEoCRISCgphcnRpY2xlX2lkGAIgASgJEhEKCWF1dGhvcl9pZBgDIAEoCRIPCgdjb250ZW50GAQgASgJEhEKCXBhcmVudF9pZBgFIAEoCRITCgtyZXBseV90b19pZBgGIAEoCRIQCghtZW50aW9ucxgHIAMoCRIuCgpjcmVhdGVkX2F0GAggASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBIuCgp1cGRhdGVkX2F0GAkgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBIrCgZhdXRob3IYCiABKAsyGy5sdWhhbnhpbi5jb21tdW5pdHkudjEuVXNlchI0Cg9yZXBseV90b19hdXRob3IYCyABKAsyGy5sdWhhbnhpbi5jb21tdW5pdHkudjEuVXNlchIvCgdyZXBsaWVzGAwgAygLMh4ubHVoYW54aW4uY29tbXVuaXR5LnYxLkNvbW1lbnQSEwoLcmVwbHlfY291bnQYDSABKAUSQQoRbWVkaWFfYXR0YWNobWVudHMYDiADKAsyJi5sdWhhbnhpbi5jb21tdW5pdHkudjEuTWVkaWFBdHRhY2htZW50IqwBCg9NZWRpYUF0dGFjaG1lbnQSNAoKbWVkaWFfdHlwZRgBIAEoDjIgLmx1aGFueGluLmNvbW11bml0eS52MS5NZWRpYVR5cGUSCwoDdXJsGAIgASgJEhMKC3ByZXZpZXdfdXJsGAMgASgJEg0KBXdpZHRoGAQgASgFEg4KBmhlaWdodBgFIAEoBRIQCghnaXBoeV9pZBgGIAEoCRIQCghhbHRfdGV4dBgHIAEoCSppCglNZWRpYVR5cGUSGgoWTUVESUFfVFlQRV9VTlNQRUNJRklFRBAAEhIKDk1FRElBX1RZUEVfR0lGEAESFgoSTUVESUFfVFlQRV9TVElDS0VSEAISFAoQTUVESUFfVFlQRV9JTUFHRRADKkAKC0NvbW1lbnRTb3J0EhcKE0NPTU1FTlRfU09SVF9MQVRFU1QQABIYChRDT01NRU5UX1NPUlRfUE9QVUxBUhABMtECCg5Db21tZW50U2VydmljZRJqCg1DcmVhdGVDb21tZW50EisubHVoYW54aW4uY29tbXVuaXR5LnYxLkNyZWF0ZUNvbW1lbnRSZXF1ZXN0GiwubHVoYW54aW4uY29tbXVuaXR5LnYxLkNyZWF0ZUNvbW1lbnRSZXNwb25zZRJnCgxMaXN0Q29tbWVudHMSKi5sdWhhbnhpbi5jb21tdW5pdHkudjEuTGlzdENvbW1lbnRzUmVxdWVzdBorLmx1aGFueGluLmNvbW11bml0eS52MS5MaXN0Q29tbWVudHNSZXNwb25zZRJqCg1EZWxldGVDb21tZW50EisubHVoYW54aW4uY29tbXVuaXR5LnYxLkRlbGV0ZUNvbW1lbnRSZXF1ZXN0GiwubHVoYW54aW4uY29tbXVuaXR5LnYxLkRlbGV0ZUNvbW1lbnRSZXNwb25zZWIGcHJvdG8z", [file_google_protobuf_timestamp, file_luhanxin_community_v1_common, file_luhanxin_community_v1_user]);
 
 /**
  * @generated from message luhanxin.community.v1.CreateCommentRequest
@@ -49,6 +49,13 @@ export type CreateCommentRequest = Message<"luhanxin.community.v1.CreateCommentR
    * @generated from field: string reply_to_id = 4;
    */
   replyToId: string;
+
+  /**
+   * 富媒体附件（GIF/Sticker，最多 1 个）
+   *
+   * @generated from field: repeated luhanxin.community.v1.MediaAttachment media_attachments = 5;
+   */
+  mediaAttachments: MediaAttachment[];
 };
 
 /**
@@ -273,6 +280,13 @@ export type Comment = Message<"luhanxin.community.v1.Comment"> & {
    * @generated from field: int32 reply_count = 13;
    */
   replyCount: number;
+
+  /**
+   * 富媒体附件（GIF/Sticker，最多 1 个）
+   *
+   * @generated from field: repeated luhanxin.community.v1.MediaAttachment media_attachments = 14;
+   */
+  mediaAttachments: MediaAttachment[];
 };
 
 /**
@@ -281,6 +295,108 @@ export type Comment = Message<"luhanxin.community.v1.Comment"> & {
  */
 export const CommentSchema: GenMessage<Comment> = /*@__PURE__*/
   messageDesc(file_luhanxin_community_v1_comment, 6);
+
+/**
+ * 媒体附件
+ *
+ * @generated from message luhanxin.community.v1.MediaAttachment
+ */
+export type MediaAttachment = Message<"luhanxin.community.v1.MediaAttachment"> & {
+  /**
+   * 媒体类型
+   *
+   * @generated from field: luhanxin.community.v1.MediaType media_type = 1;
+   */
+  mediaType: MediaType;
+
+  /**
+   * 原始尺寸 URL
+   *
+   * @generated from field: string url = 2;
+   */
+  url: string;
+
+  /**
+   * 预览/缩略图 URL（GIF 的 fixed_height 版本）
+   *
+   * @generated from field: string preview_url = 3;
+   */
+  previewUrl: string;
+
+  /**
+   * 宽度 (px)
+   *
+   * @generated from field: int32 width = 4;
+   */
+  width: number;
+
+  /**
+   * 高度 (px)
+   *
+   * @generated from field: int32 height = 5;
+   */
+  height: number;
+
+  /**
+   * GIPHY ID（用于 attribution 和去重）
+   *
+   * @generated from field: string giphy_id = 6;
+   */
+  giphyId: string;
+
+  /**
+   * 标题/alt 文本
+   *
+   * @generated from field: string alt_text = 7;
+   */
+  altText: string;
+};
+
+/**
+ * Describes the message luhanxin.community.v1.MediaAttachment.
+ * Use `create(MediaAttachmentSchema)` to create a new message.
+ */
+export const MediaAttachmentSchema: GenMessage<MediaAttachment> = /*@__PURE__*/
+  messageDesc(file_luhanxin_community_v1_comment, 7);
+
+/**
+ * 媒体类型
+ *
+ * @generated from enum luhanxin.community.v1.MediaType
+ */
+export enum MediaType {
+  /**
+   * @generated from enum value: MEDIA_TYPE_UNSPECIFIED = 0;
+   */
+  UNSPECIFIED = 0,
+
+  /**
+   * GIPHY GIF 动图
+   *
+   * @generated from enum value: MEDIA_TYPE_GIF = 1;
+   */
+  GIF = 1,
+
+  /**
+   * GIPHY Sticker（透明背景动图）
+   *
+   * @generated from enum value: MEDIA_TYPE_STICKER = 2;
+   */
+  STICKER = 2,
+
+  /**
+   * 普通图片（预留，用于后续图片评论）
+   *
+   * @generated from enum value: MEDIA_TYPE_IMAGE = 3;
+   */
+  IMAGE = 3,
+}
+
+/**
+ * Describes the enum luhanxin.community.v1.MediaType.
+ */
+export const MediaTypeSchema: GenEnum<MediaType> = /*@__PURE__*/
+  enumDesc(file_luhanxin_community_v1_comment, 0);
 
 /**
  * 评论排序枚举
@@ -307,7 +423,7 @@ export enum CommentSort {
  * Describes the enum luhanxin.community.v1.CommentSort.
  */
 export const CommentSortSchema: GenEnum<CommentSort> = /*@__PURE__*/
-  enumDesc(file_luhanxin_community_v1_comment, 0);
+  enumDesc(file_luhanxin_community_v1_comment, 1);
 
 /**
  * 评论服务
