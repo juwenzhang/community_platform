@@ -1,11 +1,19 @@
-import { DeleteOutlined, SmileOutlined } from '@ant-design/icons';
+import {
+  DeleteOutlined,
+  DownOutlined,
+  FireOutlined,
+  SmileOutlined,
+  SortAscendingOutlined,
+  UpOutlined,
+} from '@ant-design/icons';
 import type { Comment } from '@luhanxin/shared-types';
-import { Avatar, Button, Popover } from 'antd';
+import { Avatar, Button, Popover, Spin } from 'antd';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useCommentStore } from '@/stores/useCommentStore';
 import { parseMentions } from '@/utils/mentionParser';
+import CommentSkeleton from './CommentSkeleton';
 import styles from './commentSection.module.less';
 import EmojiPicker from './EmojiPicker';
 import MentionInput from './MentionInput';
@@ -14,7 +22,6 @@ interface CommentSectionProps {
   articleId: string;
 }
 
-/** 内联回复状态 */
 interface InlineReply {
   parentId: string;
   replyToId: string;
@@ -27,43 +34,67 @@ export default function CommentSection({ articleId }: CommentSectionProps) {
     comments,
     totalCount,
     loading,
+    refreshing,
+    loadingMore,
     submitting,
+    sort,
+    hasMore,
     loadComments,
+    loadMore,
+    setSort,
     createComment,
     deleteComment,
     reset,
   } = useCommentStore();
 
-  // 顶部主输入框状态
   const [mainContent, setMainContent] = useState('');
   const [mainShowEmoji, setMainShowEmoji] = useState(false);
   const mainInputRef = useRef<HTMLTextAreaElement>(null);
 
-  // 内联回复状态（同一时间只有一个）
   const [inlineReply, setInlineReply] = useState<InlineReply | null>(null);
   const [inlineContent, setInlineContent] = useState('');
   const [inlineShowEmoji, setInlineShowEmoji] = useState(false);
   const inlineInputRef = useRef<HTMLTextAreaElement>(null);
 
-  // 加载评论
+  // 子评论折叠状态：key = 顶级评论 ID, value = 是否展开
+  const [expandedReplies, setExpandedReplies] = useState<Record<string, boolean>>({});
+
+  const sentinelRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     loadComments(articleId);
     return () => reset();
   }, [articleId, loadComments, reset]);
 
-  // 提交主评论（一级评论）
-  const handleMainSubmit = async () => {
-    if (!mainContent.trim() || submitting) return;
-    const success = await createComment({
-      articleId,
-      content: mainContent.trim(),
-    });
-    if (success) {
-      setMainContent('');
-    }
+  // 无限滚动
+  useEffect(() => {
+    const sentinel = sentinelRef.current;
+    if (!sentinel) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !loadingMore) {
+          loadMore(articleId);
+        }
+      },
+      { rootMargin: '200px' },
+    );
+
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [hasMore, loadingMore, loadMore, articleId]);
+
+  // 切换子评论折叠
+  const toggleReplies = (commentId: string) => {
+    setExpandedReplies((prev) => ({ ...prev, [commentId]: !prev[commentId] }));
   };
 
-  // 提交内联回复
+  const handleMainSubmit = async () => {
+    if (!mainContent.trim() || submitting) return;
+    const success = await createComment({ articleId, content: mainContent.trim() });
+    if (success) setMainContent('');
+  };
+
   const handleInlineSubmit = async () => {
     if (!inlineContent.trim() || submitting || !inlineReply) return;
     const success = await createComment({
@@ -79,15 +110,10 @@ export default function CommentSection({ articleId }: CommentSectionProps) {
     }
   };
 
-  // 删除评论
-  const handleDelete = (commentId: string) => {
-    deleteComment(commentId, articleId);
-  };
+  const handleDelete = (commentId: string) => deleteComment(commentId, articleId);
 
-  // 点击回复 → 展开内联输入框
   const handleReply = useCallback(
     (parentId: string, replyToId: string, username: string) => {
-      // 如果点击的是同一个回复目标，则关闭
       if (inlineReply?.replyToId === replyToId) {
         setInlineReply(null);
         setInlineContent('');
@@ -97,50 +123,39 @@ export default function CommentSection({ articleId }: CommentSectionProps) {
       setInlineReply({ parentId, replyToId, replyToUsername: username });
       setInlineContent('');
       setInlineShowEmoji(false);
-      // 自动聚焦内联输入框
-      setTimeout(() => {
-        inlineInputRef.current?.focus();
-      }, 50);
+      setTimeout(() => inlineInputRef.current?.focus(), 50);
     },
     [inlineReply?.replyToId],
   );
 
-  // 取消内联回复
   const cancelInlineReply = () => {
     setInlineReply(null);
     setInlineContent('');
     setInlineShowEmoji(false);
   };
 
-  // 主输入框表情插入
   const handleMainEmojiSelect = (emoji: string) => {
     const textarea = mainInputRef.current;
     if (textarea) {
       const start = textarea.selectionStart;
-      const newValue = mainContent.slice(0, start) + emoji + mainContent.slice(start);
-      setMainContent(newValue);
-      const newPos = start + emoji.length;
-      setTimeout(() => textarea.setSelectionRange(newPos, newPos), 0);
+      setMainContent(mainContent.slice(0, start) + emoji + mainContent.slice(start));
+      setTimeout(() => textarea.setSelectionRange(start + emoji.length, start + emoji.length), 0);
     } else {
       setMainContent((prev) => prev + emoji);
     }
   };
 
-  // 内联回复表情插入
   const handleInlineEmojiSelect = (emoji: string) => {
     const textarea = inlineInputRef.current;
     if (textarea) {
       const start = textarea.selectionStart;
-      const newValue = inlineContent.slice(0, start) + emoji + inlineContent.slice(start);
-      setInlineContent(newValue);
-      const newPos = start + emoji.length;
-      setTimeout(() => textarea.setSelectionRange(newPos, newPos), 0);
+      setInlineContent(inlineContent.slice(0, start) + emoji + inlineContent.slice(start));
+      setTimeout(() => textarea.setSelectionRange(start + emoji.length, start + emoji.length), 0);
     } else {
       setInlineContent((prev) => prev + emoji);
     }
   };
 
-  // 格式化时间
   const formatTime = (comment: Comment) => {
     if (!comment.createdAt) return '';
     return new Date(Number(comment.createdAt.seconds) * 1000).toLocaleDateString('zh-CN', {
@@ -151,10 +166,9 @@ export default function CommentSection({ articleId }: CommentSectionProps) {
     });
   };
 
-  // 渲染内联回复输入框
+  // ─── 渲染：内联回复框 ───
   const renderInlineReplyBox = (targetCommentId: string) => {
     if (!inlineReply || inlineReply.replyToId !== targetCommentId) return null;
-
     return (
       <div className={styles.inlineReplyBox}>
         <div className={styles.inlineReplyHeader}>
@@ -207,7 +221,7 @@ export default function CommentSection({ articleId }: CommentSectionProps) {
     );
   };
 
-  // 渲染单条评论
+  // ─── 渲染：单条评论 ───
   const renderComment = (comment: Comment, isReply = false) => {
     const author = comment.author;
     const isOwn = user?.id === comment.authorId;
@@ -267,17 +281,72 @@ export default function CommentSection({ articleId }: CommentSectionProps) {
             </div>
           </div>
         </div>
-        {/* 内联回复框：紧跟在被回复的评论下方 */}
         {renderInlineReplyBox(comment.id)}
       </div>
     );
   };
 
+  // ─── 渲染：子评论区域（含折叠逻辑） ───
+  const renderReplies = (comment: Comment) => {
+    const replies = comment.replies;
+    if (replies.length === 0) return null;
+
+    const isExpanded = expandedReplies[comment.id] ?? false;
+
+    return (
+      <div className={styles.replies}>
+        {isExpanded && (
+          <div className={styles.repliesInner}>
+            {replies.map((reply) => renderComment(reply, true))}
+          </div>
+        )}
+
+        <button
+          type="button"
+          className={styles.toggleRepliesBtn}
+          onClick={() => toggleReplies(comment.id)}
+        >
+          {isExpanded ? (
+            <>
+              <UpOutlined /> 收起回复
+            </>
+          ) : (
+            <>
+              <DownOutlined /> 展开 {replies.length} 条回复
+            </>
+          )}
+        </button>
+      </div>
+    );
+  };
+
+  // ─── 计算展示的评论数量 ───
+  const displayCount = totalCount > 0 ? totalCount : comments.length;
+
   return (
     <div className={styles.section}>
-      <h3 className={styles.sectionTitle}>评论 ({totalCount})</h3>
+      {/* 标题 + 排序 Tab */}
+      <div className={styles.sectionHeader}>
+        <h3 className={styles.sectionTitle}>评论{displayCount > 0 ? ` (${displayCount})` : ''}</h3>
+        <div className={styles.sortTabs}>
+          <button
+            type="button"
+            className={`${styles.sortTab} ${sort === 0 ? styles.active : ''}`}
+            onClick={() => setSort(0, articleId)}
+          >
+            <SortAscendingOutlined /> 最新
+          </button>
+          <button
+            type="button"
+            className={`${styles.sortTab} ${sort === 1 ? styles.active : ''}`}
+            onClick={() => setSort(1, articleId)}
+          >
+            <FireOutlined /> 最热
+          </button>
+        </div>
+      </div>
 
-      {/* 顶部主输入区 — 仅用于发表一级评论 */}
+      {/* 主输入区 */}
       {isAuthenticated ? (
         <div className={styles.inputArea}>
           <div className={styles.inputRow}>
@@ -331,21 +400,27 @@ export default function CommentSection({ articleId }: CommentSectionProps) {
 
       {/* 评论列表 */}
       {loading ? (
-        <div className={styles.loading}>加载评论中...</div>
+        <CommentSkeleton count={3} />
       ) : comments.length === 0 ? (
         <div className={styles.empty}>暂无评论，来说点什么吧</div>
       ) : (
-        <div className={styles.commentList}>
+        <div className={`${styles.commentList} ${refreshing ? styles.refreshing : ''}`}>
           {comments.map((comment) => (
             <div key={comment.id} className={styles.commentThread}>
               {renderComment(comment)}
-              {comment.replies.length > 0 && (
-                <div className={styles.replies}>
-                  {comment.replies.map((reply) => renderComment(reply, true))}
-                </div>
-              )}
+              {renderReplies(comment)}
             </div>
           ))}
+
+          {/* 无限滚动哨兵 */}
+          <div ref={sentinelRef} className={styles.sentinel}>
+            {loadingMore && (
+              <div className={styles.loadingMore}>
+                <Spin size="small" />
+                <span>加载更多评论...</span>
+              </div>
+            )}
+          </div>
         </div>
       )}
     </div>

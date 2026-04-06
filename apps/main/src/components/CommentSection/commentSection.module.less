@@ -5,11 +5,43 @@
   padding-top: 24px;
   border-top: 1px solid var(--color-border);
 
-  .sectionTitle {
-    font-size: 18px;
-    font-weight: 600;
-    color: var(--color-text-1);
+  .sectionHeader {
+    @apply flex items-center justify-between;
     margin-bottom: 20px;
+
+    .sectionTitle {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--color-text-1);
+      margin: 0;
+    }
+
+    .sortTabs {
+      @apply flex items-center gap-1;
+
+      .sortTab {
+        @apply flex items-center gap-1;
+        padding: 4px 12px;
+        border: none;
+        border-radius: var(--radius-sm);
+        background: none;
+        font-size: 13px;
+        color: var(--color-text-3);
+        cursor: pointer;
+        transition: all 0.2s;
+
+        &:hover {
+          color: var(--color-text-1);
+          background: var(--color-bg-hover);
+        }
+
+        &.active {
+          color: var(--color-primary);
+          background: var(--color-primary-light, rgba(30, 128, 255, 0.08));
+          font-weight: 500;
+        }
+      }
+    }
   }
 }
 
@@ -164,6 +196,13 @@
 
 // 评论列表
 .commentList {
+  transition: opacity 0.2s ease;
+
+  &.refreshing {
+    opacity: 0.5;
+    pointer-events: none;
+  }
+
   .commentThread {
     &:not(:last-child) {
       margin-bottom: 4px;
@@ -319,6 +358,30 @@
   margin-left: 48px;
   padding-left: 16px;
   border-left: 2px solid var(--color-border);
+
+  .repliesInner {
+    overflow: hidden;
+    transition: max-height 0.3s ease, opacity 0.3s ease;
+
+    &.expanded {
+      max-height: none;
+    }
+  }
+
+  .toggleRepliesBtn {
+    @apply flex items-center gap-1;
+    border: none;
+    background: none;
+    font-size: 12px;
+    color: var(--color-primary);
+    cursor: pointer;
+    padding: 8px 0 4px;
+    transition: color 0.2s;
+
+    &:hover {
+      color: var(--color-primary-hover, #4d9fff);
+    }
+  }
 }
 
 .loading,
@@ -327,4 +390,15 @@
   text-align: center;
   color: var(--color-text-4);
   font-size: 14px;
+}
+
+.sentinel {
+  min-height: 1px;
+}
+
+.loadingMore {
+  @apply flex items-center justify-center gap-2;
+  padding: 16px 0;
+  color: var(--color-text-4);
+  font-size: 13px;
 }
