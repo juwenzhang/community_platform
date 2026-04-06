@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 # =============================================================
 # gen-proto-mod.sh
-# 在 buf generate 之后运行，自动生成 services/shared/src/proto/mod.rs
+# 在 buf generate 之后运行，自动生成 crates/shared/src/proto/mod.rs
 # 扫描 prost 生成的 .rs 文件，构建嵌套 mod 结构 + re-export
 # =============================================================
 set -euo pipefail
 
-PROTO_DIR="services/shared/src/proto"
+PROTO_DIR="crates/shared/src/proto"
 MOD_FILE="${PROTO_DIR}/mod.rs"
 
 # 找到所有 prost 生成的 .rs 文件（排除 .tonic.rs，因为 prost 文件末尾会自动 include 它）
