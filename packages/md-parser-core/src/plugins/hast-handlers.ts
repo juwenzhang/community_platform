@@ -1,4 +1,5 @@
 import type { Element as HastElement, Text as HastText } from 'hast';
+import type { Node } from 'unist';
 import type { ContainerNode, HashtagNode, MentionNode } from '../types/ast';
 
 /**
@@ -23,8 +24,8 @@ import type { ContainerNode, HashtagNode, MentionNode } from '../types/ast';
  */
 
 type State = {
-  all: (node: any) => (HastElement | HastText)[];
-  one: (node: any) => HastElement | HastText | null;
+  all: (nodes: Node[]) => (HastElement | HastText)[];
+  one: (node: Node) => HastElement | HastText | null;
 };
 
 /**
@@ -104,7 +105,7 @@ function handleContainer(state: State, node: ContainerNode): HastElement {
   ];
 
   // 递归处理子节点
-  const contentChildren = state.all(node);
+  const contentChildren = state.all(node.children);
 
   return {
     type: 'element',
@@ -133,7 +134,7 @@ function handleContainer(state: State, node: ContainerNode): HastElement {
  * 导出所有自定义 handlers
  * 用于 remark-rehype 的 handlers 选项
  */
-export const customHandlers: Record<string, (state: any, node: any) => HastElement> = {
+export const customHandlers: Record<string, (state: State, node: any) => HastElement> = {
   mention: handleMention,
   hashtag: handleHashtag,
   container: handleContainer,

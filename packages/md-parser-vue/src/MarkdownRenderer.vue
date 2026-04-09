@@ -1,8 +1,8 @@
 <script setup lang="ts">
+import type { ArticleMeta, EventHandlers, TocItem } from '@luhanxin/md-parser-core';
 import { ref, toRef, watch } from 'vue';
-import type { TocItem, ArticleMeta, EventHandlers } from '@luhanxin/md-parser-core';
-import { useMarkdown } from './composables/useMarkdown';
 import { useEventDelegation } from './composables/useEventDelegation';
+import { useMarkdown } from './composables/useMarkdown';
 import { useMarkdownContext } from './context/MarkdownProvider';
 
 const props = withDefaults(

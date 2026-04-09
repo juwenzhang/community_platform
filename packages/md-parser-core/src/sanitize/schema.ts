@@ -68,7 +68,15 @@ export const customSanitizeSchema: Schema = {
       'rel',
       'ariaHidden',
       'tabIndex',
+      'href',
     ],
+    // Heading 元素保留自生成的 id（防止 rehype-sanitize 添加 user-content- 前缀）
+    h1: [...(defaultSchema.attributes?.h1 || []), 'id'],
+    h2: [...(defaultSchema.attributes?.h2 || []), 'id'],
+    h3: [...(defaultSchema.attributes?.h3 || []), 'id'],
+    h4: [...(defaultSchema.attributes?.h4 || []), 'id'],
+    h5: [...(defaultSchema.attributes?.h5 || []), 'id'],
+    h6: [...(defaultSchema.attributes?.h6 || []), 'id'],
     div: [
       ...(defaultSchema.attributes?.div || []),
       'class',

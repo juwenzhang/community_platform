@@ -12,7 +12,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, watch } from 'vue';
+import { onMounted, onUnmounted, ref, watch } from 'vue';
 
 interface Props {
   /** Mermaid 代码 */
@@ -82,7 +82,7 @@ watch(
   () => props.code,
   () => {
     renderDiagram();
-  }
+  },
 );
 </script>
 

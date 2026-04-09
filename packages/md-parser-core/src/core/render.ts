@@ -11,6 +11,7 @@ import remarkParse from 'remark-parse';
 import remarkRehype from 'remark-rehype';
 import { unified } from 'unified';
 import { visit } from 'unist-util-visit';
+import type { VFile } from 'vfile';
 import {
   customHandlers,
   rehypeCodeMeta,
@@ -71,9 +72,10 @@ function remarkShiki(options: { theme?: { dark?: string; light?: string } } = {}
               lang: node.lang,
               theme: options.theme,
             });
-            (node as any).type = 'html';
-            (node as any).value = html;
-          } catch (error) {
+            const htmlNode = node as typeof node & { type: string; value: string };
+            htmlNode.type = 'code';
+            htmlNode.value = html;
+          } catch (_error) {
             // Shiki 高亮失败时保持原始代码块
           }
         }
@@ -88,7 +90,7 @@ function remarkShiki(options: { theme?: { dark?: string; light?: string } } = {}
  * 通过 vfile.data 传递提取结果，避免二次解析。
  */
 function remarkExtractAll() {
-  return (tree: Root, file: any) => {
+  return (tree: Root, _file: VFile) => {
     const toc: TocItem[] = [];
     const textSegments: string[] = [];
     const meta: ArticleMeta = {};
@@ -154,9 +156,9 @@ function remarkExtractAll() {
     meta.readingTime = Math.ceil(meta.wordCount / 200);
 
     // 通过 vfile.data 传递提取结果
-    file.data.toc = buildTocTree(toc);
-    file.data.meta = meta;
-    file.data.plainText = plainText;
+    _file.data.toc = buildTocTree(toc);
+    _file.data.meta = meta;
+    _file.data.plainText = plainText;
   };
 }
 
@@ -224,9 +226,74 @@ function remarkExtractBlocks() {
 }
 
 /**
+ * 预处理 Markdown 源文本：识别并标记容器块
+ *
+ * 在源文本中直接提取容器信息，存储到 vfile.data，
+ * 然后在 remarkContainer 插件中使用这些信息重建容器。
+ */
+function extractContainersFromSource(
+  markdown: string,
+): Map<
+  string,
+  { kind: string; title?: string; content: string; startLine: number; endLine: number }
+> {
+  const containers = new Map();
+  const OPEN_REGEX = /^:::(tip|warning|info|danger)(?:\s+(.+))?$/;
+  const CLOSE_REGEX = /^:::$/;
+
+  const lines = markdown.split('\n');
+  let i = 0;
+  let containerIndex = 0;
+
+  while (i < lines.length) {
+    const line = lines[i];
+    const openMatch = line.match(OPEN_REGEX);
+
+    if (openMatch) {
+      const kind = openMatch[1];
+      const title = openMatch[2];
+      const startLine = i;
+      const contentLines: string[] = [];
+      let closeFound = false;
+      let closeLine = i;
+
+      // 从下一行开始收集内容，直到找到 ::: 闭标记
+      for (let j = i + 1; j < lines.length; j++) {
+        if (lines[j].match(CLOSE_REGEX)) {
+          closeFound = true;
+          closeLine = j;
+          break;
+        }
+        contentLines.push(lines[j]);
+      }
+
+      if (closeFound) {
+        const content = contentLines.join('\n');
+        const cid = `__container_${containerIndex}__`;
+        containers.set(cid, {
+          kind,
+          title,
+          content,
+          startLine,
+          endLine: closeLine,
+        });
+
+        i = closeLine; // 跳过到闭标记位置
+        containerIndex++;
+      }
+    }
+
+    i++;
+  }
+
+  return containers;
+}
+
+/**
  * 渲染 Markdown 为 ParseResult
  *
  * 一次 unified pipeline 完成：
+ * 0. 源文本预处理：提取容器块信息
  * 1. remark 阶段：解析 + GFM + math + frontmatter + 自定义语法 + Shiki 高亮 + 提取 TOC/meta/plainText/blocks
  * 2. remark-rehype 阶段：mdast → hast（通过 customHandlers 处理自定义节点）
  * 3. rehype 阶段：标题锚点 + 外链处理 + 图片懒加载 + 代码块增强 + KaTeX + XSS 防护
@@ -248,6 +315,8 @@ export async function renderMarkdown(
     internalDomains,
   } = options;
 
+  // 第 0 步：从源文本提取容器块信息（仅在启用自定义语法时）
+  const sourceContainers = customSyntax ? extractContainersFromSource(markdown) : new Map();
   const processor = unified().use(remarkParse);
 
   // remark 阶段
@@ -259,7 +328,7 @@ export async function renderMarkdown(
   if (customSyntax) {
     processor.use(remarkMention);
     processor.use(remarkHashtag);
-    processor.use(remarkContainer);
+    processor.use(remarkContainer, { sourceContainers });
   }
 
   // Shiki 代码高亮
@@ -299,7 +368,15 @@ export async function renderMarkdown(
 
   // 执行 pipeline
   const file = await processor.process(markdown);
-  const html = String(file);
+  let html = String(file);
+
+  // 修复：移除 rehype-sanitize 添加的 user-content- 前缀
+  // rehype-sanitize 默认会给所有生成的 id 添加 user-content- 前缀以防止冲突
+  // 但对于我们自生成的标题 / 容器 ID，这是不需要的，且会破坏 TOC 链接
+  if (postProcess) {
+    html = html.replace(/id="user-content-/g, 'id="');
+    html = html.replace(/href="#user-content-/g, 'href="#');
+  }
 
   return {
     html,

@@ -116,6 +116,8 @@ export default function App() {
   const [markdown, setMarkdown] = useState(sampleMarkdown);
   const [toc, setToc] = useState<TocItem[]>([]);
   const [events, setEvents] = useState<string[]>([]);
+  const [showEditor, setShowEditor] = useState(true);
+  const [hoverButton, setHoverButton] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const activeId = useActiveHeading(containerRef, toc);
@@ -135,65 +137,114 @@ export default function App() {
         onHeadingClick: (id) => addEvent(`heading: #${id}`),
       }}
     >
-      <div style={{ display: 'flex', maxWidth: 1200, margin: '0 auto', padding: 16, gap: 24 }}>
-        {/* 左侧：编辑器 + 渲染 */}
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <h1 style={{ fontSize: 24, fontWeight: 700, marginBottom: 16, textAlign: 'center' }}>
-            React Markdown Parser Demo
-          </h1>
-
-          <textarea
-            value={markdown}
-            onChange={(e) => setMarkdown(e.target.value)}
-            style={{
-              width: '100%',
-              minHeight: 150,
-              padding: 12,
-              fontSize: 13,
-              fontFamily: 'monospace',
-              border: '1px solid #e4e6eb',
-              borderRadius: 8,
-              marginBottom: 16,
-              resize: 'vertical',
-            }}
-          />
-
-          <MarkdownErrorBoundary>
-            <div ref={containerRef}>
-              <MarkdownRenderer content={markdown} onTocReady={setToc} debounce={200} />
-            </div>
-          </MarkdownErrorBoundary>
-        </div>
-
-        {/* 右侧：TOC + 事件日志 */}
-        <div style={{ width: 220, flexShrink: 0 }}>
-          <TocSidebar toc={toc} activeId={activeId} />
-
-          <div style={{ marginTop: 24 }}>
-            <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 8, color: '#515767' }}>
-              事件日志
-            </h3>
+      <div style={{ maxWidth: 1400, margin: '0 auto', padding: '16px 20px', minHeight: '100vh' }}>
+        <div style={{ display: 'flex', gap: 24, justifyContent: 'space-between' }}>
+          {/* 中间：主要内容 */}
+          <div style={{ flex: 1, minWidth: 0 }}>
             <div
               style={{
-                maxHeight: 300,
-                overflow: 'auto',
-                fontSize: 12,
-                fontFamily: 'monospace',
-                background: '#f7f8fa',
-                borderRadius: 8,
-                padding: 8,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                marginBottom: 16,
               }}
             >
-              {events.length === 0 ? (
-                <span style={{ color: '#a8b1bf' }}>点击 @mention、#hashtag 等试试</span>
-              ) : (
-                events.map((e, i) => (
-                  // biome-ignore lint/suspicious/noArrayIndexKey: 事件日志列表，顺序固定
-                  <div key={`${e}-${i}`} style={{ padding: '2px 0', color: '#515767' }}>
-                    {e}
-                  </div>
-                ))
-              )}
+              <h1 style={{ fontSize: 24, fontWeight: 700, margin: 0 }}>
+                React Markdown Parser Demo
+              </h1>
+              <button
+                type="button"
+                onClick={() => setShowEditor(!showEditor)}
+                onMouseEnter={() => setHoverButton(true)}
+                onMouseLeave={() => setHoverButton(false)}
+                style={{
+                  padding: '8px 16px',
+                  fontSize: 13,
+                  fontWeight: 500,
+                  border: 'none',
+                  borderRadius: 6,
+                  background: showEditor ? '#1e80ff' : '#f0f1f3',
+                  color: showEditor ? '#fff' : '#515767',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                  opacity: hoverButton ? 0.85 : 1,
+                  transform: hoverButton ? 'translateY(-1px)' : 'translateY(0)',
+                  boxShadow: hoverButton ? '0 2px 8px rgba(30, 128, 255, 0.2)' : 'none',
+                }}
+              >
+                {showEditor ? '⬆️ 隐藏编辑器' : '⬇️ 显示编辑器'}
+              </button>
+            </div>
+
+            {showEditor && (
+              <div style={{ marginBottom: 16 }}>
+                <textarea
+                  value={markdown}
+                  onChange={(e) => setMarkdown(e.target.value)}
+                  style={{
+                    width: '80%',
+                    minHeight: 120,
+                    padding: 12,
+                    fontSize: 13,
+                    fontFamily: 'monospace',
+                    border: '1px solid #e4e6eb',
+                    borderRadius: 8,
+                    resize: 'vertical',
+                  }}
+                />
+              </div>
+            )}
+
+            <MarkdownErrorBoundary>
+              <div
+                ref={containerRef}
+                style={{
+                  background: '#fff',
+                  borderRadius: 8,
+                  border: '1px solid #e4e6eb',
+                  padding: 24,
+                  lineHeight: 1.6,
+                }}
+              >
+                <MarkdownRenderer content={markdown} onTocReady={setToc} debounce={200} />
+              </div>
+            </MarkdownErrorBoundary>
+          </div>
+
+          {/* 右侧：TOC + 事件日志 */}
+          <div style={{ width: 240, flexShrink: 0 }}>
+            <TocSidebar toc={toc} activeId={activeId} />
+
+            <div style={{ marginTop: 24 }}>
+              <h3 style={{ fontSize: 13, fontWeight: 600, marginBottom: 8, color: '#515767' }}>
+                事件日志
+              </h3>
+              <div
+                style={{
+                  maxHeight: 280,
+                  overflow: 'auto',
+                  fontSize: 11,
+                  fontFamily: 'monospace',
+                  background: '#f7f8fa',
+                  borderRadius: 8,
+                  padding: 8,
+                  border: '1px solid #e4e6eb',
+                }}
+              >
+                {events.length === 0 ? (
+                  <span style={{ color: '#a8b1bf' }}>点击交互元素</span>
+                ) : (
+                  events.map((e, i) => (
+                    <div
+                      // biome-ignore lint/suspicious/noArrayIndexKey: 事件日志列表，顺序固定
+                      key={`${e}-${i}`}
+                      style={{ padding: '2px 0', color: '#515767', wordBreak: 'break-all' }}
+                    >
+                      {e}
+                    </div>
+                  ))
+                )}
+              </div>
             </div>
           </div>
         </div>

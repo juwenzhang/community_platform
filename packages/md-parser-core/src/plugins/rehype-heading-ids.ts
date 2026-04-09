@@ -41,7 +41,7 @@ export const rehypeHeadingIds: Plugin<[], Root> = () => (tree: Root) => {
       type: 'element',
       tagName: 'a',
       properties: {
-        className: ['heading-anchor'],
+        class: 'heading-anchor',
         href: `#${slug}`,
         ariaHidden: 'true',
         tabIndex: -1,

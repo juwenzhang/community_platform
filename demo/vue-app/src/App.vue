@@ -55,10 +55,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
-import type { TocItem, EventHandlers } from '@luhanxin/md-parser-core';
-import { MarkdownRenderer } from '@luhanxin/md-parser-vue';
-import { useActiveHeading } from '@luhanxin/md-parser-vue';
+import type { EventHandlers, TocItem } from '@luhanxin/md-parser-core';
+import { MarkdownRenderer, useActiveHeading } from '@luhanxin/md-parser-vue';
+import { computed, ref } from 'vue';
 
 const containerRef = ref<HTMLElement | null>(null);
 const toc = ref<TocItem[]>([]);

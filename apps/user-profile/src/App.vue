@@ -5,9 +5,8 @@
 </template>
 
 <script setup lang="ts">
-import UserProfile from './views/UserProfile.vue';
-
 import { useHostTheme } from './composables/useHostTheme';
+import UserProfile from './views/UserProfile.vue';
 
 const theme = useHostTheme();
 </script>
