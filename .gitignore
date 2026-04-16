@@ -73,7 +73,7 @@ coverage/
 # ========================
 # 开发态服务发现
 # ========================
-# .dev-registry.json
+.dev-registry.json
 
 # ========================
 # Playwright
