@@ -151,6 +151,10 @@ message Article {
   User author = 14;
   // 文章分类（可多选）
   repeated ArticleCategory categories = 15;
+  // 评论数量（由 Gateway BFF 层填充或从缓存读取）
+  int32 comment_count = 16;
+  // 收藏数量（由 Gateway BFF 层从 social service 聚合填充）
+  int32 favorite_count = 17;
 }
 
 // 文章状态枚举

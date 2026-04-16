@@ -75,6 +75,8 @@ pub async fn list_comments(
                     page_size: params.page_size.unwrap_or(shared::constants::DEFAULT_PAGE_SIZE),
                     page_token: params.page_token.unwrap_or_default(),
                 }),
+                sort: params.sort.unwrap_or(0),
+                cursor: params.cursor.unwrap_or_default(),
             };
             match client.list_comments(req).await {
                 Ok(resp) => {
@@ -137,6 +139,20 @@ pub async fn create_comment(
                 content: body.content,
                 parent_id: body.parent_id.unwrap_or_default(),
                 reply_to_id: body.reply_to_id.unwrap_or_default(),
+                media_attachments: body
+                    .media_attachments
+                    .unwrap_or_default()
+                    .into_iter()
+                    .map(|ma| shared::proto::MediaAttachment {
+                        media_type: ma.media_type,
+                        url: ma.url,
+                        preview_url: ma.preview_url,
+                        width: ma.width,
+                        height: ma.height,
+                        giphy_id: ma.giphy_id,
+                        alt_text: ma.alt_text,
+                    })
+                    .collect(),
             });
             helpers::inject_user_id_metadata(&mut req, &user_id);
             match client.create_comment(req).await {

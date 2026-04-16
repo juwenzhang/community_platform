@@ -50,6 +50,7 @@ impl CommentService for CommentServiceImpl {
             &req.content,
             &req.parent_id,
             &req.reply_to_id,
+            &req.media_attachments,
         )
         .await?;
 
@@ -97,13 +98,15 @@ impl CommentService for CommentServiceImpl {
     ) -> Result<Response<ListCommentsResponse>, Status> {
         let req = request.into_inner();
         let pagination = req.pagination.unwrap_or_default();
-        info!(article_id = %req.article_id, "ListComments");
+        info!(article_id = %req.article_id, sort = req.sort, "ListComments");
 
         let (comments, next_page_token, total_count) = comment::list_comments(
             self.db()?,
             &req.article_id,
             pagination.page_size,
             &pagination.page_token,
+            req.sort,
+            &req.cursor,
         )
         .await?;
 

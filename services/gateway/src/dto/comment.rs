@@ -19,6 +19,20 @@ pub struct CommentDto {
     pub author: Option<CommentAuthorDto>,
     pub reply_to_author: Option<CommentAuthorDto>,
     pub replies: Vec<CommentDto>,
+    pub reply_count: i32,
+    pub media_attachments: Vec<MediaAttachmentDto>,
+}
+
+/// 媒体附件（GIF/Sticker）
+#[derive(Serialize, Deserialize, ToSchema)]
+pub struct MediaAttachmentDto {
+    pub media_type: i32,
+    pub url: String,
+    pub preview_url: String,
+    pub width: i32,
+    pub height: i32,
+    pub giphy_id: String,
+    pub alt_text: String,
 }
 
 /// 评论作者（精简版用户信息）
@@ -43,6 +57,7 @@ pub struct CreateCommentBody {
     pub content: String,
     pub parent_id: Option<String>,
     pub reply_to_id: Option<String>,
+    pub media_attachments: Option<Vec<MediaAttachmentDto>>,
 }
 
 /// 评论列表查询参数
@@ -50,6 +65,10 @@ pub struct CreateCommentBody {
 pub struct ListCommentsQuery {
     pub page_size: Option<i32>,
     pub page_token: Option<String>,
+    /// 排序方式：0=最新（默认），1=最热
+    pub sort: Option<i32>,
+    /// 游标分页（时间戳字符串）
+    pub cursor: Option<String>,
 }
 
 /// Proto User → CommentAuthorDto 转换
@@ -64,6 +83,20 @@ pub fn user_to_author_dto(u: shared::proto::User) -> CommentAuthorDto {
 
 /// Proto Comment → CommentDto 转换
 pub fn proto_comment_to_dto(c: shared::proto::Comment) -> CommentDto {
+    let media_attachments: Vec<MediaAttachmentDto> = c
+        .media_attachments
+        .into_iter()
+        .map(|ma| MediaAttachmentDto {
+            media_type: ma.media_type,
+            url: ma.url,
+            preview_url: ma.preview_url,
+            width: ma.width,
+            height: ma.height,
+            giphy_id: ma.giphy_id,
+            alt_text: ma.alt_text,
+        })
+        .collect();
+
     CommentDto {
         id: c.id,
         article_id: c.article_id,
@@ -77,5 +110,7 @@ pub fn proto_comment_to_dto(c: shared::proto::Comment) -> CommentDto {
         author: c.author.map(user_to_author_dto),
         reply_to_author: c.reply_to_author.map(user_to_author_dto),
         replies: c.replies.into_iter().map(proto_comment_to_dto).collect(),
+        reply_count: c.reply_count,
+        media_attachments,
     }
 }

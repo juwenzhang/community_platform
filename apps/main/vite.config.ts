@@ -94,6 +94,13 @@ export default defineConfig({
         target: 'http://localhost:8000',
         changeOrigin: true,
       },
+      // GIPHY API 代理（浏览器无法直连 api.giphy.com，通过 Node 层转发）
+      '/giphy-api': {
+        target: 'https://api.giphy.com',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/giphy-api/, ''),
+        secure: true,
+      },
     },
   },
   preview: {

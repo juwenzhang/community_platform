@@ -22,6 +22,8 @@ pub struct ArticleDto {
     pub updated_at: Option<String>,
     pub published_at: Option<String>,
     pub author: Option<UserDto>,
+    pub comment_count: i32,
+    pub favorite_count: i32,
 }
 
 /// 获取文章响应
@@ -90,5 +92,7 @@ pub fn proto_to_article_dto(a: shared::proto::Article) -> ArticleDto {
         updated_at: a.updated_at.map(|t| format!("{}", t.seconds)),
         published_at: a.published_at.map(|t| format!("{}", t.seconds)),
         author: a.author.map(user_to_dto),
+        comment_count: a.comment_count,
+        favorite_count: a.favorite_count,
     }
 }

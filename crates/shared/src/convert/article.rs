@@ -26,5 +26,7 @@ pub fn article_model_to_proto(model: articles::Model) -> Article {
         published_at: optional_datetime_to_timestamp(model.published_at),
         author: None, // Gateway BFF 层填充
         categories: model.categories.iter().map(|&c| c as i32).collect(),
+        comment_count: 0, // Gateway BFF 层聚合填充
+        favorite_count: 0, // Gateway BFF 层从 social service 聚合填充
     }
 }

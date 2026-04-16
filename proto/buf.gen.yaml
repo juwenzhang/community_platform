@@ -3,15 +3,15 @@ version: v2
 clean: true
 
 plugins:
-  # Rust: prost → services/shared/src/proto/
+  # Rust: prost → crates/shared/src/proto/
   - local: protoc-gen-prost
-    out: ../services/shared/src/proto
+    out: ../crates/shared/src/proto
     opt:
       - compile_well_known_types=false
 
-  # Rust: tonic (gRPC service stubs) → services/shared/src/proto/
+  # Rust: tonic (gRPC service stubs) → crates/shared/src/proto/
   - local: protoc-gen-tonic
-    out: ../services/shared/src/proto
+    out: ../crates/shared/src/proto
 
   # TypeScript: protobuf-es → packages/shared-types/src/proto/
   - local: protoc-gen-es

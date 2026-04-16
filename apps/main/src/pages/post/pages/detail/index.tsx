@@ -1,4 +1,11 @@
-import { ClockCircleOutlined, EyeOutlined, TagOutlined, UserOutlined } from '@ant-design/icons';
+import {
+  ClockCircleOutlined,
+  CommentOutlined,
+  EyeOutlined,
+  StarOutlined,
+  TagOutlined,
+  UserOutlined,
+} from '@ant-design/icons';
 import { Avatar, Button, Skeleton } from 'antd';
 import { useEffect, useRef } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
@@ -105,6 +112,18 @@ export default function ArticleDetailPage() {
               <EyeOutlined />
               {article.viewCount} 阅读
             </span>
+            {article.commentCount > 0 && (
+              <span className={styles.views}>
+                <CommentOutlined />
+                {article.commentCount} 评论
+              </span>
+            )}
+            {article.favoriteCount > 0 && (
+              <span className={styles.views}>
+                <StarOutlined />
+                {article.favoriteCount} 收藏
+              </span>
+            )}
           </div>
 
           {article.tags.length > 0 && (

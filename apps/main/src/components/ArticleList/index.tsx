@@ -34,6 +34,7 @@ export default function ArticleList({
 }: ArticleListProps) {
   const [articles, setArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [totalCount, setTotalCount] = useState(0);
   const [nextPageToken, setNextPageToken] = useState('');
@@ -49,15 +50,20 @@ export default function ArticleList({
   paramsRef.current = { tag, authorId, query, categories, sort, pageSize };
 
   // 初始加载 + 参数变化时重新加载
-  // const categoriesKey = JSON.stringify(categories);
+  const hasDataRef = useRef(false);
 
   const fetchList = useCallback(async () => {
-    // 取消上一次请求
     abortRef.current?.abort();
     const ctrl = new AbortController();
     abortRef.current = ctrl;
 
-    setLoading(true);
+    // 有旧数据时用 refreshing（保留旧内容），无数据时用 loading（骨架屏）
+    if (hasDataRef.current) {
+      setRefreshing(true);
+    } else {
+      setLoading(true);
+    }
+
     try {
       const res = await articleClient.listArticles(
         {
@@ -74,16 +80,19 @@ export default function ArticleList({
 
       const nextToken = res.pagination?.nextPageToken ?? '';
       setArticles(res.articles);
+      hasDataRef.current = res.articles.length > 0;
       setTotalCount(res.pagination?.totalCount ?? res.articles.length);
       setNextPageToken(nextToken);
       setHasMore(nextToken !== '');
     } catch {
       if (!ctrl.signal.aborted) {
         setArticles([]);
+        hasDataRef.current = false;
       }
     } finally {
       if (!ctrl.signal.aborted) {
         setLoading(false);
+        setRefreshing(false);
       }
     }
   }, [authorId, query, tag, sort, pageSize, categories]);
@@ -165,7 +174,7 @@ export default function ArticleList({
   }
 
   return (
-    <div className={styles.list}>
+    <div className={`${styles.list} ${refreshing ? styles.refreshing : ''}`}>
       {visible.map((article) => (
         <ArticleCard key={article.id} article={article} />
       ))}

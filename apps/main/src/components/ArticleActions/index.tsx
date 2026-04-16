@@ -3,12 +3,14 @@ import {
   EditOutlined,
   HeartFilled,
   HeartOutlined,
+  ShareAltOutlined,
   StarFilled,
   StarOutlined,
 } from '@ant-design/icons';
 import { Tooltip } from 'antd';
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { antdMessage } from '@/lib/antdStatic';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useSocialStore } from '@/stores/useSocialStore';
 import styles from './articleActions.module.less';
@@ -88,6 +90,25 @@ export default function ArticleActions({ articleId, isAuthor }: ArticleActionsPr
           </button>
         </Tooltip>
       )}
+
+      <Tooltip title="分享" placement="right">
+        <button
+          type="button"
+          className={styles.actionBtn}
+          onClick={() => {
+            const url = `${window.location.origin}/post/${articleId}`;
+            if (navigator.share) {
+              navigator.share({ title: document.title, url });
+            } else {
+              navigator.clipboard.writeText(url).then(() => {
+                antdMessage.success('链接已复制到剪贴板');
+              });
+            }
+          }}
+        >
+          <ShareAltOutlined />
+        </button>
+      </Tooltip>
 
       <div className={styles.divider} />
 
