@@ -11,6 +11,7 @@ export default defineConfig({
   sourcemap: true,
   clean: true,
   treeshake: true,
+  minify: true,
   external: [
     'unified',
     'remark-parse',
@@ -39,7 +40,7 @@ export default defineConfig({
   },
   // 构建后替换 worker-entry.ts → worker-entry.js（tsup 不自动重写 URL 字面量）
   async onSuccess() {
-    const { readFileSync, writeFileSync } = await import('fs');
+    const { readFileSync, writeFileSync } = await import('node:fs');
     const indexPath = 'dist/index.js';
     const content = readFileSync(indexPath, 'utf8');
     const fixed = content.replace(/worker-entry\.ts/g, 'worker-entry.js');

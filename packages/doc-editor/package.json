@@ -1,0 +1,78 @@
+{
+  "name": "@luhanxin/doc-editor",
+  "version": "0.1.0",
+  "description": "TipTap-based block editor for Luhanxin community platform — @mention/#hashtag/:::container/code/image/table/mermaid/math with Slash commands and IndexedDB autosave",
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./theme.css": "./dist/theme.css",
+    "./theme": "./dist/theme.css"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "keywords": [
+    "editor",
+    "tiptap",
+    "prosemirror",
+    "markdown",
+    "block-editor",
+    "wysiwyg"
+  ],
+  "author": "luhanxin",
+  "license": "MIT",
+  "peerDependencies": {
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0"
+  },
+  "dependencies": {
+    "@luhanxin/md-parser-core": "workspace:*",
+    "@tiptap/core": "^2.10.0",
+    "@tiptap/extension-bubble-menu": "2.27.2",
+    "@tiptap/extension-code-block-lowlight": "^2.10.0",
+    "@tiptap/extension-floating-menu": "2.27.2",
+    "@tiptap/extension-image": "^2.10.0",
+    "@tiptap/extension-link": "^2.10.0",
+    "@tiptap/extension-placeholder": "^2.10.0",
+    "@tiptap/extension-table": "^2.10.0",
+    "@tiptap/extension-table-cell": "^2.10.0",
+    "@tiptap/extension-table-header": "^2.10.0",
+    "@tiptap/extension-table-row": "^2.10.0",
+    "@tiptap/extension-task-item": "^2.10.0",
+    "@tiptap/extension-task-list": "^2.10.0",
+    "@tiptap/pm": "^2.10.0",
+    "@tiptap/react": "^2.10.0",
+    "@tiptap/starter-kit": "^2.10.0",
+    "@tiptap/suggestion": "^2.10.0",
+    "highlight.js": "11.11.1",
+    "idb": "^8.0.0",
+    "lowlight": "^3.0.0",
+    "tippy.js": "^6.3.0"
+  },
+  "devDependencies": {
+    "@types/mdast": "^4.0.0",
+    "@types/node": "^20.0.0",
+    "@types/react": "^18.3.0",
+    "@types/react-dom": "^18.3.0",
+    "fake-indexeddb": "6.2.5",
+    "jsdom": "^25.0.0",
+    "react": "^18.3.0",
+    "react-dom": "^18.3.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5.6.0",
+    "vitest": "^1.0.0"
+  }
+}

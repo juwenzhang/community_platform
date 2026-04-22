@@ -9,6 +9,8 @@ export default defineConfig({
   splitting: false,
   sourcemap: true,
   clean: true,
+  minify: true,
+  treeshake: true,
   external: ['react', 'react-dom', '@luhanxin/md-parser-core', 'mermaid'],
   esbuildOptions(options) {
     options.jsx = 'automatic';

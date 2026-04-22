@@ -20,6 +20,21 @@ build/
 vite.config.d.ts
 vite.config.js
 
+# tsc 误生成产物 —— 前端源码应只有 .ts/.tsx，绝不该有对应 .js
+# （正常的 .js 源文件请通过 !path/to/file.js 显式放行）
+apps/**/src/**/*.js
+apps/**/src/**/*.js.map
+apps/**/src/**/*.d.ts
+demo/**/src/**/*.js
+demo/**/src/**/*.js.map
+demo/**/src/**/*.d.ts
+packages/**/src/**/*.js
+packages/**/src/**/*.js.map
+# 显式放行 .d.ts 源文件（如 vite-env.d.ts）
+!apps/**/src/vite-env.d.ts
+!demo/**/src/vite-env.d.ts
+!packages/**/src/**/*.d.ts
+
 # ========================
 # 环境变量
 # ========================

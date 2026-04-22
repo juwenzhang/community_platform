@@ -1,0 +1,898 @@
+/**
+ * @luhanxin/doc-editor — 全局主题样式
+ *
+ * 消费方只需：`import '@luhanxin/doc-editor/theme.css'`
+ * 即可获得全套 ProseMirror 内容样式 + 菜单 + 保存状态 + 草稿弹窗样式。
+ *
+ * 关键设计：
+ * 1. 所有颜色走 CSS 变量（`--doc-editor-*`），默认浅色主题 + `[data-theme='dark']` 覆盖
+ * 2. 类名全部用 `.doc-editor-*` / `.editor-*` 前缀，避免冲突
+ * 3. 基于类选择器，不依赖 CSS Modules（确保 tippy Portal 元素也能命中）
+ */
+
+/* ─────────────────────────────────────────────────────────────
+   CSS 变量（设计系统 Token）
+   ───────────────────────────────────────────────────────────── */
+:root {
+  /* 颜色 */
+  --doc-editor-color-text-1: #252933;
+  --doc-editor-color-text-2: #515767;
+  --doc-editor-color-text-3: #8a919f;
+  --doc-editor-color-text-4: #a8afb8;
+  --doc-editor-color-primary: #1e80ff;
+  --doc-editor-color-primary-hover: #1a73e8;
+  --doc-editor-color-primary-bg: #e8f3ff;
+  --doc-editor-color-bg-page: #ffffff;
+  --doc-editor-color-bg-card: #ffffff;
+  --doc-editor-color-bg-hover: #f5f6f8;
+  --doc-editor-color-bg-code: #f6f8fa;
+  --doc-editor-color-border: #e4e6eb;
+  --doc-editor-color-border-strong: #d7d9dd;
+
+  /* 容器色 */
+  --doc-editor-color-container-tip-bg: #f0f9ff;
+  --doc-editor-color-container-tip-border: #a6d7ff;
+  --doc-editor-color-container-warning-bg: #fffbe6;
+  --doc-editor-color-container-warning-border: #ffe58f;
+  --doc-editor-color-container-info-bg: #f5f6f8;
+  --doc-editor-color-container-info-border: #d7d9dd;
+  --doc-editor-color-container-danger-bg: #fff1f0;
+  --doc-editor-color-container-danger-border: #ffa39e;
+
+  /* 代码块（固定深色，不跟随主题） */
+  --doc-editor-code-bg: #1e1e1e;
+  --doc-editor-code-text: #e8e8e8;
+
+  /* 圆角 */
+  --doc-editor-radius-sm: 4px;
+  --doc-editor-radius-md: 6px;
+  --doc-editor-radius-lg: 8px;
+
+  /* 状态色 */
+  --doc-editor-color-success: #52c41a;
+  --doc-editor-color-warning: #faad14;
+  --doc-editor-color-danger: #f5222d;
+}
+
+/* 暗色模式（由宿主 app 切换 data-theme 属性触发） */
+[data-theme="dark"] {
+  --doc-editor-color-text-1: #e8e8e8;
+  --doc-editor-color-text-2: #c9cdd4;
+  --doc-editor-color-text-3: #a8afb8;
+  --doc-editor-color-text-4: #7f848e;
+  --doc-editor-color-bg-page: #17181c;
+  --doc-editor-color-bg-card: #1f2024;
+  --doc-editor-color-bg-hover: #2a2c32;
+  --doc-editor-color-bg-code: #2a2c32;
+  --doc-editor-color-border: #34363d;
+  --doc-editor-color-border-strong: #44464e;
+  --doc-editor-color-primary-bg: #152a47;
+
+  --doc-editor-color-container-tip-bg: #0e2a47;
+  --doc-editor-color-container-tip-border: #1e4d80;
+  --doc-editor-color-container-warning-bg: #3a2e00;
+  --doc-editor-color-container-warning-border: #6b5300;
+  --doc-editor-color-container-info-bg: #232429;
+  --doc-editor-color-container-info-border: #3a3d45;
+  --doc-editor-color-container-danger-bg: #3a1d1a;
+  --doc-editor-color-container-danger-border: #703025;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   ProseMirror 内容区
+   ───────────────────────────────────────────────────────────── */
+.ProseMirror {
+  outline: none;
+  font-size: 16px;
+  line-height: 1.8;
+  color: var(--doc-editor-color-text-1);
+  caret-color: var(--doc-editor-color-primary);
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.ProseMirror > * + * {
+  margin-top: 0.75em;
+}
+
+.ProseMirror h1,
+.ProseMirror h2,
+.ProseMirror h3,
+.ProseMirror h4,
+.ProseMirror h5,
+.ProseMirror h6 {
+  color: var(--doc-editor-color-text-1);
+  font-weight: 600;
+  line-height: 1.3;
+  margin: 1.6em 0 0.6em;
+}
+.ProseMirror h1 {
+  font-size: 2rem;
+}
+.ProseMirror h2 {
+  font-size: 1.5rem;
+  border-bottom: 1px solid var(--doc-editor-color-border);
+  padding-bottom: 0.3em;
+}
+.ProseMirror h3 {
+  font-size: 1.25rem;
+}
+.ProseMirror h4 {
+  font-size: 1.05rem;
+}
+.ProseMirror h5,
+.ProseMirror h6 {
+  font-size: 1rem;
+}
+
+.ProseMirror p {
+  margin: 0.6em 0;
+  text-indent: 0; /* 修掉浏览器 / 用户样式引入的首行缩进 */
+}
+
+.ProseMirror ul,
+.ProseMirror ol {
+  padding: 0 1rem;
+  margin: 0.5em 0;
+}
+.ProseMirror ul {
+  list-style: disc;
+}
+.ProseMirror ol {
+  list-style: decimal;
+}
+.ProseMirror li > p {
+  margin: 0.25em 0;
+}
+.ProseMirror ul ul,
+.ProseMirror ol ol,
+.ProseMirror ul ol,
+.ProseMirror ol ul {
+  margin: 0.2em 0;
+}
+
+.ProseMirror blockquote {
+  margin: 0.8em 0;
+  padding: 0.3em 1em;
+  border-left: 3px solid var(--doc-editor-color-primary);
+  color: var(--doc-editor-color-text-3);
+  background: var(--doc-editor-color-bg-hover);
+  border-radius: 0 var(--doc-editor-radius-sm) var(--doc-editor-radius-sm) 0;
+}
+
+.ProseMirror hr {
+  border: none;
+  border-top: 1px solid var(--doc-editor-color-border);
+  margin: 2em 0;
+}
+
+.ProseMirror a {
+  color: var(--doc-editor-color-primary);
+  text-decoration: none;
+}
+.ProseMirror a:hover {
+  text-decoration: underline;
+}
+
+.ProseMirror strong {
+  font-weight: 600;
+}
+.ProseMirror em {
+  font-style: italic;
+}
+.ProseMirror s {
+  text-decoration: line-through;
+  color: var(--doc-editor-color-text-3);
+}
+
+.ProseMirror code {
+  background: var(--doc-editor-color-bg-code);
+  padding: 0.15em 0.4em;
+  border-radius: 4px;
+  font-family: "SF Mono", Monaco, Menlo, Consolas, monospace;
+  font-size: 0.88em;
+  color: #d63384;
+}
+[data-theme="dark"] .ProseMirror code {
+  color: #ff7eb6;
+}
+
+/* 代码块（lowlight 高亮容器）*/
+.ProseMirror pre,
+.ProseMirror pre.code-block {
+  background: var(--doc-editor-code-bg);
+  color: var(--doc-editor-code-text);
+  padding: 14px 18px;
+  border-radius: var(--doc-editor-radius-md);
+  margin: 0.8em 0;
+  overflow-x: auto;
+  font-family: "SF Mono", Monaco, Menlo, Consolas, monospace;
+  font-size: 13.5px;
+  line-height: 1.6;
+}
+.ProseMirror pre code {
+  background: transparent;
+  color: inherit;
+  padding: 0;
+  font-size: inherit;
+  display: block;
+}
+
+/* 图片 */
+.ProseMirror img,
+.ProseMirror .editor-image {
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--doc-editor-radius-sm);
+  display: block;
+  margin: 0.6em auto;
+}
+.ProseMirror img[src^="pending:"] {
+  min-height: 100px;
+  min-width: 200px;
+  opacity: 0.6;
+  background: repeating-linear-gradient(
+    45deg,
+    var(--doc-editor-color-bg-hover),
+    var(--doc-editor-color-bg-hover) 10px,
+    var(--doc-editor-color-border) 10px,
+    var(--doc-editor-color-border) 20px
+  );
+  border: 1px dashed var(--doc-editor-color-text-4);
+}
+
+/* 表格 */
+.ProseMirror table,
+.ProseMirror table.editor-table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 0.8em 0;
+  table-layout: fixed;
+  overflow: hidden;
+}
+.ProseMirror table th,
+.ProseMirror table td {
+  border: 1px solid var(--doc-editor-color-border);
+  padding: 8px 12px;
+  text-align: left;
+  vertical-align: top;
+  position: relative;
+}
+.ProseMirror table th {
+  background: var(--doc-editor-color-bg-hover);
+  font-weight: 600;
+}
+.ProseMirror table .selectedCell::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(30, 128, 255, 0.15);
+  pointer-events: none;
+}
+.ProseMirror .tableWrapper {
+  overflow-x: auto;
+}
+
+/* 任务列表 */
+.ProseMirror ul.editor-task-list,
+.ProseMirror ul[data-type="taskList"] {
+  list-style: none;
+  padding: 0;
+}
+.ProseMirror li.editor-task-item,
+.ProseMirror li[data-type="taskItem"] {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5em;
+}
+.ProseMirror li.editor-task-item > label,
+.ProseMirror li[data-type="taskItem"] > label {
+  flex-shrink: 0;
+  margin-top: 0.5em;
+  user-select: none;
+}
+.ProseMirror li.editor-task-item > div,
+.ProseMirror li[data-type="taskItem"] > div {
+  flex: 1 1 auto;
+}
+.ProseMirror li[data-checked="true"] > div p {
+  text-decoration: line-through;
+  color: var(--doc-editor-color-text-3);
+}
+
+/* 容器块 tip/warning/info/danger */
+.ProseMirror .editor-container {
+  border: 1px solid var(--doc-editor-color-border);
+  border-left-width: 3px;
+  border-radius: var(--doc-editor-radius-sm);
+  padding: 10px 16px;
+  margin: 0.8em 0;
+}
+.ProseMirror .editor-container[data-type="tip"] {
+  background: var(--doc-editor-color-container-tip-bg);
+  border-color: var(--doc-editor-color-container-tip-border);
+}
+.ProseMirror .editor-container[data-type="warning"] {
+  background: var(--doc-editor-color-container-warning-bg);
+  border-color: var(--doc-editor-color-container-warning-border);
+}
+.ProseMirror .editor-container[data-type="info"] {
+  background: var(--doc-editor-color-container-info-bg);
+  border-color: var(--doc-editor-color-container-info-border);
+}
+.ProseMirror .editor-container[data-type="danger"] {
+  background: var(--doc-editor-color-container-danger-bg);
+  border-color: var(--doc-editor-color-container-danger-border);
+}
+
+/* Mermaid / 数学块占位 */
+.ProseMirror .editor-mermaid,
+.ProseMirror .editor-block-math {
+  display: block;
+  padding: 12px 14px;
+  margin: 0.8em 0;
+  background: var(--doc-editor-color-bg-hover);
+  border: 1px solid var(--doc-editor-color-border);
+  border-radius: var(--doc-editor-radius-sm);
+  font-family: "SF Mono", Monaco, Menlo, Consolas, monospace;
+  font-size: 13px;
+  color: var(--doc-editor-color-text-2);
+  white-space: pre;
+  cursor: pointer;
+  overflow-x: auto;
+}
+.ProseMirror .editor-inline-math {
+  padding: 1px 6px;
+  background: var(--doc-editor-color-bg-hover);
+  border: 1px solid var(--doc-editor-color-border);
+  border-radius: 4px;
+  font-family: "SF Mono", Monaco, Menlo, Consolas, monospace;
+  font-size: 0.9em;
+}
+
+/* Placeholder */
+.ProseMirror p.is-editor-empty:first-child::before,
+.ProseMirror p.is-empty::before {
+  content: attr(data-placeholder);
+  color: var(--doc-editor-color-text-4);
+  float: left;
+  pointer-events: none;
+  height: 0;
+}
+
+/* 选区高亮 */
+.ProseMirror ::selection {
+  background: rgba(30, 128, 255, 0.2);
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Slash 命令面板（tippy Portal 到 body）
+   ───────────────────────────────────────────────────────────── */
+.tippy-box[data-theme~="doc-editor"],
+.tippy-box {
+  background: transparent;
+  box-shadow: none;
+}
+.tippy-box > .tippy-content {
+  padding: 0;
+}
+
+.doc-editor-slash-menu {
+  min-width: 280px;
+  max-height: 380px;
+  overflow-y: auto;
+  padding: 6px 0;
+  background: var(--doc-editor-color-bg-card);
+  border: 1px solid var(--doc-editor-color-border);
+  border-radius: var(--doc-editor-radius-lg);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  font-size: 13px;
+  color: var(--doc-editor-color-text-1);
+}
+.doc-editor-slash-menu--empty {
+  padding: 20px 16px;
+  text-align: center;
+  color: var(--doc-editor-color-text-3);
+}
+.doc-editor-slash-menu__group {
+  padding: 4px 0;
+}
+.doc-editor-slash-menu__group + .doc-editor-slash-menu__group {
+  border-top: 1px solid var(--doc-editor-color-border);
+  margin-top: 4px;
+}
+.doc-editor-slash-menu__group-label {
+  padding: 6px 14px 4px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--doc-editor-color-text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.doc-editor-slash-menu__item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 8px 14px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  color: var(--doc-editor-color-text-1);
+  font-size: 13px;
+  font-family: inherit;
+  transition: background 0.1s;
+}
+.doc-editor-slash-menu__item:hover,
+.doc-editor-slash-menu__item--selected {
+  background: var(--doc-editor-color-bg-hover);
+}
+.doc-editor-slash-menu__icon {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--doc-editor-color-bg-hover);
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--doc-editor-color-text-2);
+}
+.doc-editor-slash-menu__item--selected .doc-editor-slash-menu__icon {
+  background: var(--doc-editor-color-primary);
+  color: #fff;
+}
+.doc-editor-slash-menu__content {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: 2px;
+}
+.doc-editor-slash-menu__title {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--doc-editor-color-text-1);
+  line-height: 1.4;
+}
+.doc-editor-slash-menu__description {
+  font-size: 11.5px;
+  color: var(--doc-editor-color-text-3);
+  line-height: 1.3;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Bubble Menu（选中文本浮层）
+   ───────────────────────────────────────────────────────────── */
+.doc-editor-bubble-menu {
+  display: flex;
+  gap: 2px;
+  padding: 4px;
+  background: #252933;
+  border-radius: var(--doc-editor-radius-md);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+.doc-editor-bubble-menu__item {
+  min-width: 30px;
+  height: 28px;
+  padding: 0 8px;
+  background: transparent;
+  border: none;
+  border-radius: var(--doc-editor-radius-sm);
+  color: #d7d9dd;
+  cursor: pointer;
+  font-size: 13px;
+  font-family: inherit;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.1s;
+}
+.doc-editor-bubble-menu__item:hover {
+  background: #3a3f4a;
+  color: #fff;
+}
+.doc-editor-bubble-menu__item--active {
+  background: var(--doc-editor-color-primary);
+  color: #fff;
+}
+.doc-editor-bubble-menu__item code {
+  background: transparent;
+  color: inherit;
+  padding: 0;
+  font-size: 12px;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Floating Menu（空行浮层）
+   ───────────────────────────────────────────────────────────── */
+.doc-editor-floating-menu {
+  display: flex;
+  gap: 2px;
+  padding: 4px;
+  background: var(--doc-editor-color-bg-card);
+  border: 1px solid var(--doc-editor-color-border);
+  border-radius: var(--doc-editor-radius-md);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  margin-left: -8px;
+}
+.doc-editor-floating-menu__item {
+  min-width: 32px;
+  height: 28px;
+  padding: 0 10px;
+  background: transparent;
+  border: none;
+  border-radius: var(--doc-editor-radius-sm);
+  color: var(--doc-editor-color-text-2);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  font-family: inherit;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.1s;
+}
+.doc-editor-floating-menu__item:hover {
+  background: var(--doc-editor-color-primary-bg);
+  color: var(--doc-editor-color-primary);
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Block Handle（块 hover 手柄）
+   ───────────────────────────────────────────────────────────── */
+.doc-editor-block-handle {
+  z-index: 10;
+}
+.doc-editor-block-handle__button {
+  width: 20px;
+  height: 20px;
+  background: transparent;
+  border: none;
+  border-radius: var(--doc-editor-radius-sm);
+  color: var(--doc-editor-color-text-4);
+  cursor: grab;
+  font-size: 12px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.6;
+  transition: all 0.15s;
+}
+.doc-editor-block-handle__button:hover {
+  background: var(--doc-editor-color-bg-hover);
+  color: var(--doc-editor-color-text-1);
+  opacity: 1;
+}
+.doc-editor-block-handle__menu {
+  position: absolute;
+  top: 26px;
+  left: 0;
+  min-width: 130px;
+  background: var(--doc-editor-color-bg-card);
+  border: 1px solid var(--doc-editor-color-border);
+  border-radius: var(--doc-editor-radius-md);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  padding: 4px 0;
+  z-index: 20;
+}
+.doc-editor-block-handle__menu button {
+  display: block;
+  width: 100%;
+  padding: 6px 14px;
+  background: transparent;
+  border: none;
+  text-align: left;
+  font-size: 13px;
+  color: var(--doc-editor-color-text-1);
+  cursor: pointer;
+  font-family: inherit;
+}
+.doc-editor-block-handle__menu button:hover {
+  background: var(--doc-editor-color-bg-hover);
+}
+.doc-editor-block-handle__menu-danger {
+  color: var(--doc-editor-color-danger);
+}
+.doc-editor-block-handle__menu-danger:hover {
+  background: rgba(245, 34, 45, 0.08);
+}
+
+/* ─────────────────────────────────────────────────────────────
+   保存状态指示器
+   ───────────────────────────────────────────────────────────── */
+.doc-editor-save-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--doc-editor-color-text-3);
+  padding: 4px 10px;
+  border-radius: var(--doc-editor-radius-sm);
+  background: var(--doc-editor-color-bg-card);
+  border: 1px solid var(--doc-editor-color-border);
+}
+.doc-editor-save-status__text::before {
+  content: "";
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin-right: 6px;
+  border-radius: 50%;
+  background: var(--doc-editor-color-text-4);
+  vertical-align: middle;
+}
+.doc-editor-save-status--saving .doc-editor-save-status__text::before {
+  background: var(--doc-editor-color-warning);
+  animation: doc-editor-pulse 1s infinite;
+}
+.doc-editor-save-status--success .doc-editor-save-status__text::before {
+  background: var(--doc-editor-color-success);
+}
+.doc-editor-save-status--error {
+  color: var(--doc-editor-color-danger);
+  background: rgba(245, 34, 45, 0.08);
+  border-color: rgba(245, 34, 45, 0.3);
+}
+.doc-editor-save-status--error .doc-editor-save-status__text::before {
+  background: var(--doc-editor-color-danger);
+}
+.doc-editor-save-status--offline {
+  color: #d48806;
+  background: rgba(250, 173, 20, 0.1);
+  border-color: rgba(250, 173, 20, 0.4);
+}
+.doc-editor-save-status--offline .doc-editor-save-status__text::before {
+  background: var(--doc-editor-color-warning);
+}
+.doc-editor-save-status__retry {
+  padding: 2px 8px;
+  background: transparent;
+  border: 1px solid currentColor;
+  border-radius: 3px;
+  color: inherit;
+  font-size: 11px;
+  cursor: pointer;
+  font-family: inherit;
+}
+.doc-editor-save-status__retry:hover {
+  background: currentColor;
+  color: var(--doc-editor-color-bg-card);
+}
+@keyframes doc-editor-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.3;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────
+   草稿恢复弹窗
+   ───────────────────────────────────────────────────────────── */
+.doc-editor-draft-prompt {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.doc-editor-draft-prompt__overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(2px);
+}
+.doc-editor-draft-prompt__content {
+  position: relative;
+  background: var(--doc-editor-color-bg-card);
+  color: var(--doc-editor-color-text-1);
+  padding: 24px;
+  border-radius: var(--doc-editor-radius-lg);
+  max-width: 440px;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.24);
+  border: 1px solid var(--doc-editor-color-border);
+}
+.doc-editor-draft-prompt__title {
+  margin: 0 0 8px;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--doc-editor-color-text-1);
+}
+.doc-editor-draft-prompt__description {
+  margin: 0 0 20px;
+  color: var(--doc-editor-color-text-2);
+  font-size: 13px;
+  line-height: 1.6;
+}
+.doc-editor-draft-prompt__actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+.doc-editor-draft-prompt__button {
+  padding: 6px 16px;
+  border: 1px solid var(--doc-editor-color-border-strong);
+  background: var(--doc-editor-color-bg-card);
+  border-radius: var(--doc-editor-radius-sm);
+  font-size: 13px;
+  font-family: inherit;
+  cursor: pointer;
+  color: var(--doc-editor-color-text-1);
+}
+.doc-editor-draft-prompt__button:hover {
+  background: var(--doc-editor-color-bg-hover);
+}
+.doc-editor-draft-prompt__button--primary {
+  background: var(--doc-editor-color-primary);
+  color: #fff;
+  border-color: var(--doc-editor-color-primary);
+}
+.doc-editor-draft-prompt__button--primary:hover {
+  background: var(--doc-editor-color-primary-hover);
+}
+
+/* ─────────────────────────────────────────────────────────────
+   EditorToc 大纲侧边栏
+   ───────────────────────────────────────────────────────────── */
+.doc-editor-toc {
+  font-size: 13px;
+  color: var(--doc-editor-color-text-2);
+}
+.doc-editor-toc__title {
+  padding: 0 12px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--doc-editor-color-text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border-bottom: 1px solid var(--doc-editor-color-border);
+  margin-bottom: 8px;
+}
+.doc-editor-toc__empty {
+  padding: 16px 12px;
+  color: var(--doc-editor-color-text-4);
+  font-size: 12px;
+}
+.doc-editor-toc__list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.doc-editor-toc__item {
+  border-left: 2px solid transparent;
+  transition:
+    border-color 0.15s,
+    background 0.15s;
+}
+.doc-editor-toc__item--level-1 {
+  padding-left: 0;
+}
+.doc-editor-toc__item--level-2 {
+  padding-left: 14px;
+}
+.doc-editor-toc__item--level-3 {
+  padding-left: 28px;
+}
+.doc-editor-toc__item--active {
+  border-left-color: var(--doc-editor-color-primary);
+  background: var(--doc-editor-color-primary-bg);
+}
+.doc-editor-toc__item--active .doc-editor-toc__link {
+  color: var(--doc-editor-color-primary);
+  font-weight: 500;
+}
+.doc-editor-toc__link {
+  display: block;
+  width: 100%;
+  padding: 5px 12px;
+  background: transparent;
+  border: none;
+  text-align: left;
+  color: inherit;
+  font-size: inherit;
+  font-family: inherit;
+  cursor: pointer;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  line-height: 1.5;
+}
+.doc-editor-toc__link:hover {
+  color: var(--doc-editor-color-primary);
+}
+
+/* ─────────────────────────────────────────────────────────────
+   DocEditor 容器根类
+   ───────────────────────────────────────────────────────────── */
+.doc-editor {
+  position: relative;
+}
+.doc-editor__body {
+  position: relative;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   highlight.js GitHub Dark 配色（内联，免外部引入）
+   作用于 .ProseMirror pre code.hljs 及其子节点
+   ───────────────────────────────────────────────────────────── */
+.ProseMirror pre .hljs-doctag,
+.ProseMirror pre .hljs-keyword,
+.ProseMirror pre .hljs-meta .hljs-keyword,
+.ProseMirror pre .hljs-template-tag,
+.ProseMirror pre .hljs-template-variable,
+.ProseMirror pre .hljs-type,
+.ProseMirror pre .hljs-variable.language_ {
+  color: #ff7b72;
+}
+.ProseMirror pre .hljs-title,
+.ProseMirror pre .hljs-title.class_,
+.ProseMirror pre .hljs-title.class_.inherited__,
+.ProseMirror pre .hljs-title.function_ {
+  color: #d2a8ff;
+}
+.ProseMirror pre .hljs-attr,
+.ProseMirror pre .hljs-attribute,
+.ProseMirror pre .hljs-literal,
+.ProseMirror pre .hljs-meta,
+.ProseMirror pre .hljs-number,
+.ProseMirror pre .hljs-operator,
+.ProseMirror pre .hljs-variable,
+.ProseMirror pre .hljs-selector-attr,
+.ProseMirror pre .hljs-selector-class,
+.ProseMirror pre .hljs-selector-id {
+  color: #79c0ff;
+}
+.ProseMirror pre .hljs-regexp,
+.ProseMirror pre .hljs-string,
+.ProseMirror pre .hljs-meta .hljs-string {
+  color: #a5d6ff;
+}
+.ProseMirror pre .hljs-built_in,
+.ProseMirror pre .hljs-symbol {
+  color: #ffa657;
+}
+.ProseMirror pre .hljs-comment,
+.ProseMirror pre .hljs-code,
+.ProseMirror pre .hljs-formula {
+  color: #8b949e;
+  font-style: italic;
+}
+.ProseMirror pre .hljs-name,
+.ProseMirror pre .hljs-quote,
+.ProseMirror pre .hljs-selector-tag,
+.ProseMirror pre .hljs-selector-pseudo {
+  color: #7ee787;
+}
+.ProseMirror pre .hljs-subst {
+  color: #c9d1d9;
+}
+.ProseMirror pre .hljs-section {
+  color: #1f6feb;
+  font-weight: 700;
+}
+.ProseMirror pre .hljs-bullet {
+  color: #f2cc60;
+}
+.ProseMirror pre .hljs-emphasis {
+  color: #c9d1d9;
+  font-style: italic;
+}
+.ProseMirror pre .hljs-strong {
+  color: #c9d1d9;
+  font-weight: 700;
+}
+.ProseMirror pre .hljs-addition {
+  color: #aff5b4;
+  background-color: #033a16;
+}
+.ProseMirror pre .hljs-deletion {
+  color: #ffdcd7;
+  background-color: #67060c;
+}

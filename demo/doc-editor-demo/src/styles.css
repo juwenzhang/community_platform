@@ -1,0 +1,683 @@
+/* Reset */
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", sans-serif;
+  background: #f5f6f8;
+  color: #252933;
+}
+
+/* Layout */
+.app {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 24px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  min-height: 100vh;
+}
+
+.app-header {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #e4e6eb;
+}
+
+.app-title {
+  font-size: 20px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.app-subtitle {
+  font-size: 13px;
+  color: #8a919f;
+  margin: 4px 0 0;
+}
+
+.toolbar {
+  display: flex;
+  gap: 8px;
+}
+
+.btn {
+  padding: 6px 14px;
+  border: 1px solid #d7d9dd;
+  background: #fff;
+  border-radius: 6px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn:hover {
+  background: #f5f6f8;
+}
+
+.btn-primary {
+  background: #1e80ff;
+  color: white;
+  border-color: #1e80ff;
+}
+
+.btn-primary:hover {
+  background: #1a73e8;
+}
+
+/* Panel */
+.panel {
+  background: #fff;
+  border-radius: 8px;
+  border: 1px solid #e4e6eb;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  min-height: 600px;
+}
+
+.panel-header {
+  padding: 12px 16px;
+  background: #fafbfc;
+  border-bottom: 1px solid #e4e6eb;
+  font-size: 13px;
+  font-weight: 600;
+  color: #515767;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.panel-body {
+  flex: 1;
+  padding: 16px;
+  overflow: auto;
+}
+
+/* Editor (ProseMirror) */
+.ProseMirror {
+  min-height: 500px;
+  outline: none;
+  font-size: 15px;
+  line-height: 1.7;
+}
+
+.ProseMirror h1 {
+  font-size: 1.875rem;
+  margin: 1.2em 0 0.6em;
+  font-weight: 700;
+}
+.ProseMirror h2 {
+  font-size: 1.5rem;
+  margin: 1em 0 0.5em;
+  font-weight: 600;
+}
+.ProseMirror h3 {
+  font-size: 1.25rem;
+  margin: 0.8em 0 0.4em;
+  font-weight: 600;
+}
+.ProseMirror p {
+  margin: 0.6em 0;
+}
+.ProseMirror ul,
+.ProseMirror ol {
+  padding-left: 1.5em;
+}
+.ProseMirror blockquote {
+  margin: 0.6em 0;
+  padding: 0.2em 1em;
+  border-left: 3px solid #d7d9dd;
+  color: #515767;
+}
+.ProseMirror hr {
+  border: none;
+  border-top: 1px solid #e4e6eb;
+  margin: 1.5em 0;
+}
+.ProseMirror code {
+  background: #f5f6f8;
+  padding: 0.1em 0.3em;
+  border-radius: 4px;
+  font-family: "SF Mono", Consolas, monospace;
+  font-size: 0.9em;
+}
+.ProseMirror pre.code-block {
+  background: #1e1e1e;
+  color: #e8e8e8;
+  padding: 14px 16px;
+  border-radius: 6px;
+  overflow-x: auto;
+  margin: 0.6em 0;
+}
+.ProseMirror pre.code-block code {
+  background: transparent;
+  padding: 0;
+  color: inherit;
+  font-size: 13px;
+}
+.ProseMirror a {
+  color: #1e80ff;
+  text-decoration: none;
+}
+.ProseMirror a:hover {
+  text-decoration: underline;
+}
+
+/* Table */
+.ProseMirror table.editor-table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 0.6em 0;
+}
+.ProseMirror table.editor-table th,
+.ProseMirror table.editor-table td {
+  border: 1px solid #d7d9dd;
+  padding: 6px 10px;
+  text-align: left;
+}
+.ProseMirror table.editor-table th {
+  background: #fafbfc;
+  font-weight: 600;
+}
+
+/* Task list */
+.ProseMirror ul.editor-task-list {
+  list-style: none;
+  padding-left: 0.2em;
+}
+.ProseMirror li.editor-task-item {
+  display: flex;
+  gap: 0.4em;
+  align-items: flex-start;
+}
+.ProseMirror li.editor-task-item > label {
+  margin-top: 0.4em;
+}
+.ProseMirror li.editor-task-item > div {
+  flex: 1;
+}
+
+/* Placeholder */
+.ProseMirror p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  color: #a8afb8;
+  float: left;
+  pointer-events: none;
+  height: 0;
+}
+
+/* Markdown preview panel */
+.markdown-output {
+  font-family: "SF Mono", Consolas, monospace;
+  font-size: 12.5px;
+  white-space: pre-wrap;
+  color: #515767;
+  line-height: 1.6;
+}
+
+/* Status bar */
+.status-bar {
+  grid-column: 1 / -1;
+  display: flex;
+  gap: 16px;
+  padding: 12px 16px;
+  background: #fff;
+  border-radius: 6px;
+  font-size: 12.5px;
+  color: #8a919f;
+  border: 1px solid #e4e6eb;
+}
+
+.status-bar strong {
+  color: #252933;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Phase 3：Slash 命令面板 / Bubble / Floating / BlockHandle
+   ───────────────────────────────────────────────────────────── */
+
+/* tippy 透明包裹（让我们的自定义面板完全控制样式） */
+.tippy-box {
+  background: transparent;
+  box-shadow: none;
+}
+.tippy-box > .tippy-content {
+  padding: 0;
+}
+
+/* Slash 菜单 */
+.doc-editor-slash-menu {
+  min-width: 260px;
+  max-height: 360px;
+  overflow-y: auto;
+  padding: 6px 0;
+  background: #fff;
+  border: 1px solid #e4e6eb;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  font-size: 13px;
+}
+.doc-editor-slash-menu--empty {
+  padding: 24px 16px;
+  text-align: center;
+  color: #8a919f;
+}
+.doc-editor-slash-menu__group {
+  padding: 4px 0;
+}
+.doc-editor-slash-menu__group + .doc-editor-slash-menu__group {
+  border-top: 1px solid #f0f1f4;
+}
+.doc-editor-slash-menu__group-label {
+  padding: 6px 14px 4px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #8a919f;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.doc-editor-slash-menu__item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 8px 14px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  color: #252933;
+  transition: background 0.1s;
+}
+.doc-editor-slash-menu__item:hover,
+.doc-editor-slash-menu__item--selected {
+  background: #f0f4ff;
+}
+.doc-editor-slash-menu__icon {
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #f5f6f8;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #515767;
+  flex-shrink: 0;
+}
+.doc-editor-slash-menu__item--selected .doc-editor-slash-menu__icon {
+  background: #1e80ff;
+  color: #fff;
+}
+.doc-editor-slash-menu__content {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.doc-editor-slash-menu__title {
+  font-size: 13px;
+  font-weight: 500;
+  color: #252933;
+  line-height: 1.4;
+}
+.doc-editor-slash-menu__description {
+  font-size: 11.5px;
+  color: #8a919f;
+  line-height: 1.3;
+  margin-top: 1px;
+}
+
+/* Bubble Menu */
+.doc-editor-bubble-menu {
+  display: flex;
+  gap: 2px;
+  padding: 4px;
+  background: #252933;
+  border-radius: 6px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+.doc-editor-bubble-menu__item {
+  min-width: 28px;
+  height: 28px;
+  padding: 0 6px;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  color: #d7d9dd;
+  cursor: pointer;
+  font-size: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.1s;
+}
+.doc-editor-bubble-menu__item:hover {
+  background: #3a3f4a;
+  color: #fff;
+}
+.doc-editor-bubble-menu__item--active {
+  background: #1e80ff;
+  color: #fff;
+}
+.doc-editor-bubble-menu__item code {
+  background: transparent;
+  color: inherit;
+  font-size: 12px;
+}
+
+/* Floating Menu */
+.doc-editor-floating-menu {
+  display: flex;
+  gap: 2px;
+  padding: 4px;
+  background: #fff;
+  border: 1px solid #e4e6eb;
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  margin-left: -8px;
+}
+.doc-editor-floating-menu__item {
+  min-width: 32px;
+  height: 28px;
+  padding: 0 8px;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  color: #515767;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.1s;
+}
+.doc-editor-floating-menu__item:hover {
+  background: #f0f4ff;
+  color: #1e80ff;
+}
+
+/* Block Handle */
+.doc-editor-block-handle {
+  z-index: 10;
+}
+.doc-editor-block-handle__button {
+  width: 20px;
+  height: 20px;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  color: #a8afb8;
+  cursor: pointer;
+  font-size: 12px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+  opacity: 0.7;
+}
+.doc-editor-block-handle__button:hover {
+  background: #f0f1f4;
+  color: #252933;
+  opacity: 1;
+}
+.doc-editor-block-handle__menu {
+  position: absolute;
+  top: 24px;
+  left: 0;
+  min-width: 120px;
+  background: #fff;
+  border: 1px solid #e4e6eb;
+  border-radius: 6px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  padding: 4px 0;
+  z-index: 20;
+}
+.doc-editor-block-handle__menu button {
+  display: block;
+  width: 100%;
+  padding: 6px 14px;
+  background: transparent;
+  border: none;
+  text-align: left;
+  font-size: 13px;
+  color: #252933;
+  cursor: pointer;
+}
+.doc-editor-block-handle__menu button:hover {
+  background: #f5f6f8;
+}
+.doc-editor-block-handle__menu-danger {
+  color: #f5222d;
+}
+.doc-editor-block-handle__menu-danger:hover {
+  background: #fff1f0;
+}
+
+/* 自定义节点 (container / mermaid / math) 默认样式 */
+.ProseMirror .editor-container {
+  border: 1px solid #e4e6eb;
+  border-radius: 6px;
+  padding: 10px 14px;
+  margin: 0.6em 0;
+  position: relative;
+}
+.ProseMirror .editor-container[data-type="tip"] {
+  background: #f0f9ff;
+  border-color: #a6d7ff;
+}
+.ProseMirror .editor-container[data-type="warning"] {
+  background: #fffbe6;
+  border-color: #ffe58f;
+}
+.ProseMirror .editor-container[data-type="info"] {
+  background: #f5f6f8;
+  border-color: #d7d9dd;
+}
+.ProseMirror .editor-container[data-type="danger"] {
+  background: #fff1f0;
+  border-color: #ffa39e;
+}
+
+.ProseMirror .editor-mermaid,
+.ProseMirror .editor-block-math {
+  display: block;
+  padding: 10px 14px;
+  margin: 0.6em 0;
+  background: #fafbfc;
+  border: 1px solid #e4e6eb;
+  border-radius: 6px;
+  font-family: "SF Mono", Consolas, monospace;
+  font-size: 13px;
+  color: #515767;
+  white-space: pre;
+  cursor: pointer;
+}
+.ProseMirror .editor-inline-math {
+  padding: 1px 5px;
+  background: #fafbfc;
+  border: 1px solid #e4e6eb;
+  border-radius: 4px;
+  font-family: "SF Mono", Consolas, monospace;
+  font-size: 0.9em;
+}
+
+/* 上传中占位图 */
+.ProseMirror img[src^="pending:"] {
+  opacity: 0.5;
+  filter: grayscale(0.5);
+  min-height: 100px;
+  min-width: 200px;
+  background: repeating-linear-gradient(45deg, #f5f6f8, #f5f6f8 10px, #e4e6eb 10px, #e4e6eb 20px);
+  border: 1px dashed #a8afb8;
+  border-radius: 4px;
+}
+.ProseMirror img[src^="pending:"]::after {
+  content: "上传中…";
+  display: block;
+  text-align: center;
+  color: #8a919f;
+  font-size: 12px;
+}
+
+/* Toast 提示 */
+.toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  padding: 10px 16px;
+  background: #252933;
+  color: #fff;
+  border-radius: 6px;
+  font-size: 13px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  z-index: 100;
+  animation: toastIn 0.2s ease-out;
+}
+@keyframes toastIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Phase 4：保存状态指示 / 草稿恢复弹窗
+   ───────────────────────────────────────────────────────────── */
+
+.doc-editor-save-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: normal;
+  color: #8a919f;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+.doc-editor-save-status__text::before {
+  content: "";
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin-right: 6px;
+  border-radius: 50%;
+  background: #a8afb8;
+  vertical-align: middle;
+}
+.doc-editor-save-status--saving .doc-editor-save-status__text::before {
+  background: #faad14;
+  animation: pulse 1s infinite;
+}
+.doc-editor-save-status--success .doc-editor-save-status__text::before {
+  background: #52c41a;
+}
+.doc-editor-save-status--error {
+  color: #f5222d;
+  background: #fff1f0;
+}
+.doc-editor-save-status--error .doc-editor-save-status__text::before {
+  background: #f5222d;
+}
+.doc-editor-save-status--offline {
+  color: #d48806;
+  background: #fffbe6;
+}
+.doc-editor-save-status--offline .doc-editor-save-status__text::before {
+  background: #faad14;
+}
+.doc-editor-save-status__retry {
+  padding: 2px 8px;
+  background: transparent;
+  border: 1px solid currentColor;
+  border-radius: 3px;
+  color: inherit;
+  font-size: 11px;
+  cursor: pointer;
+}
+.doc-editor-save-status__retry:hover {
+  background: currentColor;
+  color: #fff;
+}
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.3;
+  }
+}
+
+/* 草稿恢复弹窗 */
+.doc-editor-draft-prompt {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.doc-editor-draft-prompt__overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(2px);
+}
+.doc-editor-draft-prompt__content {
+  position: relative;
+  background: #fff;
+  padding: 24px;
+  border-radius: 8px;
+  max-width: 420px;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.2);
+}
+.doc-editor-draft-prompt__title {
+  margin: 0 0 8px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #252933;
+}
+.doc-editor-draft-prompt__description {
+  margin: 0 0 20px;
+  color: #515767;
+  font-size: 13px;
+  line-height: 1.6;
+}
+.doc-editor-draft-prompt__actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+.doc-editor-draft-prompt__button {
+  padding: 6px 16px;
+  border: 1px solid #d7d9dd;
+  background: #fff;
+  border-radius: 4px;
+  font-size: 13px;
+  cursor: pointer;
+  color: #252933;
+}
+.doc-editor-draft-prompt__button:hover {
+  background: #f5f6f8;
+}
+.doc-editor-draft-prompt__button--primary {
+  background: #1e80ff;
+  color: #fff;
+  border-color: #1e80ff;
+}
+.doc-editor-draft-prompt__button--primary:hover {
+  background: #1a73e8;
+}
