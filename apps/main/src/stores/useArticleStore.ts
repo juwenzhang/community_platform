@@ -126,7 +126,8 @@ export const useArticleStore = create<ArticleState>((set, get) => ({
     await articleClient.updateArticle({
       articleId: id,
       title: data.title ?? '',
-      content: data.content ?? '',
+      // content 现在是 Option<string>：undefined = 不更新；'' = 清空
+      content: data.content,
       summary: data.summary ?? '',
       tags: data.tags ?? [],
       status: data.status ?? 0,

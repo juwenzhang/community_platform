@@ -14,6 +14,10 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
+  worker: {
+    // md-parser-core 通过 Web Worker 做离屏解析，多 chunk 构建需要 ES 格式
+    format: 'es',
+  },
   optimizeDeps: {
     include: ['axios', 'lodash'], // 强制预构建高频依赖，提升启动速度
     exclude: [], // 排除无需预构建的包

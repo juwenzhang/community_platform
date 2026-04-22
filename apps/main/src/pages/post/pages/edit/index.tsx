@@ -82,11 +82,13 @@ export default function EditArticlePage() {
 
   return (
     <ArticleEditor
+      articleId={id}
       initialTitle={article.title}
       initialContent={article.content}
       initialTags={article.tags}
       initialStatus={article.status}
       initialCategories={article.categories}
+      initialUpdatedAt={article.updatedAt}
       onSave={handleSave}
       onCancel={() => navigate(`/post/${id}`)}
       saving={saving}

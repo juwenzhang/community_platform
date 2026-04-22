@@ -328,11 +328,13 @@ export default function ArticleManagePage() {
       {/* 全屏编辑器（Portal） */}
       {editorOpen && (
         <ArticleEditor
+          articleId={editingArticleId}
           initialTitle={editingArticle?.title}
           initialContent={editingArticle?.content}
           initialTags={editingArticle?.tags}
           initialStatus={editingArticle?.status}
           initialCategories={editingArticle?.categories}
+          initialUpdatedAt={editingArticle?.updatedAt}
           onSave={handleSave}
           onCancel={() => {
             setEditorOpen(false);
