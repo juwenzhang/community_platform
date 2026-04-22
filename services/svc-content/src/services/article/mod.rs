@@ -217,16 +217,23 @@ impl ArticleService for ArticleServiceImpl {
         let req = request.into_inner();
         info!(caller_id = %caller_id, article_id = %req.article_id, "UpdateArticle");
 
+        // 转换 expected_updated_at: prost Timestamp → chrono DateTime<FixedOffset>
+        let expected_updated_at = req.expected_updated_at.and_then(|ts| {
+            chrono::DateTime::from_timestamp(ts.seconds, ts.nanos as u32)
+                .map(|dt| dt.fixed_offset())
+        });
+
         let proto_article = article::update_article(
             self.db()?,
             &caller_id,
             &req.article_id,
             &req.title,
-            &req.content,
+            req.content.as_deref(),
             &req.summary,
             &req.tags,
             req.status,
             &req.categories,
+            expected_updated_at,
         )
         .await?;
 

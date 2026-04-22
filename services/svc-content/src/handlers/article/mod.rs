@@ -248,18 +248,23 @@ pub async fn create_article(
     Ok(article_model_to_proto(model))
 }
 
-/// 更新文章（author_id 权限校验）
+/// 更新文章（author_id 权限校验 + 可选乐观锁）
+///
+/// # 参数
+/// - `content`: `None` = 不更新；`Some("")` = 清空（允许）；`Some(str)` = 更新为 str
+/// - `expected_updated_at`: `None` = 跳过乐观锁校验；`Some(ts)` = 校验 DB 中 updated_at 是否匹配
 #[allow(clippy::too_many_arguments)]
 pub async fn update_article(
     db: &DatabaseConnection,
     caller_id: &str,
     article_id: &str,
     title: &str,
-    content: &str,
+    content: Option<&str>,
     summary: &str,
     tags: &[String],
     status: i32,
     categories: &[i32],
+    expected_updated_at: Option<chrono::DateTime<chrono::FixedOffset>>,
 ) -> Result<Article, Status> {
     let uuid = parse_uuid(article_id)?;
 
@@ -276,6 +281,17 @@ pub async fn update_article(
         ));
     }
 
+    // 乐观锁校验：若 expected_updated_at 传入则严格比较
+    if let Some(expected) = expected_updated_at {
+        // 允许 1 秒误差（Timestamp 纳秒精度转换过程中可能有精度损失）
+        let diff = (existing.updated_at - expected).num_milliseconds().abs();
+        if diff > 1000 {
+            return Err(Status::failed_precondition(format!(
+                "Article has been modified since {expected}; reload and retry"
+            )));
+        }
+    }
+
     let now = chrono::Utc::now().fixed_offset();
     let mut active: articles::ActiveModel = existing.into();
 
@@ -283,8 +299,9 @@ pub async fn update_article(
     if !title.is_empty() {
         active.title = ActiveValue::Set(title.to_string());
     }
-    if !content.is_empty() {
-        active.content = ActiveValue::Set(content.to_string());
+    // content: Some(_) 一律更新（空字符串 = 清空）；None = 不更新
+    if let Some(c) = content {
+        active.content = ActiveValue::Set(c.to_string());
     }
     if !summary.is_empty() {
         active.summary = ActiveValue::Set(summary.to_string());

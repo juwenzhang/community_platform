@@ -275,9 +275,9 @@ pub struct UpdateArticleRequest {
     /// 文章标题（可选，为空不更新）
     #[prost(string, tag = "2")]
     pub title: ::prost::alloc::string::String,
-    /// 文章内容（可选，为空不更新）
-    #[prost(string, tag = "3")]
-    pub content: ::prost::alloc::string::String,
+    /// 文章内容（可选字段，使用 optional 语义区分「不更新」和「清空」）
+    #[prost(string, optional, tag = "3")]
+    pub content: ::core::option::Option<::prost::alloc::string::String>,
     /// 文章摘要（可选，为空不更新）
     #[prost(string, tag = "4")]
     pub summary: ::prost::alloc::string::String,
@@ -290,6 +290,11 @@ pub struct UpdateArticleRequest {
     /// 文章分类（可选，空数组不更新）
     #[prost(enumeration = "ArticleCategory", repeated, tag = "7")]
     pub categories: ::prost::alloc::vec::Vec<i32>,
+    /// 乐观锁：期望的服务端 updated_at
+    /// 不传（None）= 跳过乐观锁校验（向后兼容）
+    /// 传了但与 DB 不匹配 = 返回 FAILED_PRECONDITION（gRPC 等价于 HTTP 409 Conflict）
+    #[prost(message, optional, tag = "8")]
+    pub expected_updated_at: ::core::option::Option<::prost_types::Timestamp>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct UpdateArticleResponse {

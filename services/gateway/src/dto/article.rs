@@ -68,11 +68,15 @@ pub struct CreateArticleDto {
 #[derive(Deserialize, ToSchema)]
 pub struct UpdateArticleDto {
     pub title: Option<String>,
+    /// content: `None` = 不更新；`Some("")` = 清空；`Some(str)` = 更新为 str
     pub content: Option<String>,
     pub summary: Option<String>,
     pub tags: Option<Vec<String>>,
     pub status: Option<i32>,
     pub categories: Option<Vec<i32>>,
+    /// 乐观锁：期望的服务端 updated_at（RFC3339 格式，如 `2026-04-23T10:00:00Z`）
+    /// 未传 = 跳过乐观锁校验；传了但与 DB 不匹配 = 返回 412 PreconditionFailed
+    pub expected_updated_at: Option<String>,
 }
 
 /// Proto Article → ArticleDto 转换

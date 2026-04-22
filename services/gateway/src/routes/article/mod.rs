@@ -264,14 +264,26 @@ pub async fn update_article(
 
     match get_client(&state.resolver).await {
         Ok(mut client) => {
+            // 将 DTO 中可选的 RFC3339 expected_updated_at 字符串转为 prost Timestamp
+            let expected_ts = body.expected_updated_at.as_deref().and_then(|s| {
+                chrono::DateTime::parse_from_rfc3339(s).ok().map(|dt| {
+                    prost_types::Timestamp {
+                        seconds: dt.timestamp(),
+                        nanos: dt.timestamp_subsec_nanos() as i32,
+                    }
+                })
+            });
+
             let mut req = tonic::Request::new(UpdateArticleRequest {
                 article_id: id,
                 title: body.title.unwrap_or_default(),
-                content: body.content.unwrap_or_default(),
+                // content: None = 不更新；Some("") = 清空；Some(x) = 更新
+                content: body.content,
                 summary: body.summary.unwrap_or_default(),
                 tags: body.tags.unwrap_or_default(),
                 status: body.status.unwrap_or(0),
                 categories: body.categories.unwrap_or_default(),
+                expected_updated_at: expected_ts,
             });
             helpers::inject_user_id_metadata(&mut req, &user_id);
 
