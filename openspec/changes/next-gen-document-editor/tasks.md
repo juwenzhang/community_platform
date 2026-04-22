@@ -1,515 +1,391 @@
 ## 任务拆分
 
-### Phase 1: 核心编辑器骨架
-
-#### Task 1.1: 创建包基础结构
-
-**描述**: 创建 @luhanxin/editor 包基础结构
-
-**命令**:
-```bash
-mkdir -p packages/editor/src/{core,extensions,slash-command,toolbar,renderer,converters,autosave,types}
-cd packages/editor
-pnpm init
-```
-
-**文件**:
-- `packages/editor/package.json` — name: @luhanxin/editor
-- `packages/editor/tsconfig.json`
-- `packages/editor/src/index.ts`
-
-**验收标准**:
-- [ ] 包结构创建完成
-- [ ] TypeScript 配置正确
-- [ ] 导出 API 清晰
-
-**预估时长**: 1h
+> 总计 47 任务 / 6 个 Phase / 预估 ~78h（约 10 个工作日）
+> 任务粒度：每项 1-3h，可独立验收
+> 依赖标注：`(deps: T1.1, T1.2)` 表示该任务依赖之前的任务
 
 ---
 
-#### Task 1.2: 搭建 TipTap 编辑器骨架
+### Phase 1: 包基础设施（~10h）
 
-**描述**: 实现 EditorProvider 和 useEditor hook
+#### T1.1 创建包目录与 package.json
 
-**文件**:
-- `packages/editor/src/core/Editor.tsx`
-- `packages/editor/src/core/extensions.ts`
-- `packages/editor/src/core/schema.ts`
+- [x] `packages/doc-editor/package.json`：name `@luhanxin/doc-editor`、version `0.1.0`、type module
+- [x] peerDependencies：`react ^18` `react-dom ^18`
+- [x] dependencies：`@tiptap/core` `@tiptap/pm` `@tiptap/react` `@tiptap/starter-kit` `@tiptap/suggestion` `tippy.js` `idb` `lowlight` `@luhanxin/md-parser-core: workspace:*`
+- [x] devDependencies：`tsup` `typescript` `vitest` `@types/react` 等
 
-**验收标准**:
-- [ ] TipTap 编辑器渲染正常
-- [ ] EditorProvider 配置正确
-- [ ] useEditor hook 可用
+预估：1h
 
-**预估时长**: 4h
+#### T1.2 配置 tsconfig + tsup
 
----
+- [x] `tsconfig.json` extends 项目根 base
+- [x] `tsup.config.ts`：esm 输出、external `react/react-dom/@tiptap/*/@luhanxin/md-parser-core`、生成 .d.ts、source map
+- [x] `pnpm build` 通过
 
-#### Task 1.3: 实现基础块类型
+预估：1h
 
-**描述**: 实现段落、标题、代码块、引用、分隔线、列表
+#### T1.3 创建包入口与目录骨架
 
-**文件**:
-- `packages/editor/src/extensions/paragraph.ts`
-- `packages/editor/src/extensions/heading.ts`
-- `packages/editor/src/extensions/code-block/index.tsx`
-- `packages/editor/src/extensions/blockquote.ts`
-- `packages/editor/src/extensions/horizontal-rule.ts`
-- `packages/editor/src/extensions/list.ts`
+- [x] `src/index.ts` 占位
+- [x] 创建 `src/{core,blocks,slash,menu,convert,autosave,react,types}/` 全部目录
+- [x] 各目录 `index.ts` 占位
 
-**验收标准**:
-- [ ] 所有基础块类型正常工作
-- [ ] 块渲染正确
-- [ ] 快捷键正常
+预估：1h
 
-**预估时长**: 6h
+#### T1.4 实现 Editor 工厂 createEditor
 
----
+- [x] `src/core/createEditor.ts`：接收配置（content、placeholder、editable、onUpdate），返回 TipTap `Editor` 实例
+- [x] `src/core/extensions.ts`：导出默认扩展数组（暂时只有 starter-kit）
+- [x] 单测：能创建实例、能 destroy
 
-#### Task 1.4: 集成 shiki 代码高亮
+预估：2h
 
-**描述**: 复用 @luhanxin/md-parser-core 的 shiki 高亮
+#### T1.5 实现 Markdown → PM JSON 转换器
 
-**文件**:
-- `packages/editor/src/extensions/code-block/shiki-highlight.ts`
+- [x] `src/convert/markdownToJson.ts`：用 md-parser-core 的 `parseMarkdownToAst` 拿 mdast
+- [x] `src/convert/mdast-bridge.ts`：mdast 节点 → PM JSON 节点的映射表（先支持基础节点：paragraph/heading/list/blockquote/code/inlineCode/link/image/strong/em/text）
+- [x] 单测：基础 Markdown 转换正确
 
-**验收标准**:
-- [ ] 代码块高亮正常
-- [ ] 语言选择器正常
-- [ ] 复用 md-parser 的 Worker 架构
+预估：2h
 
-**预估时长**: 4h
+#### T1.6 实现 PM JSON → Markdown 转换器
 
----
+- [x] `src/convert/jsonToMarkdown.ts`：递归遍历 PM JSON，调用各节点序列化方法
+- [x] 处理基础节点（同 T1.5 范围）
+- [x] 单测：基础节点序列化正确
 
-#### Task 1.5: 实现 Slash 命令面板
+预估：2h
 
-**描述**: 实现输入 `/` 弹出块类型选择菜单
+#### T1.7 round-trip 等价性测试
 
-**文件**:
-- `packages/editor/src/slash-command/CommandPalette.tsx`
-- `packages/editor/src/slash-command/commands.ts`
+- [x] `src/convert/__tests__/round-trip.test.ts`
+- [x] 准备 5 个典型 Markdown 样本（含标题、列表、引用、代码块、链接）
+- [x] 断言 `jsonToMarkdown(markdownToJson(md))` 与 `md` 在规范化后等价
 
-**验收标准**:
-- [ ] 输入 `/` 弹出命令面板
-- [ ] 命令搜索正常
-- [ ] 插入块正常
-
-**预估时长**: 4h
+预估：1h
 
 ---
 
-#### Task 1.6: 实现 Markdown 快捷键
+### Phase 2: 块系统（~22h）
 
-**描述**: 实现自动转换 `#` → 标题、`>` → 引用等
+#### T2.1 代码块扩展（CodeBlockView）
 
-**文件**:
-- `packages/editor/src/core/markdown-shortcuts.ts`
+- [x] `src/blocks/code-block/CodeBlock.ts`：基于 `@tiptap/extension-code-block-lowlight`
+- [x] `src/blocks/code-block/CodeBlockView.tsx`：NodeView 含语言下拉、复制按钮
+- [x] lowlight 注册 20 种常用语言
+- [x] 转换器：mdast `code` ↔ PM `codeBlock`
+- [x] 单测
 
-**验收标准**:
-- [ ] `#` + 空格 → 标题
-- [ ] `>` + 空格 → 引用
-- [ ] `---` → 分隔线
-- [ ] ``` ` ``` → 代码块
+预估：3h
 
-**预估时长**: 3h
+#### T2.2 图片块扩展
 
----
+- [x] `src/blocks/image/Image.ts`：扩展 `@tiptap/extension-image`，支持 alt 编辑、对齐、resize
+- [x] `src/blocks/image/ImageView.tsx`：NodeView 含 caption 输入、resize handle
+- [x] `src/blocks/image/upload.ts`：定义 `UploadHandler` 接口（与 `AvatarUpload` 现有模式对齐：`upload(file, folder?) → { url, alt? }`）
+- [x] 转换器：mdast `image` ↔ PM `image`
 
-### Phase 2: 高级块类型
+预估：3h
 
-#### Task 2.1: 实现图片块
+#### T2.3 表格扩展集成与样式
 
-**描述**: 实现图片上传、粘贴、拖拽
+- [x] 集成 `@tiptap/extension-table` + 相关扩展（row/cell/header）
+- [x] 转换器：mdast `table` ↔ PM `table`
+- [x] 单测
 
-**文件**:
-- `packages/editor/src/extensions/image/index.tsx`
-- `packages/editor/src/extensions/image/upload.ts`
+预估：2h
 
-**验收标准**:
-- [ ] 图片上传正常
-- [ ] 图片粘贴正常
-- [ ] 图片拖拽正常
-- [ ] 图片大小调整正常
+#### T2.4 任务列表扩展集成
 
-**预估时长**: 4h
+- [x] 集成 `@tiptap/extension-task-list` + `@tiptap/extension-task-item`
+- [x] 转换器：mdast `list` (with checkbox) ↔ PM `taskList`/`taskItem`
+- [x] 单测
 
----
+预估：2h
 
-#### Task 2.2: 实现表格块
+#### T2.5 容器块扩展（tip/warning/info/danger）
 
-**描述**: 实现表格创建和编辑
+- [x] `src/blocks/container/Container.ts`：自定义 TipTap Node，attrs `{ type: 'tip'|'warning'|'info'|'danger', title?: string }`
+- [x] `src/blocks/container/ContainerView.tsx`：NodeView 含图标 + 标题输入 + 嵌套内容
+- [x] mdast 端用 `:::` 自定义语法（与 md-parser-core 的 remark-container 对齐）
+- [x] 转换器：mdast `container` ↔ PM `container`
+- [x] 单测
 
-**文件**:
-- `packages/editor/src/extensions/table/index.tsx`
+预估：4h
 
-**验收标准**:
-- [ ] 创建表格正常
-- [ ] 编辑单元格正常
-- [ ] 合并单元格正常
-- [ ] 添加/删除行列正常
+#### T2.6 Mermaid 块扩展
 
-**预估时长**: 6h
+- [x] `src/blocks/mermaid/Mermaid.ts`：自定义 Node，attrs `{ code: string }`
+- [x] `src/blocks/mermaid/MermaidView.tsx`：NodeView 含「编辑/预览」切换
+- [x] 预览使用 dynamic import mermaid（避免主包体积）
+- [x] 转换器：mdast 代码块（`lang === 'mermaid'`）↔ PM `mermaid`
+- [x] 单测
 
----
+预估：4h
 
-#### Task 2.3: 实现数学公式块
+#### T2.7 数学公式块扩展（KaTeX）
 
-**描述**: 集成 KaTeX
+- [x] `src/blocks/math/InlineMath.ts` + `BlockMath.ts`：自定义 Node
+- [x] `src/blocks/math/MathView.tsx`：KaTeX 渲染（dynamic import）
+- [x] 转换器：mdast `math`/`inlineMath` ↔ PM
+- [x] 单测
 
-**文件**:
-- `packages/editor/src/extensions/math/index.tsx`
+预估：3h
 
-**验收标准**:
-- [ ] 行内公式正常（`$...$`）
-- [ ] 块级公式正常（`$$...$$`）
-- [ ] 公式渲染正确
+#### T2.8 注册自定义块到默认扩展集合
 
-**预估时长**: 4h
+- [x] 更新 `src/core/extensions.ts`，导出含全部自定义块的默认扩展数组
+- [x] 更新 `src/core/createEditor.ts`，使用新扩展集合
+- [x] 集成测试：编辑器能挂载并切换全部块类型
 
----
-
-#### Task 2.4: 实现 Mermaid 图表块
-
-**描述**: 集成 Mermaid 渲染
-
-**文件**:
-- `packages/editor/src/extensions/mermaid/index.tsx`
-
-**验收标准**:
-- [ ] Mermaid 图表渲染正常
-- [ ] 复用 md-parser 的 Worker 架构
-- [ ] 失败时显示源代码
-
-**预估时长**: 4h
+预估：1h
 
 ---
 
-### Phase 3: 工具栏
+### Phase 3: 交互层（~16h）
 
-#### Task 3.1: 实现浮动工具栏（Bubble Menu）
+#### T3.1 Slash 命令架构
 
-**描述**: 选中文字时显示工具栏
+- [x] `src/slash/SlashCommand.ts`：基于 `@tiptap/suggestion` 的扩展
+- [x] `src/slash/types.ts`：`SlashCommand` 接口
+- [x] 触发字符 `/`，trigger 后弹 tippy 浮层
+- [x] 单测：触发逻辑正确
 
-**文件**:
-- `packages/editor/src/toolbar/BubbleMenu.tsx`
+预估：3h
 
-**验收标准**:
-- [ ] 选中文字时弹出
-- [ ] 加粗/斜体/链接/代码按钮正常
-- [ ] 位置正确
+#### T3.2 Slash 命令面板 UI
 
-**预估时长**: 3h
+- [x] `src/slash/SlashPalette.tsx`：列表 UI、键盘上下选择、回车确认、Esc 关闭
+- [x] 分组显示（基础 / 媒体 / 高级）
+- [x] 搜索过滤（按 title + keywords）
+- [x] 鼠标 hover 高亮
 
----
+预估：3h
 
-#### Task 3.2: 实现块菜单（Block Menu）
+#### T3.3 默认命令注册
 
-**描述**: 悬停块时显示操作菜单
+- [x] `src/slash/commands.ts`：定义 15 个默认命令（H1/H2/H3/quote/divider/ul/ol/task/image/code/table/math/mermaid/container-tip/container-warning）
+- [x] 每个命令包含 icon、title、description、keywords、command 函数
 
-**文件**:
-- `packages/editor/src/toolbar/BlockMenu.tsx`
+预估：3h
 
-**验收标准**:
-- [ ] 悬停块时显示
-- [ ] 拖拽手柄正常
-- [ ] 删除/复制块正常
+#### T3.4 Bubble Menu（选区浮层）
 
-**预估时长**: 3h
+- [x] `src/menu/BubbleMenu.tsx`：基于 `@tiptap/extension-bubble-menu`
+- [x] 按钮：粗体、斜体、删除线、行内代码、链接、清除格式
+- [x] 链接编辑弹层
 
----
+预估：3h
 
-#### Task 3.3: 实现底部工具栏
+#### T3.5 Floating Menu（空行行首浮层）
 
-**描述**: 固定在编辑器底部的工具栏
+- [x] `src/menu/FloatingMenu.tsx`：基于 `@tiptap/extension-floating-menu`
+- [x] 空行时显示「+」按钮，点击打开 SlashPalette
 
-**文件**:
-- `packages/editor/src/toolbar/BottomToolbar.tsx`
+预估：2h
 
-**验收标准**:
-- [ ] 字数统计正常
-- [ ] 保存状态显示正常
-- [ ] 快捷操作按钮正常
+#### T3.6 块拖拽手柄 + 块级操作
 
-**预估时长**: 2h
+- [x] `src/menu/BlockHandle.tsx`：行首悬停显示拖拽手柄 + 「⋯」菜单
+- [x] 菜单项：删除块、复制块、上移、下移
+- [x] 拖拽实现块级排序（基于 PM 的 NodeView drag handler）
 
----
-
-### Phase 4: 渲染优化
-
-#### Task 4.1: 实现 DOM 渲染器（Phase 1）
-
-**描述**: 实现基础 DOM 渲染器
-
-**文件**:
-- `packages/editor/src/renderer/DOMRenderer.tsx`
-
-**验收标准**:
-- [ ] 渲染编辑器内容正常
-- [ ] 支持只读模式
-- [ ] 小文档（< 5000 字）性能良好
-
-**预估时长**: 4h
+预估：2h
 
 ---
 
-#### Task 4.2: 实现虚拟列表渲染器（Phase 2）
+### Phase 4: 持久化层（~12h）
 
-**描述**: 使用 react-window 实现虚拟滚动
+#### T4.1 IndexedDB 草稿存储
 
-**文件**:
-- `packages/editor/src/renderer/VirtualizedRenderer.tsx`
-- `packages/editor/src/renderer/strategy.ts`
+- [x] `src/autosave/DraftStore.ts`：基于 `idb` 封装
+- [x] schema：`{ id, articleId|null, contentJson, contentMarkdown, updatedAt, version }`
+- [x] 方法：`saveDraft / loadDraft / loadByArticleId / listDrafts / deleteDraft / cleanupOld`
+- [x] 30 天自动清理 + 数量超 50 时清理最老的
+- [x] 单测
 
-**验收标准**:
-- [ ] 虚拟滚动正常
-- [ ] 仅渲染可视区域块
-- [ ] 中文档（5000-20000 字）FPS > 55
+预估：3h
 
-**预估时长**: 6h
+#### T4.2 useAutosave Hook
 
----
+- [x] `src/autosave/useAutosave.ts`：参数 `{ editor, articleId, onRemoteSave, debounceMs?, intervalMs? }`
+- [x] 防抖 800ms 写 IndexedDB（PM JSON）
+- [x] 定时 30s 调用 `onRemoteSave(markdown)`（由消费方注入实际保存函数）
+- [x] 暴露 `saveStatus: 'idle'|'saving-local'|'saved-local'|'saving-remote'|'saved-remote'|'error'`
+- [x] 暴露 `forceSave()` 立即同步
+- [x] 单测
 
-#### Task 4.3: 预留 Canvas/WebGL 接口
+预估：3h
 
-**描述**: 设计 Phase 3/4 的渲染接口（空实现）
+#### T4.3 草稿恢复逻辑
 
-**文件**:
-- `packages/editor/src/renderer/CanvasRenderer.tsx`
-- `packages/editor/src/renderer/WebGLRenderer.tsx`
+- [x] 编辑器挂载时检查 IndexedDB
+- [x] 若 `draft.updatedAt > article.updatedAt` 弹窗：「检测到本地未保存草稿，是否恢复？[恢复] [放弃]」
+- [x] UI 组件 `<DraftRestorePrompt>`
 
-**验收标准**:
-- [ ] 接口定义完整
-- [ ] 文档说明未来实现
+预估：2h
 
-**预估时长**: 2h
+#### T4.4 SaveStatusIndicator UI
 
----
+- [x] `src/autosave/SaveStatusIndicator.tsx`：显示当前保存状态
+- [x] 文案：「正在保存...」「已保存到本地」「已同步 · HH:MM」「保存失败 · 重试」
+- [x] 错误时可点击重试
 
-#### Task 4.4: 实现渲染策略选择器
+预估：2h
 
-**描述**: 根据文档大小自动选择渲染策略
+#### T4.5 离线检测与提示
 
-**文件**:
-- `packages/editor/src/renderer/strategy.ts`
-- `packages/editor/src/renderer/index.tsx`
+- [x] 监听 `online`/`offline` 事件
+- [x] 离线时跳过 remote save，仅本地
+- [x] 网络恢复后立即触发一次 remote save
+- [x] 顶部条提示「当前离线，内容仅保存到本地」
 
-**验收标准**:
-- [ ] 根据字数自动选择渲染器
-- [ ] 策略切换正常
-
-**预估时长**: 2h
-
----
-
-### Phase 5: Markdown 双向转换
-
-#### Task 5.1: 实现 JSON → Markdown 导出
-
-**描述**: 将编辑器内容导出为 Markdown
-
-**文件**:
-- `packages/editor/src/converters/markdown.ts`
-
-**验收标准**:
-- [ ] 所有块类型正确导出
-- [ ] 导出格式符合 GFM 规范
-- [ ] 支持导出为 .md 文件
-
-**预估时长**: 4h
+预估：2h
 
 ---
 
-#### Task 5.2: 实现 Markdown → JSON 导入
+### Phase 5: 主站接入（~14h）
 
-**描述**: 将 Markdown 导入为编辑器内容
+#### T5.1 在 apps/main 添加 doc-editor 依赖
 
-**文件**:
-- `packages/editor/src/converters/markdown.ts`
+- [x] `apps/main/package.json` 新增 `@luhanxin/doc-editor: workspace:*`
+- [x] `pnpm install` 验证
 
-**验收标准**:
-- [ ] GFM 语法正确解析
-- [ ] 复杂格式转换正常
-- [ ] 不支持的格式给出警告
+预估：0.5h
 
-**预估时长**: 4h
+#### T5.2 实现 React 集成层
 
----
+- [x] `src/react/DocEditor.tsx`：主组件，props `{ initialContent, onChange, onSave, uploadHandler?, slashCommandsExtra?, readOnly? }`
+- [x] `src/react/useDocEditor.ts`：暴露 editor 实例
+- [x] `src/react/DocEditorProvider.tsx`：Context 注入上传 handler
 
-#### Task 5.3: 实现现有文章迁移
+预估：3h
 
-**描述**: 将已存储的 Markdown 自动转换为编辑器格式
+#### T5.3 重写 ArticleEditor
 
-**验收标准**:
-- [ ] 批量迁移脚本正常
-- [ ] 迁移后数据完整
-- [ ] 可回滚
+- [x] 备份 `apps/main/src/components/ArticleEditor/index.tsx` → `index.legacy.tsx`
+- [x] 重写 `index.tsx`：保留 props 签名（向上回调不变），内部从 textarea 改为 `<DocEditor>`
+- [x] 集成 `useAutosave`，`onRemoteSave` 内部调用 `onSave({ content: markdown, ... })`
+- [x] 移除「左右分栏预览」UI（块编辑器是 WYSIWYG）
 
-**预估时长**: 3h
+预估：3h
 
----
+#### T5.4 重写 ArticleEditor 样式
 
-### Phase 6: 自动保存
+- [x] `articleEditor.module.less` 重写：移除 splitPane / editPane / previewPane
+- [x] 顶部栏样式微调（编辑器需要更多垂直空间）
+- [x] 字数 / 保存状态指示放在顶部右侧
 
-#### Task 6.1: 实现 IndexedDB 缓存
+预估：1.5h
 
-**描述**: 使用 IndexedDB 存储草稿
+#### T5.5 Cloudinary 上传 handler 接入
 
-**文件**:
-- `packages/editor/src/autosave/indexeddb.ts`
+- [x] `packages/doc-editor/src/adapters/cloudinary-upload.ts`：默认实现 `createCloudinaryUploadHandler({ getSignatureUrl, getAuthToken, defaultFolder })`
+- [x] 流程与 `apps/main/src/components/AvatarUpload/index.tsx` 对齐：`POST /api/v1/upload/sign` → 直传 `https://api.cloudinary.com/v1_1/{cloud_name}/image/upload`
+- [x] 文件夹命名：`article-images/{articleId 或 draft-uuid}/`
+- [x] 错误处理：网络失败、签名失败、Cloudinary 错误都转为友好提示
+- [x] 文件类型白名单：`image/jpeg`, `image/png`, `image/gif`, `image/webp`；大小上限 10MB（大于头像的 2MB）
+- [x] 在 ArticleEditor 中用当前用户 token 注入 handler
+- [x] 单测（mock fetch）
 
-**验收标准**:
-- [ ] IndexedDB 读写正常
-- [ ] 草稿列表查询正常
-- [ ] 离线编辑正常
+预估：2.5h
 
-**预估时长**: 4h
+#### T5.5b 文章编辑路由升级 — **已取消**
 
----
+> ❌ **取消原因**：经产品讨论，`/post/:id/edit` 和 `/editor/:docId` 是**两种独立的产品形态**，不应做路由重定向。
+>
+> - 站内文章编辑（`/post/:id/edit`）：保留，仍使用 `@luhanxin/doc-editor` 包，发布到 platform articles
+> - 独立文档站（`/editor/:docId`）：由未来的 `editor-standalone-app` change 承接，会是独立 Garfish 子应用（`apps/doc-editor/`），独立 documents schema，支持 public/private/unlisted 可见性
+> - 类比：飞书主站 + docs.feishu.cn；语雀内容社区 + 语雀工作台
+>
+> 详见 `design.md` Decision 14。
 
-#### Task 6.2: 实现自动保存逻辑
+- [x] ~~在 `apps/main/src/routes/routes.tsx` 新增 `/editor/:docId` 路由，指向现有 edit 页面组件~~（取消）
+- [x] ~~保留 `/post/:id/edit` 作为 301 重定向到 `/editor/:id`~~（取消）
+- [x] ~~新建文章入口改为 `/editor/new`~~（取消）
+- [x] ~~更新"写文章"按钮跳转目标~~（取消，`handleWrite` 保持跳 `/profile/manage`）
+- [x] ~~验证外部书签（`/post/:id/edit` 形式）仍能访问~~（无需，路径未变）
 
-**描述**: 实现定时自动保存和防抖
+预估：~~1h~~（取消）
 
-**文件**:
-- `packages/editor/src/autosave/index.ts`
+#### T5.6 Feature flag 灰度
 
-**验收标准**:
-- [ ] 防抖 500ms 正常
-- [ ] 定时 30s 保存正常
-- [ ] 本地 + 远程同步正常
+- [x] 添加 env 变量 `VITE_USE_DOC_EDITOR`
+- [x] ArticleEditor 入口判断：开关开则用新编辑器，关则保留旧 textarea（legacy）
+- [x] 文档说明灰度方法
 
-**预估时长**: 4h
+预估：1h
 
----
+#### T5.7 现有文章兼容性测试
 
-#### Task 6.3: 实现冲突检测与恢复
+- [ ] 用 5-10 篇平台已有的 Markdown 文章在新编辑器打开
+- [ ] 验证：内容完整、格式正确、保存后再次打开等价
+- [ ] 不能转换的节点要有降级提示
 
-**描述**: 检测多设备编辑冲突
+预估：1.5h
 
-**文件**:
-- `packages/editor/src/autosave/conflict.ts`
+#### T5.8 E2E 测试
 
-**验收标准**:
-- [ ] 冲突检测正常
-- [ ] 提示用户选择正常
-- [ ] 合并逻辑正常（可选）
+- [ ] `e2e/article-editor.spec.ts`：创建文章 → 输入内容 → Slash 插入块 → 自动保存 → 关闭重开（草稿恢复）→ 手动保存 → 详情页验证
+- [ ] 断言保存后 `article.content` 是预期 Markdown
 
-**预估时长**: 4h
-
----
-
-#### Task 6.4: 后端版本快照存储
-
-**描述**: 实现 article_draft_versions 表和 API
-
-**文件**:
-- `services/svc-content/src/models/article_draft_version.rs`
-- `proto/luhanxin/community/v1/article.proto` — 新增 SaveDraftVersion RPC
-
-**验收标准**:
-- [ ] 数据表创建成功
-- [ ] RPC 接口正常
-- [ ] 保留最近 10 个版本
-
-**预估时长**: 4h
+预估：1.5h
 
 ---
 
-### Phase 7: 集成与测试
+### Phase 6: 文档与归档（~4h）
 
-#### Task 7.1: 集成到 article 子应用
+#### T6.1 包 README
 
-**描述**: 在 apps/article 中使用 @luhanxin/editor
+- [x] `packages/doc-editor/README.md`：用法示例、props 文档、自定义扩展、上传 handler 接入
 
-**文件**:
-- `apps/article/src/pages/pages/edit/index.tsx`
-- `apps/article/src/pages/pages/detail/index.tsx`
+预估：1.5h
 
-**验收标准**:
-- [ ] 编辑器正常渲染
-- [ ] 文章创建/编辑流程正常
-- [ ] 文章详情页渲染正常
+#### T6.2 tech 文档：编辑器选型
 
-**预估时长**: 4h
+- [ ] `docs/tech/10-tiptap-editor-selection.md`：技术选型对比表 + 决策记录
+- [ ] 更新 `docs/tech/` 索引
 
----
+预估：1h
 
-#### Task 7.2: 替换现有 ArticleEditor
+#### T6.3 会话日志
 
-**描述**: 移除旧的 textarea 编辑器
+- [ ] `.codebuddy/memory/YYYY-MM-DD.md`
 
-**验收标准**:
-- [ ] 旧编辑器代码移除
-- [ ] 所有引用更新
-- [ ] 无遗留代码
+预估：0.5h
 
-**预估时长**: 2h
+#### T6.4 提交 + Verify + Archive
 
----
+- [ ] `openspec validate next-gen-document-editor`
+- [ ] `openspec archive next-gen-document-editor`
+- [ ] 验证 4 个 spec 已 sync 到 main specs
 
-#### Task 7.3: 性能测试
-
-**描述**: 测试不同文档大小的渲染性能
-
-**验收标准**:
-- [ ] < 5000 字：DOM 渲染，FPS > 60
-- [ ] 5000-20000 字：虚拟列表，FPS > 55
-- [ ] 自动保存延迟 < 100ms
-- [ ] IndexedDB 写入延迟 < 50ms
-
-**预估时长**: 3h
-
----
-
-#### Task 7.4: 端到端测试
-
-**描述**: 测试完整的编辑流程
-
-**验收标准**:
-- [ ] 创建文章正常
-- [ ] 编辑文章正常
-- [ ] 自动保存正常
-- [ ] 离线编辑正常
-- [ ] Markdown 导入/导出正常
-
-**预估时长**: 4h
-
----
-
-#### Task 7.5: 更新文档
-
-**描述**: 更新技术文档
-
-**文件**:
-- `docs/tech/10-tiptap-editor-selection.md`
-- `docs/tech/11-editor-rendering-optimization.md`
-
-**验收标准**:
-- [ ] TipTap 选型文档完成
-- [ ] 渲染优化文档完成
-- [ ] 技术文档索引更新
-
-**预估时长**: 3h
+预估：1h
 
 ---
 
 ## 总计
 
-- **Phase 1: 核心编辑器骨架**: ~22h
-- **Phase 2: 高级块类型**: ~18h
-- **Phase 3: 工具栏**: ~8h
-- **Phase 4: 渲染优化**: ~14h
-- **Phase 5: Markdown 双向转换**: ~11h
-- **Phase 6: 自动保存**: ~16h
-- **Phase 7: 集成与测试**: ~16h
-- **总时长**: ~105h（约 13 个工作日）
+| Phase | 任务数 | 预估 |
+|-------|--------|------|
+| Phase 1: 包基础设施 | 7 | ~10h |
+| Phase 2: 块系统 | 8 | ~22h |
+| Phase 3: 交互层 | 6 | ~16h |
+| Phase 4: 持久化层 | 5 | ~12h |
+| Phase 5: 主站接入 | 8 | ~14h |
+| Phase 6: 文档与归档 | 4 | ~4h |
+| **总计** | **38** | **~78h（约 10 个工作日）** |
 
 ---
 
-## 后续 Change 任务（不在此范围）
+## 后续 Change（不在本范围）
 
-| Change | 任务范围 |
-|--------|---------|
-| **editor-collab** | Yjs 协同编辑 + 版本历史 + WebSocket 服务 |
-| **editor-workspace** | 用户创作空间 + 公开分享 + 文章模板系统 |
+| Change | 范围 |
+|--------|------|
+| `editor-standalone-app` | 把 `@luhanxin/doc-editor` 升级为 `apps/doc-editor/` 独立 Garfish 子应用 |
+| `editor-collab` | Yjs 协同编辑 + svc-collab WebSocket 服务 |
+| `editor-versioning` | 后端版本快照存储 + 版本对比/回滚 UI |
+| `editor-workspace` | 用户创作空间 + 文章模板系统 + 公开分享 |
+| `ai-writing-assistant` | AI 续写、改写、摘要生成 |
+| `editor-mobile` | 移动端编辑器交互优化 |
