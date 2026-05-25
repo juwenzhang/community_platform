@@ -1,0 +1,50 @@
+name: Deploy Backend to HuggingFace Space
+
+on:
+  push:
+    branches: [master]
+    paths:
+      # 后端代码变更
+      - 'Cargo.toml'
+      - 'Cargo.lock'
+      - 'rust-toolchain.toml'
+      - 'crates/**'
+      - 'services/**'
+      # infra 配置变更
+      - 'infra/huggingface/**'
+      - 'Dockerfile'
+  workflow_dispatch: # 手动触发
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Push to HuggingFace Space
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          # 创建临时目录，只放后端需要的文件
+          DEPLOY_DIR=$(mktemp -d)
+
+          # 复制必要文件
+          cp Cargo.toml Cargo.lock rust-toolchain.toml "$DEPLOY_DIR/"
+          cp Dockerfile "$DEPLOY_DIR/"
+          cp infra/huggingface/README.md "$DEPLOY_DIR/README.md"
+          cp -r crates "$DEPLOY_DIR/"
+          rsync -a --exclude='target' services/ "$DEPLOY_DIR/services/"
+          cp -r infra "$DEPLOY_DIR/"
+          cp -r scripts "$DEPLOY_DIR/"
+
+          # 进入部署目录
+          cd "$DEPLOY_DIR"
+
+          # 初始化 git 并推送到 HF
+          git init
+          git add .
+          git commit -m "deploy: $(date '+%Y-%m-%d %H:%M:%S')"
+          git push --force https://luhanxin:${HF_TOKEN}@huggingface.co/spaces/luhanxin/comunity-platform-backend main

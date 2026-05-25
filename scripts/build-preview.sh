@@ -21,11 +21,12 @@ ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 MAIN_DIST="$ROOT_DIR/apps/main/dist"
 FINAL_DIST="$ROOT_DIR/dist"
 
-echo "🔨 Building all packages and apps..."
+echo "🔨 Building frontend workspace packages and apps..."
 echo ""
 
-# 1. 构建所有包和应用
-pnpm -r build
+# 1. 构建前端 workspace 包和应用（排除 demo）
+# demo 不参与线上部署，跳过可减少 Vercel 构建时间
+pnpm -r --filter '!./demo/**' build
 
 echo ""
 echo "📦 Assembling output directory..."

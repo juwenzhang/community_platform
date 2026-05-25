@@ -4,7 +4,7 @@
        dev-frontend dev-frontend-main dev-frontend-feed \
        build-frontend build-preview preview kill-ports \
        fmt fmt-check lint typecheck check \
-       dev dev-full build test test-e2e test-e2e-ui \
+       dev dev-full build deploy-hf test test-e2e test-e2e-ui \
        clean clean-all \
        db-migrate db-migrate-down db-migrate-status db-migrate-fresh db-entity db-reset
 
@@ -218,6 +218,9 @@ dev-full: dev-infra ## 一键启动全栈 (基础设施 + 后端 + 前端)
 	@$(MAKE) dev-frontend
 
 build: build-backend build-frontend ## 构建全部 (后端 + 前端)
+
+deploy-hf: ## 部署后端到 HuggingFace Space (需要 HF_TOKEN 环境变量)
+	@bash scripts/deploy-hf.sh
 
 test: test-backend ## 运行所有测试 (单元 + E2E)
 	pnpm test
