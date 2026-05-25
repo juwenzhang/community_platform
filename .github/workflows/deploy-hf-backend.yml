@@ -28,6 +28,10 @@ jobs:
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
+          # 配置 git
+          git config --global user.email "3137536916@qq.com"
+          git config --global user.name "luhanxin"
+
           # 创建临时目录，只放后端需要的文件
           DEPLOY_DIR=$(mktemp -d)
 
