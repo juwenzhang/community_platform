@@ -35,10 +35,11 @@ const dedupInterceptor: Interceptor = (next) => {
 };
 
 /**
- * Vue 子应用的 Connect transport
+ * Vue 子应用的 Connect transport（独立运行时的 fallback）
+ * 正常微前端运行时使用主应用通过 Garfish props 共享的 clients，不走这里
  * 与主应用共享同一个 localStorage token + dedup 策略
  */
 export const transport = createGrpcWebTransport({
-  baseUrl: '/',
+  baseUrl: import.meta.env.VITE_API_BASE_URL || '/',
   interceptors: [authInterceptor, dedupInterceptor],
 });

@@ -15,7 +15,7 @@
     "build:main": "pnpm --filter @luhanxin/main build",
     "build:feed": "pnpm --filter @luhanxin/feed build",
     "build:preview": "bash scripts/build-preview.sh",
-    "preview": "bash scripts/build-preview.sh && pnpm --filter @luhanxin/main preview",
+    "preview": "bash scripts/build-preview.sh && vite preview --outDir dist",
     "typecheck": "pnpm -r --parallel --filter '!./demo/**' exec tsc --noEmit",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",

@@ -19,6 +19,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 MAIN_DIST="$ROOT_DIR/apps/main/dist"
+FINAL_DIST="$ROOT_DIR/dist"
 
 echo "🔨 Building all packages and apps..."
 echo ""
@@ -27,13 +28,17 @@ echo ""
 pnpm -r build
 
 echo ""
-echo "📦 Assembling preview directory..."
+echo "📦 Assembling output directory..."
 echo ""
 
-# 2. 确保 main/dist/apps/ 目录存在
-mkdir -p "$MAIN_DIST/apps"
+# 2. 清理并创建根目录 dist/
+rm -rf "$FINAL_DIST"
+cp -r "$MAIN_DIST" "$FINAL_DIST"
 
-# 3. 将每个子应用的 dist 拷贝到 main/dist/apps/<name>/
+# 3. 确保 dist/apps/ 目录存在
+mkdir -p "$FINAL_DIST/apps"
+
+# 4. 将每个子应用的 dist 拷贝到 dist/apps/<name>/
 # 遍历 apps/ 目录下的所有子应用（排除 main）
 for app_dir in "$ROOT_DIR"/apps/*/; do
   app_name=$(basename "$app_dir")
@@ -46,8 +51,8 @@ for app_dir in "$ROOT_DIR"/apps/*/; do
   app_dist="$app_dir/dist"
 
   if [ -d "$app_dist" ]; then
-    target="$MAIN_DIST/apps/$app_name"
-    echo "  📋 Copying $app_name/dist → main/dist/apps/$app_name/"
+    target="$FINAL_DIST/apps/$app_name"
+    echo "  📋 Copying $app_name/dist → dist/apps/$app_name/"
     rm -rf "$target"
     cp -r "$app_dist" "$target"
   else
@@ -56,16 +61,16 @@ for app_dir in "$ROOT_DIR"/apps/*/; do
 done
 
 echo ""
-echo "✅ Preview build complete!"
+echo "✅ Build complete!"
 echo ""
 echo "Directory structure:"
-echo "  apps/main/dist/"
+echo "  dist/"
 echo "  ├── index.html          (主应用)"
 echo "  ├── assets/              (主应用静态资源)"
 echo "  └── apps/"
 
 # 列出组装的子应用
-for app_dir in "$MAIN_DIST"/apps/*/; do
+for app_dir in "$FINAL_DIST"/apps/*/; do
   if [ -d "$app_dir" ]; then
     app_name=$(basename "$app_dir")
     echo "      └── $app_name/       (子应用)"

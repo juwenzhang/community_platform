@@ -167,12 +167,12 @@ dev-frontend-feed: ## 只启动 feed 子应用
 build-frontend: ## 构建前端所有包和应用 (排除 demo)
 	pnpm -r --filter '!./demo/**' build
 
-build-preview: ## 构建前端并组装 preview 目录 (子应用 → main/dist/apps/)
+build-preview: ## 构建前端并组装到根目录 dist/ (主应用 + 子应用)
 	@bash scripts/build-preview.sh
 
 preview: build-preview ## 构建并启动 preview server (验证生产效果)
 	@echo "🌐 Starting preview server on http://localhost:4173 ..."
-	pnpm --filter @luhanxin/main preview
+	pnpm exec vite preview --outDir dist
 
 test-e2e: ## 运行 Playwright E2E 测试
 	pnpm test:e2e
@@ -239,7 +239,7 @@ kill-ports: ## 杀掉项目占用的端口进程 (8000,50051,50052,50053,5173,51
 clean: ## 清理构建产物 (保留 node_modules)
 	@echo "🧹 Cleaning build artifacts..."
 	cargo clean
-	rm -rf apps/*/dist packages/*/dist
+	rm -rf dist apps/*/dist packages/*/dist
 	rm -f .dev-registry.json
 	@echo "✅ Clean complete"
 

@@ -59,11 +59,11 @@ const dedupInterceptor: Interceptor = (next) => {
  * gRPC-Web Transport 配置
  * 连接到 Gateway HTTP 服务，使用 gRPC-Web 协议 + Protobuf
  *
- * - 开发环境：Vite dev server proxy 转发到 Gateway (localhost:8000)
- * - 生产环境：Nginx / K8s Ingress 反代到 Gateway
+ * - 开发环境：baseUrl='/' → Vite dev server proxy 转发到 Gateway (localhost:8000)
+ * - 生产环境：baseUrl=VITE_API_BASE_URL → 直连后端域名（如 HuggingFace Space）
  * - 拦截器链：Auth（附加 JWT） → Dedup（读请求去重）
  */
 export const transport = createGrpcWebTransport({
-  baseUrl: '/',
+  baseUrl: import.meta.env.VITE_API_BASE_URL || '/',
   interceptors: [authInterceptor, dedupInterceptor],
 });
