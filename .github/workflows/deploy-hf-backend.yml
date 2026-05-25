@@ -8,12 +8,17 @@ on:
       - 'Cargo.toml'
       - 'Cargo.lock'
       - 'rust-toolchain.toml'
+      - 'rustfmt.toml'
+      - 'clippy.toml'
       - 'crates/**'
       - 'services/**'
-      # infra 配置变更
-      - 'infra/huggingface/**'
+      # 后端工程化与部署脚本
       - 'Dockerfile'
-  workflow_dispatch: # 手动触发
+      - 'Makefile'
+      - 'scripts/**'
+      - 'infra/huggingface/**'
+      - '.github/workflows/deploy-hf-backend.yml'
+  workflow_dispatch:
 
 jobs:
   deploy:
@@ -27,28 +32,4 @@ jobs:
       - name: Push to HuggingFace Space
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
-        run: |
-          # 配置 git
-          git config --global user.email "3137536916@qq.com"
-          git config --global user.name "luhanxin"
-
-          # 创建临时目录，只放后端需要的文件
-          DEPLOY_DIR=$(mktemp -d)
-
-          # 复制必要文件
-          cp Cargo.toml Cargo.lock rust-toolchain.toml "$DEPLOY_DIR/"
-          cp Dockerfile "$DEPLOY_DIR/"
-          cp infra/huggingface/README.md "$DEPLOY_DIR/README.md"
-          cp -r crates "$DEPLOY_DIR/"
-          rsync -a --exclude='target' services/ "$DEPLOY_DIR/services/"
-          cp -r infra "$DEPLOY_DIR/"
-          cp -r scripts "$DEPLOY_DIR/"
-
-          # 进入部署目录
-          cd "$DEPLOY_DIR"
-
-          # 初始化 git 并推送到 HF
-          git init
-          git add .
-          git commit -m "deploy: $(date '+%Y-%m-%d %H:%M:%S')"
-          git push --force https://luhanxin:${HF_TOKEN}@huggingface.co/spaces/luhanxin/comunity-platform-backend main
+        run: bash scripts/deploy-hf.sh

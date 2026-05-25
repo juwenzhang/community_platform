@@ -55,7 +55,10 @@ echo ""
 
 # Git 初始化并推送
 cd "$DEPLOY_DIR"
-git init -q
+git init -q -b main
+# CI/临时仓库必须设置提交身份；HF_TOKEN 只负责认证，不能替代 git author
+git config user.email "ci@luhanxin.com"
+git config user.name "Luhanxin Deploy Bot"
 git add .
 git commit -q -m "deploy: $(date '+%Y-%m-%d %H:%M:%S')"
 
